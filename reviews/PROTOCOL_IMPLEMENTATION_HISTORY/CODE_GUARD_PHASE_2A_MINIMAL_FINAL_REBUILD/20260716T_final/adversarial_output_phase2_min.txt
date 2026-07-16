@@ -1,0 +1,22 @@
+Phase 2 Min Adversarial Test Results
+
+All 40 Phase 2 Min tests PASSED (0 failed).
+
+Covered adversarial scenarios:
+- staged out-of-scope add -> FAIL (code 1)
+- staged denied delete -> FAIL (code 1)
+- unstaged delete -> FAIL (code 1)
+- committed out-of-scope -> FAIL (code 1)
+- protected SHA mismatch -> FAIL (code 1)
+- worktree_clean=false -> ERROR (code 2)
+- policy SHA changed -> ERROR (code 2)
+- non-git directory -> ERROR (code 2)
+- upload spec SHA wrong -> ERROR (code 2)
+- source swapped -> FAIL (code 1)
+- duplicate package_path -> ERROR (code 2)
+- no file writes during either checker
+- stdout single JSON per command
+
+BASELINE_FIXTURE_MODEL = BASELINE_PRECEDES_APPROVAL_ARTIFACTS
+TEMP_REPO_TESTS: All git-dependent tests use temporary repos
+REAL_PROJECT_GIT_VALIDATION = NOT_RUN

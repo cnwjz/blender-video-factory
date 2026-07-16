@@ -1,0 +1,141 @@
+protocol_version: v1.0
+project_id: bvf_asset_test_001_checkout_lane
+workflow_phase: code_guard_implementation
+scene_phase: camera_finalization_paused
+phase_approved: false
+project_work_paused: true
+last_task_id: CODE_GUARD_MVP_PHASE_1_4_FINAL_EVIDENCE_FIX
+last_task_card_sha256: null
+last_technical_result: TECHNICAL_PASS
+evidence_status: VALID
+evidence_sha256: 5501f1d021c2eee37e662f71d1d9cf78570f047650b5ffd1dec97ae547c59cd9
+output_files:
+- CODE_GUARD_MVP_PHASE_1_4_REPORT.md
+- CODE_GUARD_MVP_PHASE_1_4_SOURCE_SNAPSHOT.txt
+- PROJECT_STATE.yaml
+- pytest_output.txt
+- adversarial_test_output.txt
+- evidence_manifest.json
+last_execution_time: '2026-07-15T14:45:00+08:00'
+locked_assets:
+- asset_id: character_library_v1
+  path: projects/bvf_asset_test_001_checkout_lane/scene/character_library_v1.blend
+  lock_scope: whole_file
+  status: locked
+  approved_by: USER
+  notes: Kenney Mini Characters — 5 standardized characters
+- asset_id: cashier_standardized_v1
+  path: projects/bvf_asset_test_001_checkout_lane/scene/cashier_standardized_v1.blend
+  lock_scope: whole_file
+  status: locked
+  approved_by: USER
+  notes: Third-party cashier asset, standardized to 5.997 scale
+- asset_id: L1_step01_idle_grounded
+  path: projects/bvf_asset_test_001_checkout_lane/scene/L1_step01_idle_grounded.blend
+  lock_scope: whole_file
+  status: locked
+  approved_by: USER
+- asset_id: L1_step02_checkout_final
+  path: projects/bvf_asset_test_001_checkout_lane/scene/L1_step02_checkout_final.blend
+  lock_scope: whole_file
+  status: locked
+  approved_by: USER
+  notes: Locked layout — counters, characters, products, basket
+unlocked_assets: []
+diagnostic_only_outputs:
+- output_id: CAMERA_AZIMUTH_65_EXACT_VERIFY
+  path: projects/bvf_asset_test_001_checkout_lane/scene/CAMERA_AZIMUTH_65_EXACT_VERIFY.blend
+  status: diagnostic_only
+pending_review:
+  task_id: CODE_GUARD_MVP_PHASE_1_4_FINAL_EVIDENCE_FIX
+  reviewer: GPT_AND_USER
+  status: awaiting_gpt_review
+blocked_operations:
+- 禁止恢复正式相机构图
+- 禁止进入 L1-D
+- 禁止修改已锁定角色
+- 禁止修改已锁定收银台资产
+- 禁止制作动画
+- 禁止渲染完整视频
+failed_paths:
+- 'L1-C: ortho camera — round discarded'
+- 'L1-C2: 26% content height — framing infeasible'
+- '全 azimuth sweep: no config achieves >=70% height + 0 clipping'
+change_log:
+- timestamp: '2026-07-15T13:00:00+08:00'
+  actor: SYSTEM_MIGRATION
+  task_id: COLLAB_PROTOCOL_CODE_ARCHITECTURE_AUDIT
+  fields_changed:
+  - initial_state
+  reason: PROJECT_STATE.yaml 初始创建，记录审计完成后的项目状态
+- timestamp: '2026-07-15T13:12:00+08:00'
+  actor: CLAUDE
+  task_id: CODE_GUARD_MVP_PHASE_1
+  fields_changed:
+  - last_task_id
+  - last_technical_result
+  - evidence_status
+  - output_files
+  reason: Phase 1 技术通过 — 38 tests passed, 0 failed
+- timestamp: '2026-07-15T13:25:23+08:00'
+  actor: SYSTEM_MIGRATION
+  task_id: CODE_GUARD_MVP_PHASE_1_1_SCHEMA_HARDENING
+  fields_changed:
+  - last_task_id
+  - last_task_card_sha256
+  - last_technical_result
+  - evidence_status
+  - evidence_sha256
+  - output_files
+  - last_execution_time
+  - locked_assets
+  - diagnostic_only_outputs
+  - pending_review
+  - blocked_operations
+  - change_log
+  reason: Phase 1.1 Schema 强化 — 结构化 fixed_params/dependent_variables/locked_items/preflight_checks/conditions/evidence/stops,
+    23 新字段必填, SHA256 manifest 计算, change_log 追加. Authorized by user instruction for
+    Phase 1.1 schema migration.
+- timestamp: '2026-07-15T14:00:00+08:00'
+  actor: CLAUDE
+  task_id: CODE_GUARD_MVP_PHASE_1_2_PATCH_INTEGRITY
+  fields_changed:
+  - state_patch_requested.fields whitelist in task_card schema
+  - CLAUDE strict whitelist in validate_patch
+  - apply_patch_document atomic 9-step flow
+  - change_log auto-generation
+  - datetime.fromisoformat validation
+  - allowed/forbidden modification conflict detection
+  - change_log entry 3 actor corrected to SYSTEM_MIGRATION
+  reason: Phase 1.2 Patch Integrity — 6 vulnerability fixes, 90 tests passed, 17 adversarial
+    tests passed. GPT audit identified 3 persistence/coherence gaps deferred to Phase
+    1.3.
+- timestamp: '2026-07-15T14:15:00+08:00'
+  actor: CLAUDE
+  task_id: CODE_GUARD_MVP_PHASE_1_3_PERSISTENCE_COHERENCE
+  fields_changed:
+  - last_task_id
+  - output_files
+  - pending_review
+  - last_execution_time
+  - evidence_sha256
+  reason: Phase 1.3 Persistence Coherence — atomic save_state, GPT_PROPOSAL source
+    logging, PROJECT_STATE task consistency, evidence manifest recomputed.
+- timestamp: '2026-07-15T14:30:00+08:00'
+  actor: CLAUDE
+  task_id: CODE_GUARD_MVP_PHASE_1_3_PERSISTENCE_COHERENCE
+  fields_changed:
+  - gpt_audit_record
+  reason: 'GPT audit found 2 gaps: tmp_path cleanup incomplete, evidence manifest
+    self-referencing. Deferred to Phase 1.4.'
+- timestamp: '2026-07-15T14:45:00+08:00'
+  actor: CLAUDE
+  task_id: CODE_GUARD_MVP_PHASE_1_4_FINAL_EVIDENCE_FIX
+  fields_changed:
+  - last_task_id
+  - output_files
+  - pending_review
+  - last_execution_time
+  - evidence_sha256
+  reason: Phase 1.4 Final Evidence Fix — try/finally tmp_path cleanup, independent
+    evidence_manifest.json without self-reference, build/verify_evidence_manifest.

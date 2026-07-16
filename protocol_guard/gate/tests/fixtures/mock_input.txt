@@ -1,0 +1,1 @@
+hello world\nthis is a mock input file\nfor Phase 2A gate testing

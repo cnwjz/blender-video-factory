@@ -1,0 +1,42 @@
+﻿=== Phase 1.4 Adversarial Integrity Test ===
+
+1. Reread validation failure leaves no temp file
+  PASS: reread fail returns False
+  PASS: no file created
+  PASS: no temp files left
+
+2. Read exception leaves no temp file
+  PASS: read exception returns False
+  PASS: no temp files left
+
+3. Replace exception leaves original intact
+  PASS: initial save succeeds
+  PASS: replace exception returns False
+  PASS: original file bytes unchanged
+  PASS: no temp files left
+
+4. Valid save leaves no temp file
+  PASS: valid save succeeds
+  PASS: file exists
+  PASS: no temp files left
+
+5. Manifest has no self reference
+  PASS: build succeeds
+  PASS: no evidence_manifest.json in files
+  PASS: no PROJECT_STATE.yaml in files
+
+6. Tampered report is detected
+  PASS: initial verify passes
+  PASS: tampered report detected
+
+7. Tampered state is detected
+  PASS: initial verify passes
+  PASS: tampered state detected
+
+8. Final package verifies successfully
+  FAIL: final package verifies �� ['File not found: CODE_GUARD_MVP_PHASE_1_4_SOURCE_SNAPSHOT.txt at D:\\blender-video-factory\\CODE_GUARD_MVP_PHASE_1_4_SOURCE_SNAPSHOT.txt', 'File hash mismatch for adversarial_test_output.txt: actual=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855, manifest=123a098cc591d59887eb70b17ce9c2c234708c76461ad86d47e868fdbdae79c6', 'File hash mismatch for pytest_output.txt: actual=3b19fe1874dcd2190798eb13207ac5cc48b25d219cc670ca59c8c35a2f77ca42, manifest=f391306a65f62bfc01bb1b6556d4fc1344629a5d561abe6bf635c6d00a56ee77', 'Unexpected file in manifest: CODE_GUARD_PHASE_1_4_SOURCE_SNAPSHOT.txt']
+  PASS: evidence_status is VALID
+
+==================================================
+RESULTS: 20 passed, 1 failed
+==================================================

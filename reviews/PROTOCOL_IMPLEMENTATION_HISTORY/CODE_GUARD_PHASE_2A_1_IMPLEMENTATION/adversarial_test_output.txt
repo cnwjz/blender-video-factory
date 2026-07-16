@@ -1,0 +1,26 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 17 items
+
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_double_claim_rejected PASSED [  5%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_zero_byte_claim_handled PASSED [ 11%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_auth_wrong_task_card_sha PASSED [ 17%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_executing_requires_confirmation PASSED [ 23%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_indeterminate_blocks_recovery PASSED [ 29%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_path_absolute_rejected PASSED [ 35%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_path_parent_traversal_rejected PASSED [ 41%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_path_unc_rejected PASSED [ 47%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_path_drive_relative_rejected PASSED [ 52%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_ast_bpy_detected PASSED [ 58%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_ast_subprocess_detected PASSED [ 64%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_ast_ctypes_detected PASSED [ 70%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_ast_eval_detected PASSED [ 76%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_ast_exec_detected PASSED [ 82%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_ast_clean_source_passes PASSED [ 88%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_idempotent_finalize_after_executed PASSED [ 94%]
+protocol_guard/gate/tests/test_adversarial.py::TestAdversarial::test_claim_immutable_after_create PASSED [100%]
+
+============================= 17 passed in 0.28s ==============================

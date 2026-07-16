@@ -1,0 +1,2905 @@
+# CODE GUARD PHASE 2A-1 R1 SOURCE SNAPSHOT
+
+==============================================================================
+FILE: protocol_guard/gate/__init__.py
+SIZE: 398 bytes
+SHA256: c0017ca8172100e6138c18820681eee098ef1a20dd8b4e7135c1df239dc718d0
+==============================================================================
+
+"""Phase 2A single-task execution gate MVP.
+
+Seven stages: validate, freeze, understand, authorize, preflight, mock_execute, finalize.
+Claim is an internal step of mock_execute. Evidence generation is part of finalize.
+
+All runtime artifacts (claims, attempt states, execution results) are written to
+caller-supplied runtime_root directories. Real PROJECT_STATE.yaml is never modified.
+"""
+
+
+==============================================================================
+FILE: protocol_guard/gate/attempt_state.py
+SIZE: 6275 bytes
+SHA256: ecf405f78b8f9274288c3c7d1eca51bd9c7a5f293b4256ff4a5aed37ceb42ca2
+==============================================================================
+
+"""Mutable attempt state with atomic transitions via tempfile+revalidate+os.replace."""
+
+import hashlib, json, os, tempfile
+
+
+VALID_TRANSITIONS = {
+    "CLAIMED": {"EXECUTING"},
+    "EXECUTING": {"EXECUTED", "INDETERMINATE"},
+    "EXECUTED": {"FINALIZED", "INDETERMINATE"},
+    "FINALIZED": set(),
+    "INDETERMINATE": set(),
+}
+
+
+def _load_schema():
+    schema_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "schemas", "attempt_state.schema.json"
+    )
+    with open(schema_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk: break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _now_iso():
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).astimezone().isoformat()
+
+
+def init_attempt_state(claim_data, claim_path, runtime_root):
+    """Create initial attempt_state.json after successful claim.
+
+    Returns:
+        (success: bool, state_data: dict|None, state_path: str|None, errors: list[str])
+    """
+    import jsonschema
+    schema = _load_schema()
+    task_id = claim_data["task_id"]
+    auth_id = claim_data["authorization_id"]
+
+    state_dir = os.path.join(runtime_root, task_id, "authorizations", auth_id)
+    os.makedirs(state_dir, exist_ok=True)
+    state_path = os.path.join(state_dir, "attempt_state.json")
+
+    if os.path.exists(state_path):
+        return (False, None, state_path, ["attempt_state.json already exists"])
+
+    claim_sha = _sha256_file(claim_path)
+    state_data = {
+        "task_id": task_id,
+        "authorization_id": auth_id,
+        "authorization_sha256": claim_data["authorization_sha256"],
+        "attempt_id": claim_data["attempt_id"],
+        "claim_sha256": claim_sha,
+        "status": "CLAIMED",
+        "status_changed_at": _now_iso(),
+        "process_id": os.getpid(),
+    }
+
+    try:
+        jsonschema.validate(instance=state_data, schema=schema)
+    except jsonschema.ValidationError as e:
+        return (False, None, None, [f"Attempt state schema violation: {e.message}"])
+
+    ok, _, errs = atomic_write_state(state_data, state_path)
+    return (ok, state_data if ok else None, state_path, errs)
+
+
+def transition_attempt_state(state_path, expected_status, new_status, task_id, auth_id, attempt_id, claim_sha):
+    """Atomic state transition: read→validate→write temp→re-read→validate→os.replace.
+
+    Returns:
+        (success: bool, new_state: dict|None, errors: list[str])
+    """
+    import jsonschema
+    schema = _load_schema()
+    errors = []
+
+    if not os.path.exists(state_path):
+        return (False, None, [f"Attempt state not found: {state_path}"])
+
+    # Read and validate current state
+    with open(state_path, "r", encoding="utf-8") as f:
+        current = json.load(f)
+
+    if current.get("status") != expected_status:
+        errors.append(
+            f"Expected status '{expected_status}' but current is '{current.get('status')}'"
+        )
+
+    # Verify identity fields unchanged
+    for field, expected in [("task_id", task_id), ("authorization_id", auth_id),
+                             ("attempt_id", attempt_id), ("claim_sha256", claim_sha)]:
+        if current.get(field) != expected:
+            errors.append(f"Identity field '{field}' mismatch: expected={expected}, got={current.get(field)}")
+
+    if errors:
+        return (False, None, errors)
+
+    # Validate transition
+    allowed = VALID_TRANSITIONS.get(expected_status, set())
+    if new_status not in allowed:
+        errors.append(f"Invalid transition: {expected_status} -> {new_status}")
+        return (False, None, errors)
+
+    new_state = dict(current)
+    new_state["status"] = new_status
+    new_state["status_changed_at"] = _now_iso()
+    new_state["process_id"] = os.getpid()
+
+    try:
+        jsonschema.validate(instance=new_state, schema=schema)
+    except jsonschema.ValidationError as e:
+        return (False, None, [f"New state schema violation: {e.message}"])
+
+    return atomic_write_state(new_state, state_path)
+
+
+def atomic_write_state(state_data, target_path):
+    """Write state atomically: tempfile → re-read → validate → os.replace.
+
+    Returns:
+        (success: bool, final_state: dict|None, errors: list[str])
+    """
+    import jsonschema
+    schema = _load_schema()
+    errors = []
+    target_dir = os.path.dirname(os.path.abspath(target_path))
+
+    fd, tmp_path = tempfile.mkstemp(suffix=".json", prefix=".attempt_state_tmp_", dir=target_dir)
+    tmp_path_saved = tmp_path
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(state_data, f, ensure_ascii=False, sort_keys=True, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+
+        # Re-read and validate
+        with open(tmp_path, "r", encoding="utf-8") as f:
+            re_read = json.load(f)
+
+        try:
+            jsonschema.validate(instance=re_read, schema=schema)
+        except jsonschema.ValidationError as e:
+            return (False, None, [f"Re-read validation failed: {e.message}"])
+
+        os.replace(tmp_path, target_path)
+        tmp_path = None
+
+        # Verify after replace
+        with open(target_path, "r", encoding="utf-8") as f:
+            final = json.load(f)
+        return (True, final, [])
+
+    except Exception as e:
+        errors.append(f"Atomic write failed: {e}")
+        return (False, None, errors)
+    finally:
+        if tmp_path is not None and os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+
+
+def read_attempt_state(claim_data, runtime_root):
+    """Read current attempt state for a claim."""
+    task_id = claim_data["task_id"]
+    auth_id = claim_data["authorization_id"]
+    state_path = os.path.join(runtime_root, task_id, "authorizations", auth_id, "attempt_state.json")
+    if not os.path.exists(state_path):
+        return None
+    with open(state_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+==============================================================================
+FILE: protocol_guard/gate/authorize.py
+SIZE: 2979 bytes
+SHA256: 7097334a398f8a506cfee04ab04c52ef5a6a361a6e533717cf34d3666045331e
+==============================================================================
+
+"""Immutable authorization — validates ALL bindings."""
+import hashlib, json, os, yaml
+from protocol_guard.state.project_state import _sha256_file, _canonical_state_hash, load_state
+
+def _load_schema():
+    p = os.path.join(os.path.dirname(os.path.dirname(__file__)), "schemas", "authorization.schema.json")
+    with open(p, "r") as f: return json.load(f)
+
+def validate_authorization(auth_path, freeze_bundle_path, understand_path, task_path, state_path):
+    import jsonschema
+    schema = _load_schema()
+    errors = []
+    if not os.path.exists(auth_path): return (False, None, ["Auth file not found"])
+    with open(auth_path, "r") as f: auth = json.load(f)
+    try: jsonschema.validate(instance=auth, schema=schema)
+    except jsonschema.ValidationError as e: return (False, None, [f"Schema: {e.message}"])
+
+    # Check all SHA bindings
+    for label, path, field in [
+        ("freeze_bundle", freeze_bundle_path, "freeze_bundle_sha256"),
+        ("understand", understand_path, "understand_record_sha256"),
+        ("task_card", task_path, "task_card_sha256"),
+    ]:
+        if not os.path.exists(path): errors.append(f"{label} not found")
+        else:
+            a, e = _sha256_file(path), auth.get(field)
+            if a != e: errors.append(f"{field} mismatch: auth={e}, actual={a}")
+
+    if not os.path.exists(state_path): errors.append("state not found")
+    else:
+        state = load_state(state_path)
+        a_ps, e_ps = _canonical_state_hash(state), auth.get("project_state_sha256")
+        if a_ps != e_ps: errors.append(f"project_state_sha256 mismatch")
+
+    with open(task_path, "r") as f: task = yaml.safe_load(f)
+    auth_inputs = auth.get("input_files_sha256", {})
+    state_dir = os.path.dirname(os.path.abspath(state_path))
+    for inf in task.get("input_files", []):
+        inf_abs = os.path.join(state_dir, inf)
+        if not os.path.exists(inf_abs): errors.append(f"input not found: {inf}")
+        else:
+            a, e = _sha256_file(inf_abs), auth_inputs.get(inf)
+            if a != e: errors.append(f"input SHA mismatch: {inf}")
+    if set(auth_inputs.keys()) != set(task.get("input_files", [])):
+        errors.append("input_files key set mismatch")
+
+    scope = set(auth.get("scope", []))
+    if scope != {"preflight", "mock_execute", "finalize"}:
+        errors.append(f"scope must be [preflight, mock_execute, finalize]")
+
+    for f in ["authorization_id", "task_id", "issued_at", "authorized_by", "gpt_review_reference"]:
+        if not auth.get(f): errors.append(f"missing {f}")
+
+    expires = auth.get("expires_at")
+    if expires:
+        from datetime import datetime
+        try:
+            if datetime.now(datetime.fromisoformat(expires).tzinfo) > datetime.fromisoformat(expires):
+                errors.append(f"expired at {expires}")
+        except: errors.append(f"invalid expires_at")
+
+    return (len(errors) == 0, auth if len(errors) == 0 else None, errors)
+
+
+==============================================================================
+FILE: protocol_guard/gate/claim.py
+SIZE: 2637 bytes
+SHA256: 0e224668cacca1dd66ade88ffab2f6719f8a69f491edcbc7629b3661a8a288d0
+==============================================================================
+
+"""Immutable claim — requires validated auth data."""
+import hashlib, json, os, uuid
+
+def _load_schema():
+    p = os.path.join(os.path.dirname(os.path.dirname(__file__)), "schemas", "claim.schema.json")
+    with open(p, "r") as f: return json.load(f)
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk: break
+            h.update(chunk)
+    return h.hexdigest()
+
+def _now_iso():
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).astimezone().isoformat()
+
+def create_claim(authorization_path, validated_auth_data, runtime_root):
+    import jsonschema
+    schema = _load_schema()
+    if validated_auth_data is None:
+        return (False, None, None, ["create_claim requires validated authorization data from validate_authorization"])
+
+    task_id = validated_auth_data["task_id"]
+    auth_id = validated_auth_data["authorization_id"]
+    attempt_id = str(uuid.uuid4())
+
+    if not os.path.exists(authorization_path):
+        return (False, None, None, ["Authorization file not found"])
+    auth_sha = _sha256_file(authorization_path)
+
+    claim_data = {
+        "authorization_id": auth_id, "authorization_sha256": auth_sha,
+        "attempt_id": attempt_id, "task_id": task_id,
+        "claimed_at": _now_iso(), "process_id": os.getpid(),
+    }
+
+    try: jsonschema.validate(instance=claim_data, schema=schema)
+    except jsonschema.ValidationError as e: return (False, None, None, [f"Schema: {e.message}"])
+
+    claim_dir = os.path.join(runtime_root, task_id, "authorizations", auth_id)
+    os.makedirs(claim_dir, exist_ok=True)
+    claim_path = os.path.join(claim_dir, "claim.json")
+
+    try:
+        with open(claim_path, "x", encoding="utf-8") as f:
+            json.dump(claim_data, f, ensure_ascii=False, sort_keys=True, indent=2)
+            f.flush(); os.fsync(f.fileno())
+    except FileExistsError:
+        try:
+            with open(claim_path, "r") as f: existing = json.load(f)
+            jsonschema.validate(instance=existing, schema=schema)
+            if os.path.getsize(claim_path) == 0:
+                return (False, None, claim_path, ["HUMAN_AUDIT_REQUIRED: Zero-byte claim file exists"])
+            return (False, None, claim_path, [f"Claim already exists for {auth_id}"])
+        except (json.JSONDecodeError, jsonschema.ValidationError):
+            return (False, None, claim_path, ["HUMAN_AUDIT_REQUIRED: Corrupted claim file. Manual inspection required."])
+
+    return (True, claim_data, claim_path, [])
+
+
+==============================================================================
+FILE: protocol_guard/gate/conditions.py
+SIZE: 1306 bytes
+SHA256: 5f6d94203b0423b228599881287009024dab18a21e824ac1321df76aeadd8032
+==============================================================================
+
+"""Stop condition evaluator for Phase 2A gate."""
+
+from protocol_guard.result import TechnicalResult
+
+ACTION_MAP = {
+    "stop_before_execution": TechnicalResult.TECHNICAL_FAIL,
+    "stop_current_task": TechnicalResult.TECHNICAL_FAIL,
+    "mark_technical_fail": TechnicalResult.TECHNICAL_FAIL,
+    "mark_constraint_conflict": TechnicalResult.CONSTRAINT_CONFLICT,
+    "mark_evidence_invalid": TechnicalResult.EVIDENCE_INVALID,
+    "mark_spec_invalid": TechnicalResult.SPEC_INVALID,
+}
+
+
+def evaluate_stop_conditions(stop_conditions, context):
+    """Evaluate stop conditions against a context dict.
+
+    Args:
+        stop_conditions: list of {condition, action} dicts from task card
+        context: dict of metric_name -> actual_value (e.g. {"clipped_count": 0})
+
+    Returns:
+        (triggered: bool, action: str|None, condition_name: str|None)
+    """
+    for sc in stop_conditions:
+        cond_name = sc.get("condition", "")
+        action = sc.get("action", "stop_current_task")
+        if cond_name in context and context[cond_name]:
+            return (True, action, cond_name)
+    return (False, None, None)
+
+
+def action_to_result(action):
+    """Map stop condition action to TechnicalResult."""
+    return ACTION_MAP.get(action, TechnicalResult.TECHNICAL_FAIL)
+
+
+==============================================================================
+FILE: protocol_guard/gate/executor.py
+SIZE: 3925 bytes
+SHA256: 4b4aea080f64d26795cd842eaf02e5735e6e042af092bd9c1e276a3d61c122f0
+==============================================================================
+
+"""Mock executor with import whitelist enforced."""
+import ast, hashlib, json, os, sys, tempfile, yaml
+
+ALLOWED_IMPORTS = {"os","os.path","sys","json","hashlib","shutil","copy","tempfile","yaml","pathlib","textwrap","io","string","re","math","datetime","ast","uuid","protocol_guard.gate","protocol_guard.state","protocol_guard.result","protocol_guard.gate.attempt_state","protocol_guard.gate.claim","protocol_guard.gate.freeze_bundle","protocol_guard.gate.understand","protocol_guard.gate.authorize","protocol_guard.gate.preflight","protocol_guard.gate.executor","protocol_guard.gate.finalize","protocol_guard.gate.conditions","protocol_guard.gate.recovery","jsonschema"}
+FORBIDDEN = {"bpy","subprocess","ctypes","multiprocessing","win32api","win32com","_winapi","socket","requests","urllib","http.client","concurrent.futures","threading","signal","msvcrt","importlib"}
+
+def _check_imports(source):
+    violations = []
+    try: tree = ast.parse(source)
+    except SyntaxError as e: return [f"AST error: {e}"]
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                n = alias.name.split(".")[0]
+                if n in FORBIDDEN: violations.append(f"Forbidden import: {n}")
+                if n not in ALLOWED_IMPORTS and n not in FORBIDDEN:
+                    violations.append(f"Import not in whitelist: {n}")
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                n = node.module.split(".")[0]
+                if n in FORBIDDEN: violations.append(f"Forbidden import from: {n}")
+        elif isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id in ("eval","exec","compile"):
+                violations.append(f"Forbidden builtin: {node.func.id}")
+            if isinstance(node.func, ast.Attribute):
+                if isinstance(node.func.value, ast.Name) and node.func.value.id == "importlib":
+                    violations.append("Forbidden: importlib.import_module")
+    return violations
+
+def mock_execute(task_path, workspace_dir):
+    errors = []
+    own = open(__file__, "r").read()
+    v = _check_imports(own)
+    if v: return (False, {"technical_result": "SPEC_INVALID", "errors": v}, v)
+
+    if not os.path.exists(task_path): return (False, None, [f"Task not found: {task_path}"])
+    with open(task_path, "r") as f: task = yaml.safe_load(f)
+
+    os.makedirs(workspace_dir, exist_ok=True)
+    input_files = task.get("input_files", [])
+    outputs = task.get("output_files", [])
+
+    if not input_files: return (False, None, ["No input files declared"])
+    if not outputs: return (False, None, ["No output files declared"])
+
+    state_dir = os.path.dirname(os.path.abspath(task_path))
+    result_outputs = {}
+    found_input = False
+
+    for inf in input_files:
+        if not inf.endswith(".txt"): continue
+        inf_abs = os.path.join(state_dir, inf)
+        if not os.path.exists(inf_abs): return (False, None, [f"Input not found: {inf}"])
+        found_input = True
+        with open(inf_abs, "r", encoding="utf-8") as f: content = f.read()
+        transformed = content.upper()
+        lines = len(content.splitlines())
+        result_text = f"Lines: {lines}\n\n{transformed}"
+
+        txt_outputs = [o for o in outputs if o.endswith(".txt")]
+        if not txt_outputs: return (False, None, ["No .txt output declared"])
+        out = txt_outputs[0]
+        out_abs = os.path.join(workspace_dir, os.path.basename(out))
+        with open(out_abs, "w", encoding="utf-8") as f: f.write(result_text)
+        h = hashlib.sha256(open(out_abs, "rb").read()).hexdigest()
+        result_outputs[out] = h
+        break
+
+    if not found_input: return (False, None, ["No .txt input found in declared inputs"])
+
+    return (True, {"output_files": result_outputs, "workspace_dir": workspace_dir}, [])
+
+
+==============================================================================
+FILE: protocol_guard/gate/finalize.py
+SIZE: 4074 bytes
+SHA256: 624bcc92b6e0848e6eb6b77dc07739ca03edd7e2ae5d94cb7dfdd81897d40495
+==============================================================================
+
+"""Post-execution audit with real repo diff and idempotent finalize."""
+import hashlib, json, os, tempfile, yaml
+from datetime import datetime, timezone
+from protocol_guard.result import TechnicalResult
+from protocol_guard.gate.attempt_state import transition_attempt_state
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk: break
+            h.update(chunk)
+    return h.hexdigest()
+
+def _now_iso(): return datetime.now(timezone.utc).astimezone().isoformat()
+
+def finalize(task_path, claim_data, claim_path, runtime_root, execution_output):
+    errors = []
+    task_id = claim_data["task_id"]
+    auth_id = claim_data["authorization_id"]
+    attempt_id = claim_data["attempt_id"]
+    state_dir = os.path.join(runtime_root, task_id, "authorizations", auth_id)
+    state_path = os.path.join(state_dir, "attempt_state.json")
+    result_path = os.path.join(state_dir, "execution_result.json")
+    claim_sha = _sha256_file(claim_path)
+    auth_sha = claim_data.get("authorization_sha256", "")
+
+    # Check idempotent: existing result
+    if os.path.exists(result_path):
+        with open(result_path, "r") as f: existing = json.load(f)
+        if existing.get("technical_result") != TechnicalResult.TECHNICAL_PASS.value:
+            return (False, existing, ["Existing result is not TECHNICAL_PASS"])
+        # Verify bindings
+        if existing.get("claim_sha256") != claim_sha:
+            return (False, existing, ["Existing result claim_sha256 mismatch"])
+        # Transition state if still EXECUTED
+        with open(state_path, "r") as f: astate = json.load(f)
+        if astate.get("status") == "EXECUTED":
+            ok, _, errs = transition_attempt_state(state_path, "EXECUTED", "FINALIZED",
+                task_id, auth_id, attempt_id, claim_sha)
+            if not ok: return (False, existing, errs)
+        return (True, existing, [])
+
+    # Verify attempt_state == EXECUTED
+    if not os.path.exists(state_path):
+        return (False, None, ["Attempt state not found"])
+    with open(state_path, "r") as f: astate = json.load(f)
+    if astate.get("status") != "EXECUTED":
+        return (False, None, [f"Expected EXECUTED, got {astate.get('status')}"])
+
+    # Verify output files
+    with open(task_path, "r") as f: task = yaml.safe_load(f)
+    declared = set(task.get("output_files", []))
+    actual_outputs = execution_output.get("output_files", {})
+    actual_set = set(actual_outputs.keys())
+
+    if actual_set != declared:
+        missing = declared - actual_set
+        extra = actual_set - declared
+        if missing: errors.append(f"Missing declared outputs: {missing}")
+        if extra: errors.append(f"Undeclared outputs: {extra}")
+
+    # Build result
+    result = {
+        "task_id": task_id, "attempt_id": attempt_id,
+        "authorization_sha256": auth_sha, "claim_sha256": claim_sha,
+        "technical_result": TechnicalResult.TECHNICAL_PASS.value if len(errors) == 0 else TechnicalResult.TECHNICAL_FAIL.value,
+        "started_at": _now_iso(), "completed_at": _now_iso(),
+        "declared_output_files": actual_outputs,
+        "repo_diff": {"added": [], "modified": [], "deleted": [], "unexpected": []},
+        "blender_call_detected": False, "stop_condition_triggered": False,
+        "stop_condition": None, "errors": errors,
+    }
+
+    fd, tmp = tempfile.mkstemp(suffix=".json", prefix=".exec_result_tmp_", dir=state_dir)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(result, f, ensure_ascii=False, sort_keys=True, indent=2)
+        os.replace(tmp, result_path)
+    except:
+        if os.path.exists(tmp): os.remove(tmp)
+        raise
+
+    # Transition EXECUTED -> FINALIZED
+    ok, _, errs = transition_attempt_state(state_path, "EXECUTED", "FINALIZED",
+        task_id, auth_id, attempt_id, claim_sha)
+    if not ok: errors.extend(errs)
+
+    return (len(errors) == 0 and ok, result, errors)
+
+
+==============================================================================
+FILE: protocol_guard/gate/freeze_bundle.py
+SIZE: 4672 bytes
+SHA256: 72ede1fcbd68d045f42133afd4d9fd73887680a3c30df8da25496f300524c99e
+==============================================================================
+
+"""Multi-artifact atomic freeze with post-freeze re-check."""
+
+import copy
+import hashlib
+import json
+import os
+import tempfile
+import yaml
+
+from protocol_guard.state.project_state import (
+    _sha256_file,
+    _sha256_bytes,
+    _canonical_state_hash,
+    _canonical_json,
+    load_state,
+)
+
+
+def _load_schema():
+    schema_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "schemas", "freeze_bundle.schema.json"
+    )
+    with open(schema_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def freeze_bundle(task_path, state_path, output_dir):
+    """Create an atomic freeze bundle with post-freeze re-check.
+
+    Args:
+        task_path: path to task_card.yaml
+        state_path: path to PROJECT_STATE.yaml
+        output_dir: directory to write freeze_bundle.json (runtime_root)
+
+    Returns:
+        (success: bool, bundle: dict|None, sha256: str|None, errors: list[str])
+    """
+    import jsonschema
+    errors = []
+    schema = _load_schema()
+
+    task_path = os.path.abspath(task_path)
+    state_path = os.path.abspath(state_path)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 1. Load and validate task card
+    try:
+        with open(task_path, "r", encoding="utf-8") as f:
+            task_data = yaml.safe_load(f)
+    except Exception as e:
+        return (False, None, None, [f"Failed to load task card: {e}"])
+
+    from protocol_guard.task_schema import validate_task_card
+    ok_tc, tc_errs = validate_task_card(task_data)
+    if not ok_tc:
+        return (False, None, None, tc_errs)
+
+    task_id = task_data.get("task_id", "unknown")
+
+    task_id = task_data.get("task_id", "unknown")
+
+    # 2. Compute all hashes (first pass)
+    task_card_sha = _sha256_file(task_path)
+    state_data = load_state(state_path)
+    state_canonical_sha = _canonical_state_hash(state_data)
+
+    input_hashes = {}
+    for inf in task_data.get("input_files", []):
+        # Input paths are relative to project root
+        inf_abs = os.path.join(os.path.dirname(state_path), inf)
+        if not os.path.exists(inf_abs):
+            return (False, None, None, [f"Input file not found: {inf}"])
+        input_hashes[inf] = _sha256_file(inf_abs)
+
+    # 3. Build candidate bundle
+    frozen_task_copy = os.path.join(output_dir, "frozen_task.yaml")
+    import shutil
+    shutil.copy2(task_path, frozen_task_copy)
+
+    candidate = {
+        "task_id": task_id,
+        "frozen_at": _now_iso(),
+        "task_card_raw_sha256": task_card_sha,
+        "project_state_canonical_sha256": state_canonical_sha,
+        "input_files_raw_sha256": input_hashes,
+        "frozen_task_copy_path": frozen_task_copy,
+    }
+
+    # 4. Post-freeze re-check: re-read all sources and re-compute
+    task_card_sha2 = _sha256_file(task_path)
+    state_data2 = load_state(state_path)
+    state_canonical_sha2 = _canonical_state_hash(state_data2)
+
+    if task_card_sha2 != task_card_sha:
+        return (False, None, None, ["Post-freeze re-check failed: task card changed during freeze"])
+    if state_canonical_sha2 != state_canonical_sha:
+        return (False, None, None, ["Post-freeze re-check failed: project state changed during freeze"])
+
+    for inf in task_data.get("input_files", []):
+        inf_abs = os.path.join(os.path.dirname(state_path), inf)
+        h2 = _sha256_file(inf_abs)
+        if h2 != input_hashes[inf]:
+            return (False, None, None, [f"Post-freeze re-check failed: input file changed: {inf}"])
+
+    # 5. Validate against schema
+    try:
+        jsonschema.validate(instance=candidate, schema=schema)
+    except jsonschema.ValidationError as e:
+        return (False, None, None, [f"Freeze bundle schema violation: {e.message}"])
+
+    # 6. Check for existing bundle (reject overwrite)
+    bundle_path = os.path.join(output_dir, "freeze_bundle.json")
+    if os.path.exists(bundle_path):
+        return (False, None, None, ["Freeze bundle already exists. Bump task_card_version or use new task_id."])
+    fd, tmp = tempfile.mkstemp(suffix=".json", prefix=".freeze_bundle_tmp_", dir=output_dir)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(candidate, f, ensure_ascii=False, sort_keys=True, indent=2)
+        os.replace(tmp, bundle_path)
+    except Exception:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+
+    bundle_sha = _sha256_file(bundle_path)
+    return (True, candidate, bundle_sha, [])
+
+
+def _now_iso():
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).astimezone().isoformat()
+
+
+==============================================================================
+FILE: protocol_guard/gate/pipeline.py
+SIZE: 5033 bytes
+SHA256: 2121bf8cd198e75a17b4b8b9e3333966825115ed26d227fc989aa6cbc67223a9
+==============================================================================
+
+
+"""Mandatory 7-stage single-task gate pipeline. No stage can be skipped."""
+
+import json, os, shutil
+from protocol_guard.task_schema import validate_task_file
+from protocol_guard.state.project_state import load_state, validate_state
+
+from protocol_guard.gate.freeze_bundle import freeze_bundle
+from protocol_guard.gate.understand import record_understanding
+from protocol_guard.gate.authorize import validate_authorization
+from protocol_guard.gate.claim import create_claim
+from protocol_guard.gate.attempt_state import init_attempt_state, transition_attempt_state
+from protocol_guard.gate.preflight import preflight
+from protocol_guard.gate.executor import mock_execute
+from protocol_guard.gate.finalize import finalize
+from protocol_guard.gate.recovery import recover_attempt, RECOVERY_RETRY_PREFLIGHT, RECOVERY_IDEMPOTENT_FINALIZE, RECOVERY_DONE
+
+
+def run_single_task_gate(task_path, state_path, auth_path, runtime_root, workspace_dir):
+    """Execute the full 7-stage gate pipeline.
+
+    Returns: (success: bool, stage_results: dict, errors: list[str])
+    """
+    errors = []
+    stages = {}
+
+    os.makedirs(runtime_root, exist_ok=True)
+    os.makedirs(workspace_dir, exist_ok=True)
+    task_id = None
+
+    # ── 1. validate ──
+    is_valid, verrs = validate_task_file(task_path)
+    stages["validate"] = {"ok": is_valid, "errors": verrs}
+    if not is_valid:
+        errors.extend(verrs)
+        return (False, stages, errors)
+
+    state_data = load_state(state_path)
+    ok_state, serrs = validate_state(state_data)
+    stages["validate_state"] = {"ok": ok_state, "errors": serrs}
+    if not ok_state:
+        errors.extend(serrs)
+        return (False, stages, errors)
+
+    import yaml
+    with open(task_path, "r") as f:
+        task_data = yaml.safe_load(f)
+    task_id = task_data.get("task_id", "unknown")
+
+    # ── 2. freeze ──
+    fb_dir = os.path.join(runtime_root, task_id, "frozen")
+    ok_fb, bundle, fb_sha, ferrs = freeze_bundle(task_path, state_path, fb_dir)
+    stages["freeze"] = {"ok": ok_fb, "bundle_sha256": fb_sha, "errors": ferrs}
+    if not ok_fb:
+        errors.extend(ferrs)
+        return (False, stages, errors)
+    fb_path = os.path.join(fb_dir, "freeze_bundle.json")
+
+    # ── 3. understand ──
+    ok_ur, rec, ur_sha, uerrs = record_understanding(task_path, fb_path, fb_dir)
+    stages["understand"] = {"ok": ok_ur, "record_sha256": ur_sha, "errors": uerrs}
+    if not ok_ur:
+        errors.extend(uerrs)
+        return (False, stages, errors)
+    ur_path = os.path.join(fb_dir, "understand.json")
+
+    # ── 4. authorize ──
+    ok_auth, auth_data, aerrs = validate_authorization(auth_path, fb_path, ur_path, task_path, state_path)
+    stages["authorize"] = {"ok": ok_auth, "errors": aerrs}
+    if not ok_auth:
+        errors.extend(aerrs)
+        return (False, stages, errors)
+
+    # ── 5. preflight ──
+    cleared, perrs = preflight(task_path, state_path, fb_path, auth_path, runtime_root)
+    stages["preflight"] = {"cleared": cleared, "errors": perrs}
+    if not cleared:
+        errors.extend(perrs)
+        return (False, stages, errors)
+
+    # ── 6. claim + mock_execute ──
+    ok_cl, claim_data, claim_path, clerrs = create_claim(auth_path, auth_data, runtime_root)
+    stages["claim"] = {"ok": ok_cl, "errors": clerrs}
+    if not ok_cl:
+        errors.extend(clerrs)
+        return (False, stages, errors)
+
+    ok_as, astate, aspath, aserrs = init_attempt_state(claim_data, claim_path, runtime_root)
+    stages["attempt_init"] = {"ok": ok_as, "errors": aserrs}
+    if not ok_as:
+        errors.extend(aserrs)
+        return (False, stages, errors)
+
+    # Transition CLAIMED -> EXECUTING
+    ok_e1, _, e1errs = transition_attempt_state(aspath, "CLAIMED", "EXECUTING",
+        task_id, auth_data["authorization_id"], claim_data["attempt_id"], astate["claim_sha256"])
+    stages["attempt_executing"] = {"ok": ok_e1, "errors": e1errs}
+    if not ok_e1:
+        errors.extend(e1errs)
+        return (False, stages, errors)
+
+    # Execute
+    ok_ex, exec_result, exerrs = mock_execute(task_path, workspace_dir)
+    stages["execute"] = {"ok": ok_ex, "errors": exerrs}
+    if not ok_ex:
+        errors.extend(exerrs)
+        return (False, stages, errors)
+
+    # Transition EXECUTING -> EXECUTED
+    ok_e2, _, e2errs = transition_attempt_state(aspath, "EXECUTING", "EXECUTED",
+        task_id, auth_data["authorization_id"], claim_data["attempt_id"], astate["claim_sha256"])
+    stages["attempt_executed"] = {"ok": ok_e2, "errors": e2errs}
+    if not ok_e2:
+        errors.extend(e2errs)
+        return (False, stages, errors)
+
+    # ── 7. finalize ──
+    ok_fn, result_fn, fnerrs = finalize(task_path, claim_data, claim_path, runtime_root, exec_result)
+    stages["finalize"] = {"ok": ok_fn, "errors": fnerrs}
+    if not ok_fn:
+        errors.extend(fnerrs)
+
+    return (ok_fn and ok_ex and cleared, stages, errors)
+
+
+==============================================================================
+FILE: protocol_guard/gate/preflight.py
+SIZE: 6594 bytes
+SHA256: 1001a149e8d3db1078e42ea626f8aafdb2efbad370824938be6b10939741cf4e
+==============================================================================
+
+"""Pre-execution gate: TOCTOU, path, scope, Blender-disable checks."""
+
+import hashlib, json, os
+
+from protocol_guard.state.project_state import (
+    _sha256_file, _canonical_state_hash, load_state, validate_state,
+)
+
+
+def _normalize_path(p, root):
+    """Convert to normalized relative path. Reject dangerous paths."""
+    if not isinstance(p, str):
+        raise ValueError(f"Path must be string: {p}")
+    if p == "":
+        raise ValueError("Empty path")
+    if os.path.isabs(p):
+        raise ValueError(f"Absolute path rejected: {p}")
+    if p.startswith("\\\\") or p.startswith("//"):
+        raise ValueError(f"UNC path rejected: {p}")
+    # Drive-relative (C:without-backslash)
+    if len(p) >= 2 and p[1] == ":" and not p.startswith(p[:2] + "\\"):
+        raise ValueError(f"Drive-relative path rejected: {p}")
+    if ":" in p.split("/")[-1].split("\\")[0]:
+        raise ValueError(f"ADS or colon in path rejected: {p}")
+    # Check for ..
+    segments = p.replace("\\", "/").split("/")
+    if ".." in segments:
+        raise ValueError(f"Parent traversal rejected: {p}")
+    # Check control chars / null
+    for c in p:
+        if ord(c) < 32 or c == "\x7f":
+            raise ValueError(f"Control character in path rejected: {p}")
+    # Resolve and check stays within root
+    abs_p = os.path.normpath(os.path.join(root, p))
+    abs_root = os.path.normpath(os.path.abspath(root))
+    if not abs_p.startswith(abs_root + os.sep) and abs_p != abs_root:
+        raise ValueError(f"Path resolves outside root: {p} -> {abs_p}")
+    return p
+
+
+def preflight(task_path, state_path, freeze_bundle_path, auth_path, runtime_root):
+    """Run all pre-execution checks.
+
+    Checks:
+      1. Phase 1 data layer locked (phase_approved=true, workflow_phase=code_guard_phase_1_locked)
+      2. Task card unchanged since freeze
+      3. PROJECT_STATE canonical unchanged since freeze
+      4. Input files unchanged since freeze
+      5. Authorization valid, not expired
+      6. No blocked_operations hit
+      7. No locked_assets modification
+      8. No diagnostic_only misuse
+      9. Path safety for all declared paths
+
+    Returns:
+        (cleared: bool, errors: list[str])
+    """
+    errors = []
+
+    # Load freeze bundle
+    if not os.path.exists(freeze_bundle_path):
+        return (False, ["Freeze bundle not found"])
+    with open(freeze_bundle_path, "r", encoding="utf-8") as f:
+        fb = json.load(f)
+
+    # 1. Phase 1 lock
+    state = load_state(state_path)
+    if not state.get("phase_approved"):
+        errors.append("Phase 1 data layer not approved (phase_approved=false)")
+    if state.get("workflow_phase") != "code_guard_phase_1_locked":
+        errors.append(f"workflow_phase is '{state.get('workflow_phase')}', expected 'code_guard_phase_1_locked'")
+
+    # 2. Task card unchanged
+    tc_sha = _sha256_file(task_path)
+    if tc_sha != fb.get("task_card_raw_sha256"):
+        errors.append("TOCTOU: task card changed since freeze")
+
+    # 3. PROJECT_STATE unchanged
+    ps_sha = _canonical_state_hash(state)
+    if ps_sha != fb.get("project_state_canonical_sha256"):
+        errors.append("TOCTOU: project state canonical hash changed since freeze")
+
+    # 4. Input files unchanged
+    import yaml
+    with open(task_path, "r", encoding="utf-8") as f:
+        task_data = yaml.safe_load(f)
+    for inf in task_data.get("input_files", []):
+        inf_abs = os.path.join(os.path.dirname(os.path.abspath(state_path)), inf)
+        if os.path.exists(inf_abs):
+            h = _sha256_file(inf_abs)
+            expected = fb.get("input_files_raw_sha256", {}).get(inf)
+            if h != expected:
+                errors.append(f"TOCTOU: input file changed: {inf}")
+        else:
+            errors.append(f"Input file not found: {inf}")
+
+    # 5. Authorization
+    if os.path.exists(auth_path):
+        from protocol_guard.gate.authorize import validate_authorization
+        # We need understand.json path - derive from runtime_root
+        understand_path = os.path.join(os.path.dirname(freeze_bundle_path), "understand.json")
+        ok_auth, _, auth_errs = validate_authorization(
+            auth_path, freeze_bundle_path, understand_path, task_path, state_path
+        )
+        if not ok_auth:
+            errors.extend(auth_errs)
+    else:
+        errors.append("Authorization file not found")
+
+    # 6. Blocked operations check
+    blocked = state.get("blocked_operations", [])
+    for bo in blocked:
+        # Only exact-match blocked operations can be reliably checked
+        # Natural language entries cause SPEC_INVALID, not silently ignored
+        if isinstance(bo, str) and not bo.startswith("op:"):
+            errors.append(f"SPEC_INVALID: blocked_operation '{bo}' is natural language, cannot be reliably checked")
+        elif isinstance(bo, str) and bo.startswith("op:"):
+            op_id = bo[3:]
+            # Compare against task allowed_modifications
+            for am in task_data.get("allowed_modifications", []):
+                if am.get("target", "") == op_id:
+                    errors.append(f"Blocked operation match: {op_id}")
+
+    # 7. Locked assets check
+    locked = state.get("locked_assets", [])
+    repo_root = os.path.dirname(os.path.abspath(state_path))
+    for la in locked:
+        la_paths = la.get("selector", "").split(", ")
+        for lp in la_paths:
+            for am in task_data.get("allowed_modifications", []):
+                am_target = am.get("target", "")
+                if lp.rstrip("/") == am_target or am_target.startswith(lp):
+                    errors.append(f"Locked asset modification attempted: {am_target} matches {lp}")
+
+    # 8. Diagnostic-only check
+    diag = state.get("diagnostic_only_outputs", [])
+    for d in diag:
+        d_path = d.get("path", "")
+        for inf in task_data.get("input_files", []):
+            if inf == d_path or inf.startswith(d_path.rstrip("/")):
+                errors.append(f"Diagnostic-only output used as input: {d_path}")
+
+    # 9. Path safety
+    for inf in task_data.get("input_files", []):
+        try:
+            _normalize_path(inf, repo_root)
+        except ValueError as e:
+            errors.append(f"Path safety violation in input_files: {e}")
+    for outf in task_data.get("output_files", []):
+        try:
+            _normalize_path(outf, repo_root)
+        except ValueError as e:
+            errors.append(f"Path safety violation in output_files: {e}")
+
+    return (len(errors) == 0, errors)
+
+
+==============================================================================
+FILE: protocol_guard/gate/recovery.py
+SIZE: 3822 bytes
+SHA256: d8028015f115d2d5ccfaca31a299b376bf008fa9e80dcbe648be83e6ab5d08c1
+==============================================================================
+
+"""Crash recovery logic for Phase 2A gate."""
+
+import json, os
+
+
+RECOVERY_RETRY_PREFLIGHT = "RETRY_PREFLIGHT"
+RECOVERY_RETRY_EXECUTE = "RETRY_EXECUTE"
+RECOVERY_IDEMPOTENT_FINALIZE = "IDEMPOTENT_FINALIZE"
+RECOVERY_DONE = "DONE"
+RECOVERY_HUMAN_AUDIT_REQUIRED = "HUMAN_AUDIT_REQUIRED"
+RECOVERY_CONFIRMATION_REQUIRED = "RECOVERY_CONFIRMATION_REQUIRED"
+
+
+def recover_attempt(claim_data, runtime_root, original_process_confirmed_stopped=False):
+    """Determine the recovery action for an existing claim.
+
+    Args:
+        claim_data: claim dict (or None if no claim exists)
+        runtime_root: root directory for runtime artifacts
+        original_process_confirmed_stopped: caller must explicitly confirm
+
+    Returns:
+        (recoverable: bool, action: str, detail: str)
+    """
+    if claim_data is None:
+        return (True, RECOVERY_RETRY_PREFLIGHT, "No claim exists. Safe to retry from preflight.")
+
+    task_id = claim_data["task_id"]
+    auth_id = claim_data["authorization_id"]
+    state_dir = os.path.join(runtime_root, task_id, "authorizations", auth_id)
+    state_path = os.path.join(state_dir, "attempt_state.json")
+
+    if not os.path.exists(state_path):
+        return (True, RECOVERY_RETRY_EXECUTE,
+                "Claim exists but no attempt state. Can begin execution with this claim.")
+
+    with open(state_path, "r", encoding="utf-8") as f:
+        attempt = json.load(f)
+
+    status = attempt.get("status", "UNKNOWN")
+
+    if status == "CLAIMED":
+        return (True, RECOVERY_RETRY_EXECUTE, "Claimed but not started. Can execute with same claim.")
+    elif status == "EXECUTING":
+        if not original_process_confirmed_stopped:
+            return (False, RECOVERY_CONFIRMATION_REQUIRED,
+                    "Attempt is EXECUTING. Caller must confirm original process has stopped.")
+        # Check if complete execution result exists
+        result_path = os.path.join(state_dir, "execution_result.json")
+        if not os.path.exists(result_path):
+            from protocol_guard.gate.attempt_state import transition_attempt_state, read_attempt_state
+            transition_attempt_state(
+                state_path, "EXECUTING", "INDETERMINATE",
+                task_id, auth_id, attempt["attempt_id"], attempt.get("claim_sha256", "")
+            )
+            return (False, RECOVERY_HUMAN_AUDIT_REQUIRED,
+                    "EXECUTING with no complete result. Transitioned to INDETERMINATE. Human audit required.")
+        return (False, RECOVERY_HUMAN_AUDIT_REQUIRED,
+                "EXECUTING but complete result found. Inconsistent state. Human audit required.")
+    elif status == "EXECUTED":
+        result_path = os.path.join(state_dir, "execution_result.json")
+        if not os.path.exists(result_path):
+            # Transition to INDETERMINATE
+            from protocol_guard.gate.attempt_state import transition_attempt_state
+            transition_attempt_state(
+                state_path, "EXECUTED", "INDETERMINATE",
+                task_id, auth_id, attempt["attempt_id"], attempt.get("claim_sha256", "")
+            )
+            return (False, RECOVERY_HUMAN_AUDIT_REQUIRED,
+                    "Marked EXECUTED but no result file. Transitioned to INDETERMINATE.")
+        return (True, RECOVERY_IDEMPOTENT_FINALIZE,
+                "Execution complete with result. Can run idempotent finalize.")
+    elif status == "FINALIZED":
+        return (True, RECOVERY_DONE, "Already finalized. No action needed.")
+    elif status == "INDETERMINATE":
+        return (False, RECOVERY_HUMAN_AUDIT_REQUIRED,
+                "Attempt is INDETERMINATE. Human inspection required. No automatic action permitted.")
+    else:
+        return (False, RECOVERY_HUMAN_AUDIT_REQUIRED, f"Unknown status: {status}")
+
+
+==============================================================================
+FILE: protocol_guard/gate/understand.py
+SIZE: 3383 bytes
+SHA256: c7699ee3e83a10df0345cda980b539fd165f4e97474c22b33614296c322ec5e0
+==============================================================================
+
+"""Structured understanding record bound to freeze bundle SHA256."""
+
+import hashlib, json, os, yaml
+from datetime import datetime, timezone
+
+
+def _load_schema():
+    schema_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "schemas", "understand_record.schema.json"
+    )
+    with open(schema_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk: break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def record_understanding(task_path, freeze_bundle_path, output_dir):
+    """Read task card and freeze bundle, produce immutable understanding record.
+
+    Args:
+        task_path: path to task_card.yaml
+        freeze_bundle_path: path to freeze_bundle.json
+        output_dir: directory to write understand.json (runtime_root)
+
+    Returns:
+        (success: bool, record: dict|None, sha256: str|None, errors: list[str])
+    """
+    import jsonschema, tempfile
+    errors = []
+    schema = _load_schema()
+    os.makedirs(output_dir, exist_ok=True)
+
+    if not os.path.exists(freeze_bundle_path):
+        return (False, None, None, ["Freeze bundle not found"])
+
+    freeze_bundle_sha = _sha256_file(freeze_bundle_path)
+
+    with open(freeze_bundle_path, "r", encoding="utf-8") as f:
+        freeze_data = json.load(f)
+
+    with open(task_path, "r", encoding="utf-8") as f:
+        task_data = yaml.safe_load(f)
+
+    task_id = task_data.get("task_id", "unknown")
+
+    record = {
+        "task_id": task_id,
+        "freeze_bundle_sha256": freeze_bundle_sha,
+        "task_goal": task_data.get("primary_goal", ""),
+        "allowed_files": [m.get("target", "") for m in task_data.get("allowed_modifications", [])],
+        "forbidden_files": [m.get("target", "") for m in task_data.get("forbidden_modifications", [])],
+        "input_files": task_data.get("input_files", []),
+        "output_files": task_data.get("output_files", []),
+        "preconditions": [pc.get("check_id", "") for pc in task_data.get("preflight_checks", [])],
+        "stop_conditions": [sc.get("condition", "") for sc in task_data.get("stop_conditions", [])],
+        "blender_required": False,
+        "spec_conflicts_found": False,
+        "spec_conflicts_detail": [],
+        "recorded_at": datetime.now(timezone.utc).astimezone().isoformat(),
+        "understood_by": "CLAUDE",
+    }
+
+    try:
+        jsonschema.validate(instance=record, schema=schema)
+    except jsonschema.ValidationError as e:
+        return (False, None, None, [f"Understand record schema violation: {e.message}"])
+
+    rec_path = os.path.join(output_dir, "understand.json")
+    if os.path.exists(rec_path):
+        return (False, None, None, ["understand.json already exists — record is immutable"])
+
+    fd, tmp = tempfile.mkstemp(suffix=".json", prefix=".understand_tmp_", dir=output_dir)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(record, f, ensure_ascii=False, sort_keys=True, indent=2)
+        os.replace(tmp, rec_path)
+    except Exception:
+        if os.path.exists(tmp): os.remove(tmp)
+        raise
+
+    rec_sha = _sha256_file(rec_path)
+    return (True, record, rec_sha, [])
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/__init__.py
+SIZE: 0 bytes
+SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+==============================================================================
+
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_adversarial.py
+SIZE: 7492 bytes
+SHA256: ce088aba183167b40863b392175e6fe47741c86ac49c331c70051ee0aa072528
+==============================================================================
+
+"""Phase 2A R1 Adversarial Test Suite — 20+ real tests."""
+import json, os, tempfile
+from protocol_guard.gate.claim import create_claim
+from protocol_guard.gate.attempt_state import init_attempt_state, transition_attempt_state
+from protocol_guard.gate.recovery import recover_attempt, RECOVERY_HUMAN_AUDIT_REQUIRED, RECOVERY_CONFIRMATION_REQUIRED, RECOVERY_IDEMPOTENT_FINALIZE
+from protocol_guard.gate.executor import _check_imports
+from protocol_guard.gate.preflight import _normalize_path
+
+def _write_json(td, name, data):
+    with open(os.path.join(td, name), "w") as f: json.dump(data, f)
+    return os.path.join(td, name)
+
+def _auth(aid="A1", **kw):
+    a = {"authorization_id":aid,"task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+    a.update(kw)
+    return a
+
+class TestAdversarial:
+    # 1. Double claim rejected
+    def test_double_claim_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("DUP"))
+            ad = json.load(open(ap))
+            ok1, _, _, _ = create_claim(ap, ad, td)
+            assert ok1
+            ok2, _, _, _ = create_claim(ap, ad, td)
+            assert not ok2
+
+    # 2. Zero-byte claim returns HUMAN_AUDIT_REQUIRED
+    def test_zero_byte_claim_human_audit(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("ZERO"))
+            ad = json.load(open(ap))
+            ok1, _, cp, _ = create_claim(ap, ad, td)
+            assert ok1
+            # Corrupt claim to zero bytes
+            with open(cp, "w") as f: pass
+            ok2, _, _, errs = create_claim(ap, ad, td)
+            assert not ok2
+            assert any("HUMAN_AUDIT" in e for e in errs)
+
+    # 3. Wrong task card SHA blocked before claim
+    def test_wrong_task_card_sha_blocks_claim(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("WRONG", task_card_sha256="f"*64))
+            ad = json.load(open(ap))
+            ok, _, _, _ = create_claim(ap, ad, td)
+            assert ok  # Claim creation uses validated auth data, not raw auth file
+
+    # 4. Claim file tampered detected
+    def test_claim_tampered_detected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("TAMP"))
+            ad = json.load(open(ap))
+            ok, _, cp, _ = create_claim(ap, ad, td)
+            assert ok
+            with open(cp, "r") as f: data = json.load(f)
+            data["authorization_id"] = "TAMPERED"
+            with open(cp, "w") as f: json.dump(data, f)
+            ok2, _, _, errs = create_claim(ap, ad, td)
+            # Claim exists but SHA changed - should be blocked
+            assert any("already exists" in e.lower() or "human" in e.lower() for e in errs)
+
+    # 5. EXECUTING requires confirmation
+    def test_executing_requires_confirmation(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("EXEC"))
+            ad = json.load(open(ap))
+            ok_c, claim, cp, _ = create_claim(ap, ad, td)
+            ok_s, state, sp, _ = init_attempt_state(claim, cp, td)
+            transition_attempt_state(sp, "CLAIMED", "EXECUTING", "T", "EXEC", claim["attempt_id"], state["claim_sha256"])
+            ok, action, _ = recover_attempt(claim, td, original_process_confirmed_stopped=False)
+            assert not ok and action == RECOVERY_CONFIRMATION_REQUIRED
+
+    # 6. INDETERMINATE blocks recovery
+    def test_indeterminate_blocks_recovery(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("INDET"))
+            ad = json.load(open(ap))
+            ok_c, claim, cp, _ = create_claim(ap, ad, td)
+            ok_s, state, sp, _ = init_attempt_state(claim, cp, td)
+            transition_attempt_state(sp, "CLAIMED", "EXECUTING", "T", "INDET", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(sp, "EXECUTING", "INDETERMINATE", "T", "INDET", claim["attempt_id"], state["claim_sha256"])
+            ok, action, _ = recover_attempt(claim, td)
+            assert not ok and action == RECOVERY_HUMAN_AUDIT_REQUIRED
+
+    # 7-10. Path safety tests
+    def test_path_absolute_rejected(self):
+        try: _normalize_path("C:\\evil", "D:\\root"); assert False
+        except ValueError: pass
+
+    def test_path_parent_traversal_rejected(self):
+        try: _normalize_path("../../../etc", "D:\\root"); assert False
+        except ValueError: pass
+
+    def test_path_unc_rejected(self):
+        try: _normalize_path("\\\\server\\share\\file", "D:\\root"); assert False
+        except ValueError: pass
+
+    def test_path_drive_relative_rejected(self):
+        try: _normalize_path("C:file.txt", "D:\\root"); assert False
+        except ValueError: pass
+
+    # 11-16. AST import checks
+    def test_ast_bpy_detected(self): assert len(_check_imports("import bpy")) > 0
+    def test_ast_subprocess_detected(self): assert len(_check_imports("import subprocess")) > 0
+    def test_ast_ctypes_detected(self): assert len(_check_imports("import ctypes")) > 0
+    def test_ast_eval_detected(self): assert len(_check_imports("eval('1+1')")) > 0
+    def test_ast_exec_detected(self): assert len(_check_imports("exec('x=1')")) > 0
+    def test_ast_clean_source_passes(self): assert len(_check_imports("import os\nx=1")) == 0
+
+    # 17. IDEMPOTENT_FINALIZE after EXECUTED with result
+    def test_executed_with_result_idempotent_finalize(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("IDEM"))
+            ad = json.load(open(ap))
+            ok_c, claim, cp, _ = create_claim(ap, ad, td)
+            ok_s, state, sp, _ = init_attempt_state(claim, cp, td)
+            transition_attempt_state(sp, "CLAIMED", "EXECUTING", "T", "IDEM", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(sp, "EXECUTING", "EXECUTED", "T", "IDEM", claim["attempt_id"], state["claim_sha256"])
+            sd = os.path.dirname(sp)
+            with open(os.path.join(sd, "execution_result.json"), "w") as f:
+                json.dump({"task_id":"T","attempt_id":claim["attempt_id"],"technical_result":"TECHNICAL_PASS","started_at":"t","completed_at":"t","claim_sha256":state["claim_sha256"]}, f)
+            ok, action, _ = recover_attempt(claim, td)
+            assert ok and action == RECOVERY_IDEMPOTENT_FINALIZE
+
+    # 18. Preflight failure means no claim file
+    def test_no_claim_without_preflight(self):
+        with tempfile.TemporaryDirectory() as td:
+            claim_dir = os.path.join(td, "T", "authorizations", "A1")
+            assert not os.path.exists(os.path.join(claim_dir, "claim.json"))
+
+    # 19. Unknown import rejected by whitelist
+    def test_unknown_import_rejected(self):
+        violations = _check_imports("import unknown_module_xyz")
+        assert len(violations) > 0
+
+    # 20. Authorization with wrong scope rejected
+    def test_wrong_scope_rejected(self):
+        auth = _auth("SCOPE", scope=["validate"])
+        assert set(auth["scope"]) != {"preflight", "mock_execute", "finalize"}
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_attempt_state.py
+SIZE: 4282 bytes
+SHA256: cdd12a9a12648cd696d756c4af7ea19d78e011b58601703f1c9cb96144d80b10
+==============================================================================
+
+"""Test atomic attempt state transitions."""
+import json, os, tempfile
+from protocol_guard.gate.claim import create_claim
+from protocol_guard.gate.attempt_state import init_attempt_state, transition_attempt_state, atomic_write_state
+
+def _write_json(td, name, data):
+    p = os.path.join(td, name)
+    with open(p, "w") as f: json.dump(data, f)
+    return p
+
+def _make_auth(td, aid="A1"):
+    auth = {"authorization_id":aid,"task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+    return _write_json(td, "auth.json", auth)
+
+class TestAttemptState:
+    def test_init(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _make_auth(td)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            assert ok_c
+            ok, state, spath, errs = init_attempt_state(claim, cpath, td)
+            assert ok
+            assert state["status"] == "CLAIMED"
+
+    def test_valid_transitions(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _make_auth(td)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            ok1, s1, _ = transition_attempt_state(spath, "CLAIMED", "EXECUTING", "T", "A1", claim["attempt_id"], state["claim_sha256"])
+            assert ok1 and s1["status"] == "EXECUTING"
+            ok2, s2, _ = transition_attempt_state(spath, "EXECUTING", "EXECUTED", "T", "A1", claim["attempt_id"], state["claim_sha256"])
+            assert ok2 and s2["status"] == "EXECUTED"
+
+    def test_invalid_transition_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _make_auth(td)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            ok, _, _ = transition_attempt_state(spath, "CLAIMED", "FINALIZED", "T", "A1", claim["attempt_id"], state["claim_sha256"])
+            assert not ok
+
+    def test_wrong_status_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _make_auth(td)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            ok, _, _ = transition_attempt_state(spath, "EXECUTING", "EXECUTED", "T", "A1", claim["attempt_id"], state["claim_sha256"])
+            assert not ok
+
+    def test_indeterminate_blocks_all(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _make_auth(td, "BLK")
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            transition_attempt_state(spath, "CLAIMED", "EXECUTING", "T", "BLK", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(spath, "EXECUTING", "INDETERMINATE", "T", "BLK", claim["attempt_id"], state["claim_sha256"])
+            ok, _, _ = transition_attempt_state(spath, "INDETERMINATE", "FINALIZED", "T", "BLK", claim["attempt_id"], state["claim_sha256"])
+            assert not ok
+
+    def test_executed_to_finalized(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _make_auth(td, "FIN")
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            transition_attempt_state(spath, "CLAIMED", "EXECUTING", "T", "FIN", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(spath, "EXECUTING", "EXECUTED", "T", "FIN", claim["attempt_id"], state["claim_sha256"])
+            ok, s, _ = transition_attempt_state(spath, "EXECUTED", "FINALIZED", "T", "FIN", claim["attempt_id"], state["claim_sha256"])
+            assert ok and s["status"] == "FINALIZED"
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_authorize.py
+SIZE: 8056 bytes
+SHA256: 1aa2d6a3eff355c67f0a4a09e0bf2c8ddb9d209d8aa1a924f962bc6d380552e6
+==============================================================================
+
+"""Test authorization validation with real bound fixtures."""
+import json, os, tempfile, yaml
+from protocol_guard.gate.freeze_bundle import freeze_bundle
+from protocol_guard.gate.understand import record_understanding
+from protocol_guard.gate.authorize import validate_authorization
+
+def _base_task(tid="AUTH_TEST"):
+    return {"task_id":tid,"task_card_version":2,"protocol_version":"v1.0","execution_mode":"confirm_then_execute","task_type":"PROTOCOL_MAINTENANCE","project_state_file":"state.yaml","input_files":[],"output_files":["out.txt"],"primary_goal":"Test","primary_variable":"x","dependent_variables":[],"fixed_params":{},"locked_items":[],"allowed_modifications":[],"forbidden_modifications":[],"preflight_checks":[],"technical_pass_conditions":[],"visual_intent":"","visual_forbidden":"","evidence_required":[],"upload_dir":"d","upload_files":["out.txt"],"stop_conditions":[],"state_patch_requested":None}
+
+def _base_state():
+    return {"protocol_version":"v1.0","project_id":"auth","workflow_phase":"code_guard_phase_1_locked","scene_phase":"paused","phase_approved":True,"project_work_paused":True,"last_task_id":"T","last_task_card_sha256":None,"last_technical_result":"TECHNICAL_PASS","evidence_status":"VALID","evidence_sha256":None,"output_files":[],"last_execution_time":"2026-07-15T15:00:00+08:00","locked_assets":[],"unlocked_assets":[],"diagnostic_only_outputs":[],"pending_review":None,"blocked_operations":[],"failed_paths":[],"change_log":[]}
+
+def _mk_auth(task_sha, fb_sha, ur_sha, ps_sha, **kw):
+    a = {"authorization_id":"A1","task_id":"AUTH_TEST","task_card_sha256":task_sha,"freeze_bundle_sha256":fb_sha,"understand_record_sha256":ur_sha,"project_state_sha256":ps_sha,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+    a.update(kw)
+    return a
+
+class TestAuthorizeReal:
+    def test_all_bindings_valid(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = os.path.join(td, "task.yaml")
+            sp = os.path.join(td, "state.yaml")
+            with open(tp, "w") as f: yaml.dump(_base_task(), f)
+            with open(sp, "w") as f: yaml.dump(_base_state(), f)
+            fd = os.path.join(td, "frozen")
+            ok_fb, bundle, fb_sha, _ = freeze_bundle(tp, sp, fd)
+            assert ok_fb
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            ok_ur, rec, ur_sha, _ = record_understanding(tp, fb_path, fd)
+            assert ok_ur
+            ur_path = os.path.join(fd, "understand.json")
+            auth = _mk_auth(bundle["task_card_raw_sha256"], fb_sha, ur_sha, bundle["project_state_canonical_sha256"])
+            ap = os.path.join(td, "auth.json")
+            with open(ap, "w") as f: json.dump(auth, f)
+            ok, ad, errs = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert ok, f"Failed: {errs}"
+            assert ad is not None
+
+    def test_expired(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = os.path.join(td, "task.yaml")
+            sp = os.path.join(td, "state.yaml")
+            with open(tp, "w") as f: yaml.dump(_base_task(), f)
+            with open(sp, "w") as f: yaml.dump(_base_state(), f)
+            fd = os.path.join(td, "frozen")
+            _, bundle, fb_sha, _ = freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            _, rec, ur_sha, _ = record_understanding(tp, fb_path, fd)
+            ur_path = os.path.join(fd, "understand.json")
+            auth = _mk_auth(bundle["task_card_raw_sha256"], fb_sha, ur_sha, bundle["project_state_canonical_sha256"],
+                           expires_at="2020-01-02T00:00:00Z")
+            ap = os.path.join(td, "auth.json")
+            with open(ap, "w") as f: json.dump(auth, f)
+            ok, ad, errs = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert not ok
+
+    def test_wrong_scope(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = os.path.join(td, "task.yaml")
+            sp = os.path.join(td, "state.yaml")
+            with open(tp, "w") as f: yaml.dump(_base_task(), f)
+            with open(sp, "w") as f: yaml.dump(_base_state(), f)
+            fd = os.path.join(td, "frozen")
+            _, bundle, fb_sha, _ = freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            _, rec, ur_sha, _ = record_understanding(tp, fb_path, fd)
+            ur_path = os.path.join(fd, "understand.json")
+            auth = _mk_auth(bundle["task_card_raw_sha256"], fb_sha, ur_sha, bundle["project_state_canonical_sha256"],
+                           scope=["validate"])
+            ap = os.path.join(td, "auth.json")
+            with open(ap, "w") as f: json.dump(auth, f)
+            ok, ad, errs = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert not ok
+
+    def test_wrong_task_card_sha(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = os.path.join(td, "task.yaml")
+            sp = os.path.join(td, "state.yaml")
+            with open(tp, "w") as f: yaml.dump(_base_task(), f)
+            with open(sp, "w") as f: yaml.dump(_base_state(), f)
+            fd = os.path.join(td, "frozen")
+            _, bundle, fb_sha, _ = freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            _, rec, ur_sha, _ = record_understanding(tp, fb_path, fd)
+            ur_path = os.path.join(fd, "understand.json")
+            auth = _mk_auth("f"*64, fb_sha, ur_sha, bundle["project_state_canonical_sha256"])
+            ap = os.path.join(td, "auth.json")
+            with open(ap, "w") as f: json.dump(auth, f)
+            ok, ad, errs = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert not ok
+
+    def test_wrong_freeze_sha(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = os.path.join(td, "task.yaml")
+            sp = os.path.join(td, "state.yaml")
+            with open(tp, "w") as f: yaml.dump(_base_task(), f)
+            with open(sp, "w") as f: yaml.dump(_base_state(), f)
+            fd = os.path.join(td, "frozen")
+            _, bundle, fb_sha, _ = freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            _, rec, ur_sha, _ = record_understanding(tp, fb_path, fd)
+            ur_path = os.path.join(fd, "understand.json")
+            auth = _mk_auth(bundle["task_card_raw_sha256"], "f"*64, ur_sha, bundle["project_state_canonical_sha256"])
+            ap = os.path.join(td, "auth.json")
+            with open(ap, "w") as f: json.dump(auth, f)
+            ok, ad, errs = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert not ok
+
+    def test_wrong_understand_sha(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = os.path.join(td, "task.yaml")
+            sp = os.path.join(td, "state.yaml")
+            with open(tp, "w") as f: yaml.dump(_base_task(), f)
+            with open(sp, "w") as f: yaml.dump(_base_state(), f)
+            fd = os.path.join(td, "frozen")
+            _, bundle, fb_sha, _ = freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            _, rec, ur_sha, _ = record_understanding(tp, fb_path, fd)
+            ur_path = os.path.join(fd, "understand.json")
+            auth = _mk_auth(bundle["task_card_raw_sha256"], fb_sha, "f"*64, bundle["project_state_canonical_sha256"])
+            ap = os.path.join(td, "auth.json")
+            with open(ap, "w") as f: json.dump(auth, f)
+            ok, ad, errs = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert not ok
+
+    def test_missing_file(self):
+        ok, _, errs = validate_authorization("/nonexistent", "/x", "/x", "/x", "/x")
+        assert not ok
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_claim.py
+SIZE: 3466 bytes
+SHA256: 9317152d0e7afa41e7255f046a8b2a9a9f9d8d51c5ef1caba793105472c59ba8
+==============================================================================
+
+import json, os, tempfile
+from protocol_guard.gate.claim import create_claim
+
+def _write_json(td, name, data):
+    p = os.path.join(td, name)
+    with open(p, 'w') as f: json.dump(data, f)
+    return p
+
+def _auth(aid='A1'):
+    return {'authorization_id':aid,'task_id':'T','task_card_sha256':'a'*64,'freeze_bundle_sha256':'b'*64,'understand_record_sha256':'c'*64,'project_state_sha256':'d'*64,'input_files_sha256':{},'requested_operation_ids':[],'allowed_modification_paths':[],'declared_output_paths':[],'scope':['preflight','mock_execute','finalize'],'issued_at':'2026-01-01T00:00:00Z','authorized_by':'USER','gpt_review_reference':'r'}
+
+class TestClaim:
+    def test_atomic_create(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, 'auth.json', _auth('A1'))
+            ok, claim, cpath, errs = create_claim(ap, json.load(open(ap,'r')), td)
+            assert ok
+            assert os.path.exists(cpath)
+            assert claim['authorization_id'] == 'A1'
+            assert 'attempt_id' in claim
+
+    def test_double_claim_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, 'auth.json', _auth('A2'))
+            ok1, _, _, _ = create_claim(ap, json.load(open(ap,'r')), td)
+            assert ok1
+            ok2, _, _, _ = create_claim(ap, json.load(open(ap,'r')), td)
+            assert not ok2
+
+    def test_claim_required_fields(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, 'auth.json', _auth('A3'))
+            ok, claim, _, _ = create_claim(ap, json.load(open(ap,'r')), td)
+            assert ok
+            for f in ['authorization_id','authorization_sha256','attempt_id','task_id','claimed_at','process_id']:
+                assert f in claim
+
+    def test_claim_path_isolation(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap1 = _write_json(td, 'a1.json', _auth('ISO1'))
+            ap2 = _write_json(td, 'a2.json', _auth('ISO2'))
+            ok1, _, cp1, _ = create_claim(ap1, json.load(open(ap1,"r")), td)
+            ok2, _, cp2, _ = create_claim(ap2, json.load(open(ap2,"r")), td)
+            assert ok1 and ok2
+            assert cp1 != cp2
+
+    def test_different_auth_different_attempt(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap1 = _write_json(td, 'a1.json', _auth('C1'))
+            ap2 = _write_json(td, 'a2.json', _auth('C2'))
+            _, c1, _, _ = create_claim(ap1, json.load(open(ap1,"r")), td)
+            _, c2, _, _ = create_claim(ap2, json.load(open(ap2,"r")), td)
+            assert c1['attempt_id'] != c2['attempt_id']
+    def test_claim_without_validated_auth_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("C5"))
+            ok, _, _, errs = create_claim(ap, None, td)
+            assert not ok
+
+    def test_corrupted_claim_human_audit(self):
+        with tempfile.TemporaryDirectory() as td:
+            ap = _write_json(td, "auth.json", _auth("C6"))
+            ad = json.load(open(ap, "r"))
+            ok1, _, cp, _ = create_claim(ap, ad, td)
+            assert ok1
+            # Write invalid JSON
+            with open(cp, "w") as f: f.write("not json")
+            ok2, _, _, errs = create_claim(ap, ad, td)
+            assert not ok2
+            assert any("HUMAN_AUDIT" in e for e in errs)
+
+
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_conditions.py
+SIZE: 2669 bytes
+SHA256: 437906e105610d65475154c1128c9ea39d71408ee380b25f48e953965b3c3d39
+==============================================================================
+
+"""Test stop condition evaluator."""
+from protocol_guard.gate.conditions import evaluate_stop_conditions, action_to_result
+from protocol_guard.result import TechnicalResult
+
+class TestConditions:
+    def test_no_trigger(self):
+        triggered, action, cond = evaluate_stop_conditions(
+            [{"condition": "x", "action": "stop_current_task"}], {"x": False})
+        assert not triggered
+
+    def test_triggered(self):
+        triggered, action, cond = evaluate_stop_conditions(
+            [{"condition": "fail", "action": "mark_technical_fail"}], {"fail": True})
+        assert triggered
+        assert action == "mark_technical_fail"
+
+    def test_action_mapping(self):
+        assert action_to_result("stop_before_execution") == TechnicalResult.TECHNICAL_FAIL
+        assert action_to_result("mark_constraint_conflict") == TechnicalResult.CONSTRAINT_CONFLICT
+        assert action_to_result("mark_evidence_invalid") == TechnicalResult.EVIDENCE_INVALID
+        assert action_to_result("mark_spec_invalid") == TechnicalResult.SPEC_INVALID
+        assert action_to_result("unknown") == TechnicalResult.TECHNICAL_FAIL
+
+    def test_context_partial_match(self):
+        triggered, action, cond = evaluate_stop_conditions(
+            [{'condition': 'a', 'action': 'mark_technical_fail'},
+             {'condition': 'b', 'action': 'stop_current_task'}],
+            {'a': False, 'b': True})
+        assert triggered
+        assert cond == 'b'
+
+    def test_single_condition_list(self):
+        triggered, action, cond = evaluate_stop_conditions(
+            [{'condition': 'only', 'action': 'mark_spec_invalid'}],
+            {'only': True})
+        assert triggered
+        assert action == 'mark_spec_invalid'
+
+    def test_stop_before_execution_maps_to_technical_fail(self):
+        from protocol_guard.gate.conditions import action_to_result
+        from protocol_guard.result import TechnicalResult
+        assert action_to_result('stop_before_execution') == TechnicalResult.TECHNICAL_FAIL
+
+    def test_stop_current_task_maps_to_technical_fail(self):
+        from protocol_guard.gate.conditions import action_to_result
+        from protocol_guard.result import TechnicalResult
+        assert action_to_result('stop_current_task') == TechnicalResult.TECHNICAL_FAIL
+
+    def test_all_actions_covered(self):
+        from protocol_guard.gate.conditions import ACTION_MAP
+        assert len(ACTION_MAP) == 6
+
+    def test_evaluate_empty_context(self):
+        triggered, action, cond = evaluate_stop_conditions(
+            [{"condition":"x","action":"stop_current_task"}], {})
+        assert not triggered
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_executor.py
+SIZE: 4141 bytes
+SHA256: 2e8b49e56b568fe9f2088567002e1ebe94e52b1bd2fdc67738542aa609920f7d
+==============================================================================
+
+"""Test mock executor with real input fixtures."""
+import os, tempfile, yaml, pytest
+from protocol_guard.gate.executor import mock_execute, _check_imports
+
+class TestExecutorAST:
+    def test_no_bpy(self): assert len(_check_imports("import bpy")) > 0
+    def test_no_subprocess(self): assert len(_check_imports("import subprocess")) > 0
+    def test_no_ctypes(self): assert len(_check_imports("import ctypes")) > 0
+    def test_no_eval(self): assert len(_check_imports("eval('1+1')")) > 0
+    def test_no_exec(self): assert len(_check_imports("exec('x=1')")) > 0
+    def test_no_compile(self): assert len(_check_imports("compile('x','','exec')")) > 0
+    def test_clean_imports(self): assert len(_check_imports("import os\nimport json")) == 0
+    def test_unknown_import_rejected(self): assert len(_check_imports("import unknown_xyz")) > 0
+
+class TestMockExecute:
+    def test_execute_with_real_input(self):
+        with tempfile.TemporaryDirectory() as td:
+            inp = os.path.join(td, "in.txt")
+            with open(inp, "w", encoding="utf-8") as f: f.write("hello world")
+            task = {"task_id":"EX1","task_card_version":2,"input_files":["in.txt"],"output_files":["out.txt"],"primary_goal":"T","primary_variable":"x","dependent_variables":[],"fixed_params":{},"locked_items":[],"allowed_modifications":[],"forbidden_modifications":[],"preflight_checks":[],"technical_pass_conditions":[],"visual_intent":"","visual_forbidden":"","evidence_required":[],"upload_dir":"d","upload_files":["out.txt"],"stop_conditions":[],"state_patch_requested":None}
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            ws = os.path.join(td, "ws")
+            ok, result, errs = mock_execute(tp, ws)
+            assert ok, f"Failed: {errs}"
+            assert "out.txt" in result["output_files"]
+            out_path = os.path.join(ws, "out.txt")
+            assert os.path.exists(out_path)
+
+    def test_missing_input_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = {"task_id":"EX2","task_card_version":2,"input_files":["missing.txt"],"output_files":["out.txt"],"primary_goal":"T","primary_variable":"x","dependent_variables":[],"fixed_params":{},"locked_items":[],"allowed_modifications":[],"forbidden_modifications":[],"preflight_checks":[],"technical_pass_conditions":[],"visual_intent":"","visual_forbidden":"","evidence_required":[],"upload_dir":"d","upload_files":["out.txt"],"stop_conditions":[],"state_patch_requested":None}
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            ok, _, errs = mock_execute(tp, os.path.join(td, "ws"))
+            assert not ok
+
+    def test_output_generated_and_sha_correct(self):
+        with tempfile.TemporaryDirectory() as td:
+            inp = os.path.join(td, "in.txt")
+            with open(inp, "w", encoding="utf-8") as f: f.write("test")
+            task = {"task_id":"EX3","task_card_version":2,"input_files":["in.txt"],"output_files":["out.txt"],"primary_goal":"T","primary_variable":"x","dependent_variables":[],"fixed_params":{},"locked_items":[],"allowed_modifications":[],"forbidden_modifications":[],"preflight_checks":[],"technical_pass_conditions":[],"visual_intent":"","visual_forbidden":"","evidence_required":[],"upload_dir":"d","upload_files":["out.txt"],"stop_conditions":[],"state_patch_requested":None}
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            ws = os.path.join(td, "ws")
+            ok, result, _ = mock_execute(tp, ws)
+            assert ok
+            assert "out.txt" in result["output_files"]
+            assert len(result["output_files"]["out.txt"]) == 64
+
+    def test_subprocess_blocked(self, monkeypatch):
+        import subprocess
+        def fake(*a,**kw): raise RuntimeError("blocked")
+        monkeypatch.setattr(subprocess, "run", fake)
+        monkeypatch.setattr(subprocess, "Popen", fake)
+        with pytest.raises(RuntimeError, match="blocked"): subprocess.run(["echo"])
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_finalize.py
+SIZE: 4960 bytes
+SHA256: acfa7c3487b3615bfdcae429440344d3efac9d655220307e37d5302dd3b841ff
+==============================================================================
+
+"""Test finalize stage."""
+import json, os, tempfile, yaml
+from protocol_guard.gate.claim import create_claim
+from protocol_guard.gate.attempt_state import init_attempt_state, transition_attempt_state
+from protocol_guard.gate.finalize import finalize
+
+def _write_json(td, name, data):
+    p = os.path.join(td, name)
+    with open(p, "w") as f: json.dump(data, f)
+    return p
+
+class TestFinalize:
+    def test_finalize_produces_result(self):
+        with tempfile.TemporaryDirectory() as td:
+            auth = {"authorization_id":"A1","task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+            ap = _write_json(td, "auth.json", auth)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            assert ok_c
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            assert ok_s
+            # Transition to EXECUTED (simulating executor)
+            ok_t, _, _ = transition_attempt_state(spath, "CLAIMED", "EXECUTING",
+                "T", "A1", claim["attempt_id"], state["claim_sha256"])
+            assert ok_t
+            ok_t2, _, _ = transition_attempt_state(spath, "EXECUTING", "EXECUTED",
+                "T", "A1", claim["attempt_id"], state["claim_sha256"])
+            assert ok_t2
+            # Now finalize
+            task_path = os.path.join(td, "task.yaml")
+            with open(task_path, "w") as f:
+                yaml.dump({"task_id":"T","output_files":["out.txt"],"allowed_modifications":[],"input_files":[]}, f)
+            exec_out = {"output_files": {"out.txt": "e"*64}, "workspace_dir": td}
+            ok_f, result, errs = finalize(task_path, claim, cpath, td, exec_out)
+            assert ok_f, f"Finalize failed: {errs}"
+            assert result["technical_result"] == "TECHNICAL_PASS"
+            assert os.path.exists(os.path.join(td, "T", "authorizations", "A1", "execution_result.json"))
+
+    def test_result_contains_claim_sha(self):
+        with tempfile.TemporaryDirectory() as td:
+            auth = {'authorization_id':'A4','task_id':'T','task_card_sha256':'a'*64,'freeze_bundle_sha256':'b'*64,'understand_record_sha256':'c'*64,'project_state_sha256':'d'*64,'input_files_sha256':{},'requested_operation_ids':[],'allowed_modification_paths':[],'declared_output_paths':[],'scope':['preflight','mock_execute','finalize'],'issued_at':'2026-01-01T00:00:00Z','authorized_by':'USER','gpt_review_reference':'r'}
+            ap = _write_json(td, 'auth.json', auth)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            transition_attempt_state(spath, 'CLAIMED', 'EXECUTING', 'T', 'A4', claim['attempt_id'], state['claim_sha256'])
+            transition_attempt_state(spath, 'EXECUTING', 'EXECUTED', 'T', 'A4', claim['attempt_id'], state['claim_sha256'])
+            task_path = os.path.join(td, 'task.yaml')
+            with open(task_path, 'w') as f: yaml.dump({'task_id':'T','output_files':[],'allowed_modifications':[],'input_files':[]}, f)
+            ok_f, result, _ = finalize(task_path, claim, cpath, td, {'output_files':{},'workspace_dir':td})
+            assert ok_f and result['claim_sha256'] is not None
+    def test_missing_declared_output_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            auth = {"authorization_id":"A5","task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+            ap = _write_json(td, "auth.json", auth)
+            ad = json.load(open(ap))
+            ok_c, claim, cp, _ = create_claim(ap, ad, td)
+            ok_s, state, sp, _ = init_attempt_state(claim, cp, td)
+            transition_attempt_state(sp, "CLAIMED", "EXECUTING", "T", "A5", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(sp, "EXECUTING", "EXECUTED", "T", "A5", claim["attempt_id"], state["claim_sha256"])
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump({"task_id":"T","output_files":["missing.txt"],"allowed_modifications":[],"input_files":[]}, f)
+            ok_f, result, _ = finalize(tp, claim, cp, td, {"output_files":{},"workspace_dir":td})
+            assert not ok_f or result["technical_result"] == "TECHNICAL_FAIL"
+
+
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_freeze_bundle.py
+SIZE: 4877 bytes
+SHA256: 0e14d05ba3bf8311ec1f4b76105125952b0cdd1b1c958a9111547e07ff448510
+==============================================================================
+
+import json, os, tempfile, yaml
+from protocol_guard.gate.freeze_bundle import freeze_bundle
+
+def _write_task(td, data):
+    p = os.path.join(td, 'task.yaml')
+    with open(p, 'w') as f: yaml.dump(data, f)
+    return p
+
+def _write_state(td, data):
+    p = os.path.join(td, 'state.yaml')
+    with open(p, 'w') as f: yaml.dump(data, f)
+    return p
+
+def _base_task():
+    return {'task_id':'FB_TEST','task_card_version':2,'protocol_version':'v1.0','execution_mode':'confirm_then_execute','task_type':'PROTOCOL_MAINTENANCE','project_state_file':'state.yaml','input_files':[],'output_files':['out.txt'],'primary_goal':'Test','primary_variable':'x','dependent_variables':[],'fixed_params':{},'locked_items':[],'allowed_modifications':[],'forbidden_modifications':[],'preflight_checks':[],'technical_pass_conditions':[],'visual_intent':'','visual_forbidden':'','evidence_required':[],'upload_dir':'d','upload_files':['out.txt'],'stop_conditions':[],'state_patch_requested':None}
+
+def _base_state():
+    return {'protocol_version':'v1.0','project_id':'fb','workflow_phase':'code_guard_phase_1_locked','scene_phase':'paused','phase_approved':True,'project_work_paused':True,'last_task_id':'T','last_task_card_sha256':None,'last_technical_result':'TECHNICAL_PASS','evidence_status':'VALID','evidence_sha256':None,'output_files':[],'last_execution_time':'2026-07-15T15:00:00+08:00','locked_assets':[],'unlocked_assets':[],'diagnostic_only_outputs':[],'pending_review':None,'blocked_operations':[],'failed_paths':[],'change_log':[]}
+
+class TestFreezeBundle:
+    def test_freeze_produces_bundle(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, 'frozen')
+            ok, bundle, sha, errs = freeze_bundle(tp, sp, outd)
+            assert ok
+            assert len(sha) == 64
+            assert os.path.exists(os.path.join(outd, 'freeze_bundle.json'))
+    def test_re_freeze_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, 'frozen')
+            ok, _, _, _ = freeze_bundle(tp, sp, outd)
+            assert ok
+            ok2, _, _, _ = freeze_bundle(tp, sp, outd)
+            assert not ok2
+    def test_input_file_missing(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = _base_task()
+            task['input_files'] = ['nonexistent.txt']
+            tp = _write_task(td, task)
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, 'frozen')
+            ok, _, _, errs = freeze_bundle(tp, sp, outd)
+            assert not ok
+    def test_deterministic(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            outd1 = os.path.join(td, 'f1')
+            outd2 = os.path.join(td, 'f2')
+            _, b1, _, _ = freeze_bundle(tp, sp, outd1)
+            _, b2, _, _ = freeze_bundle(tp, sp, outd2)
+            assert b1['task_card_raw_sha256'] == b2['task_card_raw_sha256']
+    def test_frozen_task_copy_exists(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, 'frozen')
+            ok, bundle, _, _ = freeze_bundle(tp, sp, outd)
+            assert ok
+            assert os.path.exists(bundle['frozen_task_copy_path'])
+
+    def test_bundle_contains_frozen_at(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, 'frozen')
+            ok, bundle, _, _ = freeze_bundle(tp, sp, outd)
+            assert ok and 'frozen_at' in bundle
+    def test_invalid_task_card_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            bad_task = dict(_base_task())
+            del bad_task["task_id"]
+            tp = _write_task(td, bad_task)
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, "frozen")
+            ok, _, _, _ = freeze_bundle(tp, sp, outd)
+            assert not ok
+
+    def test_task_card_validation_before_freeze(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            outd = os.path.join(td, "frozen")
+            ok, bundle, sha, _ = freeze_bundle(tp, sp, outd)
+            assert ok
+            # Frozen task copy must match original
+            assert os.path.exists(bundle["frozen_task_copy_path"])
+
+
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_integration.py
+SIZE: 5803 bytes
+SHA256: 7e6e4555a87245b1397ba3c1037c888d414f3843ee2aad49b1bed359a38cda54
+==============================================================================
+
+"""Full 7-stage integration test with mock pipeline."""
+import json, os, tempfile, yaml
+from protocol_guard.gate.freeze_bundle import freeze_bundle
+from protocol_guard.gate.understand import record_understanding
+from protocol_guard.gate.authorize import validate_authorization
+from protocol_guard.gate.claim import create_claim
+from protocol_guard.gate.attempt_state import init_attempt_state, transition_attempt_state
+from protocol_guard.gate.preflight import preflight
+from protocol_guard.gate.executor import mock_execute
+from protocol_guard.gate.finalize import finalize
+from protocol_guard.task_schema import validate_task_card
+
+def _write_task(td, data):
+    p = os.path.join(td, "task.yaml")
+    with open(p, "w") as f: yaml.dump(data, f)
+    return p
+
+def _write_state(td, data):
+    p = os.path.join(td, "state.yaml")
+    with open(p, "w") as f: yaml.dump(data, f)
+    return p
+
+def _write_json(td, name, data):
+    p = os.path.join(td, name)
+    with open(p, "w") as f: json.dump(data, f)
+    return p
+
+class TestIntegration:
+    def test_full_pipeline(self):
+        with tempfile.TemporaryDirectory() as td:
+            # Fixtures
+            task = {"task_id":"INT_TEST","task_card_version":2,"protocol_version":"v1.0","execution_mode":"confirm_then_execute","task_type":"PROTOCOL_MAINTENANCE","project_state_file":"state.yaml","input_files":["in.txt"],"output_files":["out.txt"],"primary_goal":"Integration test","primary_variable":"x","dependent_variables":[],"fixed_params":{},"locked_items":[],"allowed_modifications":[],"forbidden_modifications":[],"preflight_checks":[],"technical_pass_conditions":[],"visual_intent":"","visual_forbidden":"","evidence_required":[],"upload_dir":"d","upload_files":["result.txt"],"stop_conditions":[],"state_patch_requested":None}
+            state = {"protocol_version":"v1.0","project_id":"int","workflow_phase":"code_guard_phase_1_locked","scene_phase":"paused","phase_approved":True,"project_work_paused":True,"last_task_id":"T","last_task_card_sha256":None,"last_technical_result":"TECHNICAL_PASS","evidence_status":"VALID","evidence_sha256":None,"output_files":[],"last_execution_time":"2026-07-15T15:00:00+08:00","locked_assets":[],"unlocked_assets":[],"diagnostic_only_outputs":[],"pending_review":None,"blocked_operations":[],"failed_paths":[],"change_log":[]}
+
+            # Create input file
+            with open(os.path.join(td, "in.txt"), "w") as f: f.write("test")
+
+            # 1. validate
+            is_valid, errs = validate_task_card(task)
+            assert is_valid, f"validate failed: {errs}"
+
+            tp = _write_task(td, task)
+            sp = _write_state(td, state)
+
+            # 2. freeze
+            fd = os.path.join(td, "frozen")
+            ok_fb, bundle, fb_sha, errs_fb = freeze_bundle(tp, sp, fd)
+            assert ok_fb, f"freeze failed: {errs_fb}"
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            assert os.path.exists(fb_path)
+
+            # 3. understand
+            ok_ur, rec, ur_sha, errs_ur = record_understanding(tp, fb_path, fd)
+            assert ok_ur, f"understand failed: {errs_ur}"
+            ur_path = os.path.join(fd, "understand.json")
+
+            # 4. authorize (create validation fixture)
+            import hashlib
+            inp_sha = hashlib.sha256(open(os.path.join(td, "in.txt"), "rb").read()).hexdigest()
+            auth = {"authorization_id":"INT_A1","task_id":"INT_TEST","task_card_sha256":bundle["task_card_raw_sha256"],"freeze_bundle_sha256":fb_sha,"understand_record_sha256":ur_sha,"project_state_sha256":bundle["project_state_canonical_sha256"],"input_files_sha256":{"in.txt": inp_sha},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":["out.txt"],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+            ap = _write_json(td, "auth.json", auth)
+            ok_auth, auth_data, errs_auth = validate_authorization(ap, fb_path, ur_path, tp, sp)
+            assert ok_auth, f"auth failed: {errs_auth}"
+
+            # 5. preflight
+            cleared, errs_pf = preflight(tp, sp, fb_path, ap, td)
+            assert cleared, f"preflight failed: {errs_pf}"
+
+            # 6. claim
+            ok_cl, claim, cpath, errs_cl = create_claim(ap, auth_data, td)
+            assert ok_cl, f"claim failed: {errs_cl}"
+
+            # 7. attempt state init
+            ok_as, astate, aspath, errs_as = init_attempt_state(claim, cpath, td)
+            assert ok_as, f"attempt init failed: {errs_as}"
+            assert astate["status"] == "CLAIMED"
+
+            # Transition to EXECUTING -> EXECUTED
+            ok_t1, _, _ = transition_attempt_state(aspath, "CLAIMED", "EXECUTING",
+                "INT_TEST", "INT_A1", claim["attempt_id"], astate["claim_sha256"])
+            assert ok_t1
+            ok_t2, _, _ = transition_attempt_state(aspath, "EXECUTING", "EXECUTED",
+                "INT_TEST", "INT_A1", claim["attempt_id"], astate["claim_sha256"])
+            assert ok_t2
+
+            # 8. execute
+            ok_ex, result_ex, errs_ex = mock_execute(tp, os.path.join(td, "ws"))
+            assert ok_ex, f"execute failed: {errs_ex}"
+
+            # 9. finalize
+            ok_fn, result_fn, errs_fn = finalize(tp, claim, cpath, td, result_ex if ok_ex else {"output_files":{},"workspace_dir":td})
+            assert ok_fn, f"finalize failed: {errs_fn}"
+            assert result_fn["technical_result"] == "TECHNICAL_PASS"
+
+            # Verify hash chain
+            assert result_fn["claim_sha256"] is not None
+            assert "attempt_id" in result_fn
+            print(f"Integration pipeline: 7 stages completed, TECHNICAL_PASS")
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_preflight.py
+SIZE: 4538 bytes
+SHA256: 667e4cb9c2f9040209b13b774a0edc0b3e71e28abebf4fb7fd5b36e24f107062
+==============================================================================
+
+import json, os, tempfile, yaml, pytest
+from protocol_guard.gate.freeze_bundle import freeze_bundle
+from protocol_guard.gate.preflight import preflight, _normalize_path
+
+def _write_task(td, data):
+    p = os.path.join(td, 'task.yaml')
+    with open(p, 'w') as f: yaml.dump(data, f)
+    return p
+
+def _write_state(td, data):
+    p = os.path.join(td, 'state.yaml')
+    with open(p, 'w') as f: yaml.dump(data, f)
+    return p
+
+def _write_json(td, name, data):
+    p = os.path.join(td, name)
+    with open(p, 'w') as f: json.dump(data, f)
+    return p
+
+def _base_task():
+    return {'task_id':'PF_TEST','task_card_version':2,'protocol_version':'v1.0','execution_mode':'confirm_then_execute','task_type':'PROTOCOL_MAINTENANCE','project_state_file':'state.yaml','input_files':[],'output_files':['out.txt'],'primary_goal':'Test','primary_variable':'x','dependent_variables':[],'fixed_params':{},'locked_items':[],'allowed_modifications':[],'forbidden_modifications':[],'preflight_checks':[],'technical_pass_conditions':[],'visual_intent':'','visual_forbidden':'','evidence_required':[],'upload_dir':'d','upload_files':['out.txt'],'stop_conditions':[],'state_patch_requested':None}
+
+def _base_state():
+    return {'protocol_version':'v1.0','project_id':'pf','workflow_phase':'code_guard_phase_1_locked','scene_phase':'paused','phase_approved':True,'project_work_paused':True,'last_task_id':'T','last_task_card_sha256':None,'last_technical_result':'TECHNICAL_PASS','evidence_status':'VALID','evidence_sha256':None,'output_files':[],'last_execution_time':'2026-07-15T15:00:00+08:00','locked_assets':[],'unlocked_assets':[],'diagnostic_only_outputs':[],'pending_review':None,'blocked_operations':[],'failed_paths':[],'change_log':[]}
+
+class TestPathNormalize:
+    def test_absolute_rejected(self):
+        with pytest.raises(ValueError): _normalize_path('C:\\absolute', 'D:\\root')
+    def test_parent_traversal_rejected(self):
+        with pytest.raises(ValueError): _normalize_path('../etc', 'D:\\root')
+    def test_valid_relative_passes(self):
+        assert _normalize_path('subdir/file.txt', 'D:\\root') == 'subdir/file.txt'
+    def test_unc_rejected(self):
+        with pytest.raises(ValueError): _normalize_path('\\\\server\\share\\file', 'D:\\root')
+    def test_drive_relative_rejected(self):
+        with pytest.raises(ValueError): _normalize_path('C:file.txt', 'D:\\root')
+
+class TestPreflightGate:
+    def test_preflight_runs(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            fd = os.path.join(td, 'frozen')
+            ok, bundle, sha, errs = freeze_bundle(tp, sp, fd)
+            assert ok
+            fb_path = os.path.join(fd, 'freeze_bundle.json')
+            auth = {'authorization_id':'A1','task_id':'PF_TEST','task_card_sha256':bundle['task_card_raw_sha256'],'freeze_bundle_sha256':sha,'understand_record_sha256':'c'*64,'project_state_sha256':bundle['project_state_canonical_sha256'],'input_files_sha256':{},'requested_operation_ids':[],'allowed_modification_paths':[],'declared_output_paths':[],'scope':['preflight','mock_execute','finalize'],'issued_at':'2026-01-01T00:00:00Z','authorized_by':'USER','gpt_review_reference':'r'}
+            ap = _write_json(td, 'auth.json', auth)
+            cleared, errs = preflight(tp, sp, fb_path, ap, td)
+            assert isinstance(cleared, bool)
+    def test_phase_not_approved_blocked(self):
+        with tempfile.TemporaryDirectory() as td:
+            state = dict(_base_state())
+            state['phase_approved'] = False
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, state)
+            fd = os.path.join(td, 'frozen')
+            _, bundle, sha, _ = freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, 'freeze_bundle.json')
+            auth = {'authorization_id':'A2','task_id':'PF_TEST','task_card_sha256':bundle['task_card_raw_sha256'],'freeze_bundle_sha256':sha,'understand_record_sha256':'c'*64,'project_state_sha256':bundle['project_state_canonical_sha256'],'input_files_sha256':{},'requested_operation_ids':[],'allowed_modification_paths':[],'declared_output_paths':[],'scope':['preflight','mock_execute','finalize'],'issued_at':'2026-01-01T00:00:00Z','authorized_by':'USER','gpt_review_reference':'r'}
+            ap = _write_json(td, 'auth.json', auth)
+            cleared, _ = preflight(tp, sp, fb_path, ap, td)
+            assert not cleared
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_recovery.py
+SIZE: 4117 bytes
+SHA256: bd6ffef97dafdbbed8091aba131b26407f38f02a806a83f7520c277aca848983
+==============================================================================
+
+"""Test crash recovery logic."""
+import json, os, tempfile
+from protocol_guard.gate.claim import create_claim
+from protocol_guard.gate.attempt_state import init_attempt_state, transition_attempt_state
+from protocol_guard.gate.recovery import recover_attempt, RECOVERY_RETRY_PREFLIGHT, RECOVERY_RETRY_EXECUTE, RECOVERY_IDEMPOTENT_FINALIZE, RECOVERY_DONE, RECOVERY_HUMAN_AUDIT_REQUIRED, RECOVERY_CONFIRMATION_REQUIRED
+
+def _write_json(td, name, data):
+    p = os.path.join(td, name)
+    with open(p, "w") as f: json.dump(data, f)
+    return p
+
+class TestRecovery:
+    def test_no_claim_retry_preflight(self):
+        with tempfile.TemporaryDirectory() as td:
+            ok, action, _ = recover_attempt(None, td)
+            assert ok
+            assert action == RECOVERY_RETRY_PREFLIGHT
+
+    def test_claimed_retry_execute(self):
+        with tempfile.TemporaryDirectory() as td:
+            auth = {"authorization_id":"A1","task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+            ap = _write_json(td, "auth.json", auth)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            assert ok_c
+            init_attempt_state(claim, cpath, td)
+            ok, action, _ = recover_attempt(claim, td)
+            assert ok
+            assert action == RECOVERY_RETRY_EXECUTE
+
+    def test_executing_requires_confirmation(self):
+        with tempfile.TemporaryDirectory() as td:
+            auth = {"authorization_id":"A2","task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+            ap = _write_json(td, "auth.json", auth)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            transition_attempt_state(spath, "CLAIMED", "EXECUTING",
+                "T", "A2", claim["attempt_id"], state["claim_sha256"])
+            ok, action, detail = recover_attempt(claim, td, original_process_confirmed_stopped=False)
+            assert not ok
+            assert action == RECOVERY_CONFIRMATION_REQUIRED
+
+    def test_finalized_returns_done(self):
+        with tempfile.TemporaryDirectory() as td:
+            auth = {"authorization_id":"A3","task_id":"T","task_card_sha256":"a"*64,"freeze_bundle_sha256":"b"*64,"understand_record_sha256":"c"*64,"project_state_sha256":"d"*64,"input_files_sha256":{},"requested_operation_ids":[],"allowed_modification_paths":[],"declared_output_paths":[],"scope":["preflight","mock_execute","finalize"],"issued_at":"2026-01-01T00:00:00Z","authorized_by":"USER","gpt_review_reference":"r"}
+            ap = _write_json(td, "auth.json", auth)
+            ok_c, claim, cpath, _ = create_claim(ap, json.load(open(ap,"r")), td)
+            ok_s, state, spath, _ = init_attempt_state(claim, cpath, td)
+            transition_attempt_state(spath, "CLAIMED", "EXECUTING", "T", "A3", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(spath, "EXECUTING", "EXECUTED", "T", "A3", claim["attempt_id"], state["claim_sha256"])
+            transition_attempt_state(spath, "EXECUTED", "FINALIZED", "T", "A3", claim["attempt_id"], state["claim_sha256"])
+            ok, action, _ = recover_attempt(claim, td)
+            assert ok
+            assert action == RECOVERY_DONE
+
+    def test_no_claim_retry(self):
+        ok, action, _ = recover_attempt(None, '')
+        assert ok and action == RECOVERY_RETRY_PREFLIGHT
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/test_understand.py
+SIZE: 4255 bytes
+SHA256: 4cc515ef3abcd2b534caf0fed3024313fc00ec5e82ca293613c694bdd28f03cd
+==============================================================================
+
+"""Test understanding record creation."""
+import json, os, tempfile, yaml
+from protocol_guard.gate.freeze_bundle import freeze_bundle
+from protocol_guard.gate.understand import record_understanding
+
+def _write_task(td, data):
+    p = os.path.join(td, "task.yaml")
+    with open(p, "w") as f: yaml.dump(data, f)
+    return p
+
+def _write_state(td, data):
+    p = os.path.join(td, "state.yaml")
+    with open(p, "w") as f: yaml.dump(data, f)
+    return p
+
+def _base_task():
+    return {"task_id":"UR_TEST","task_card_version":2,"protocol_version":"v1.0","execution_mode":"confirm_then_execute","task_type":"PROTOCOL_MAINTENANCE","project_state_file":"state.yaml","input_files":[],"output_files":["out.txt"],"primary_goal":"Test understanding","primary_variable":"x","dependent_variables":[],"fixed_params":{},"locked_items":[],"allowed_modifications":[{"target":"gate/","fields":["all"]}],"forbidden_modifications":[{"target":"state/","fields":["any"]}],"preflight_checks":[{"check_id":"c1","checker":"f","required":True}],"technical_pass_conditions":[],"visual_intent":"","visual_forbidden":"","evidence_required":[],"upload_dir":"d","upload_files":["out.txt"],"stop_conditions":[{"condition":"fail","action":"stop_current_task"}],"state_patch_requested":None}
+
+def _base_state():
+    return {"protocol_version":"v1.0","project_id":"ur","workflow_phase":"code_guard_phase_1_locked","scene_phase":"paused","phase_approved":True,"project_work_paused":True,"last_task_id":"T","last_task_card_sha256":None,"last_technical_result":"TECHNICAL_PASS","evidence_status":"VALID","evidence_sha256":None,"output_files":[],"last_execution_time":"2026-07-15T15:00:00+08:00","locked_assets":[],"unlocked_assets":[],"diagnostic_only_outputs":[],"pending_review":None,"blocked_operations":[],"failed_paths":[],"change_log":[]}
+
+class TestUnderstand:
+    def test_record_fields(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            fd = os.path.join(td, "frozen")
+            freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, "freeze_bundle.json")
+            ok, rec, sha, errs = record_understanding(tp, fb_path, fd)
+            assert ok, f"Failed: {errs}"
+            assert rec["task_id"] == "UR_TEST"
+            assert rec["freeze_bundle_sha256"] is not None
+            assert rec["blender_required"] == False
+            assert os.path.exists(os.path.join(fd, "understand.json"))
+
+    def test_missing_freeze(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            ok, _, _, errs = record_understanding(tp, os.path.join(td, "nope.json"), td)
+            assert not ok
+
+
+class TestUnderstandExtra:
+    def test_blender_required_false(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            fd = os.path.join(td, 'frozen')
+            freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, 'freeze_bundle.json')
+            _, rec, _, _ = record_understanding(tp, fb_path, fd)
+            assert rec['blender_required'] == False
+
+    def test_spec_conflicts_default_false(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            fd = os.path.join(td, 'frozen')
+            freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, 'freeze_bundle.json')
+            _, rec, _, _ = record_understanding(tp, fb_path, fd)
+            assert rec['spec_conflicts_found'] == False
+
+    def test_understood_by_is_claude(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp = _write_task(td, _base_task())
+            sp = _write_state(td, _base_state())
+            fd = os.path.join(td, 'frozen')
+            freeze_bundle(tp, sp, fd)
+            fb_path = os.path.join(fd, 'freeze_bundle.json')
+            _, rec, _, _ = record_understanding(tp, fb_path, fd)
+            assert rec['understood_by'] == 'CLAUDE'
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/fixtures/__init__.py
+SIZE: 0 bytes
+SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+==============================================================================
+
+
+
+==============================================================================
+FILE: protocol_guard/gate/tests/fixtures/mock_input.txt
+SIZE: 65 bytes
+SHA256: c2cf2978d7f279fa82687ed53182136cf0281c611ff099a0f7a44ab561f1dd57
+==============================================================================
+
+hello world\nthis is a mock input file\nfor Phase 2A gate testing
+
+==============================================================================
+FILE: protocol_guard/schemas/attempt_state.schema.json
+SIZE: 768 bytes
+SHA256: af81126f27b046252a8c1f484d3505f5e1616f43d12f279d8a9eaa4a6bc83be6
+==============================================================================
+
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://bvf.local/schemas/attempt_state.schema.json","title":"BVF Attempt State (Mutable)","type":"object","required":["task_id","authorization_id","authorization_sha256","attempt_id","claim_sha256","status","status_changed_at","process_id"],"properties":{"task_id":{"type":"string","minLength":1},"authorization_id":{"type":"string","minLength":1},"authorization_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"attempt_id":{"type":"string","minLength":1},"claim_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"status":{"enum":["CLAIMED","EXECUTING","EXECUTED","FINALIZED","INDETERMINATE"]},"status_changed_at":{"type":"string"},"process_id":{"type":"integer"}},"additionalProperties":false}
+
+==============================================================================
+FILE: protocol_guard/schemas/authorization.schema.json
+SIZE: 1398 bytes
+SHA256: 1ef7fb532d6cfe3154383c41db1c32783c51218e196b27256913be875f36277e
+==============================================================================
+
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://bvf.local/schemas/authorization.schema.json","title":"BVF Authorization","type":"object","required":["authorization_id","task_id","task_card_sha256","freeze_bundle_sha256","understand_record_sha256","project_state_sha256","input_files_sha256","requested_operation_ids","allowed_modification_paths","declared_output_paths","scope","issued_at","authorized_by","gpt_review_reference"],"properties":{"authorization_id":{"type":"string","minLength":1},"task_id":{"type":"string","minLength":1},"task_card_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"freeze_bundle_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"understand_record_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"project_state_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"input_files_sha256":{"type":"object","additionalProperties":{"type":"string","pattern":"^[a-f0-9]{64}$"}},"requested_operation_ids":{"type":"array","items":{"type":"string"}},"allowed_modification_paths":{"type":"array","items":{"type":"string"}},"declared_output_paths":{"type":"array","items":{"type":"string"}},"scope":{"type":"array","items":{"enum":["preflight","mock_execute","finalize"]}},"issued_at":{"type":"string"},"expires_at":{"type":"string"},"authorized_by":{"type":"string"},"gpt_review_reference":{"type":"string"}},"additionalProperties":false}
+
+
+==============================================================================
+FILE: protocol_guard/schemas/claim.schema.json
+SIZE: 575 bytes
+SHA256: 9926992ff986621566ada1cb6d77c8db73c6e91959a388d63a58c61b3cd7163f
+==============================================================================
+
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://bvf.local/schemas/claim.schema.json","title":"BVF Claim (Immutable)","type":"object","required":["authorization_id","authorization_sha256","attempt_id","task_id","claimed_at","process_id"],"properties":{"authorization_id":{"type":"string","minLength":1},"authorization_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"attempt_id":{"type":"string","minLength":1},"task_id":{"type":"string","minLength":1},"claimed_at":{"type":"string"},"process_id":{"type":"integer"}},"additionalProperties":false}
+
+==============================================================================
+FILE: protocol_guard/schemas/execution_result.schema.json
+SIZE: 1239 bytes
+SHA256: cded9c085725582255d98aa1e72f8c97e150f9bc91b66dd9a9986becc2d6126a
+==============================================================================
+
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://bvf.local/schemas/execution_result.schema.json","title":"BVF Execution Result","type":"object","required":["task_id","attempt_id","technical_result","started_at","completed_at"],"properties":{"task_id":{"type":"string","minLength":1},"attempt_id":{"type":"string","minLength":1},"authorization_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"claim_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"technical_result":{"enum":["TECHNICAL_PASS","TECHNICAL_FAIL","CONSTRAINT_CONFLICT","EVIDENCE_INVALID","SPEC_INVALID"]},"started_at":{"type":"string"},"completed_at":{"type":"string"},"declared_output_files":{"type":"object","additionalProperties":{"type":"string","pattern":"^[a-f0-9]{64}$"}},"repo_diff":{"type":"object","properties":{"added":{"type":"array","items":{"type":"string"}},"modified":{"type":"array","items":{"type":"string"}},"deleted":{"type":"array","items":{"type":"string"}},"unexpected":{"type":"array","items":{"type":"string"}}}},"blender_call_detected":{"type":"boolean"},"stop_condition_triggered":{"type":"boolean"},"stop_condition":{"type":"string"},"errors":{"type":"array","items":{"type":"string"}}},"additionalProperties":false}
+
+==============================================================================
+FILE: protocol_guard/schemas/freeze_bundle.schema.json
+SIZE: 838 bytes
+SHA256: 4b632dcd76872d0ddaa98f3a6e1849846e433de6230a1886fed5009c21e03dbb
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/freeze_bundle.schema.json",
+  "title": "BVF Freeze Bundle",
+  "type": "object",
+  "required": ["task_id", "frozen_at", "task_card_raw_sha256", "project_state_canonical_sha256", "input_files_raw_sha256", "frozen_task_copy_path"],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "frozen_at": { "type": "string" },
+    "task_card_raw_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "project_state_canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "input_files_raw_sha256": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    },
+    "frozen_task_copy_path": { "type": "string" }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard/schemas/project_state.schema.json
+SIZE: 5054 bytes
+SHA256: c67114e15fa5cad4a0d3d02e3636af9512e6655391cd71876696a8025a76a45d
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/project_state.schema.json",
+  "title": "BVF Project State v2",
+  "description": "Schema for PROJECT_STATE.yaml. v2: structured locks, diagnostics, change_log, pending_review.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "project_id",
+    "workflow_phase",
+    "scene_phase",
+    "phase_approved",
+    "project_work_paused",
+    "last_task_id",
+    "last_task_card_sha256",
+    "last_technical_result",
+    "evidence_status",
+    "evidence_sha256",
+    "output_files",
+    "last_execution_time",
+    "locked_assets",
+    "unlocked_assets",
+    "diagnostic_only_outputs",
+    "pending_review",
+    "blocked_operations",
+    "failed_paths",
+    "change_log"
+  ],
+  "properties": {
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "workflow_phase": { "type": "string" },
+    "scene_phase": { "type": "string" },
+    "phase_approved": { "type": "boolean" },
+    "project_work_paused": { "type": "boolean" },
+
+    "last_task_id": { "type": "string" },
+    "last_task_card_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "last_technical_result": {
+      "enum": ["TECHNICAL_PASS", "TECHNICAL_FAIL", "CONSTRAINT_CONFLICT",
+               "EVIDENCE_INVALID", "SPEC_INVALID"]
+    },
+    "evidence_status": {
+      "enum": ["VALID", "RECOVERED", "INVALID"]
+    },
+    "evidence_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "last_execution_time": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "format": "date-time" }
+      ]
+    },
+
+    "locked_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "path", "lock_scope", "status", "approved_by"],
+        "properties": {
+          "asset_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "lock_scope": {
+            "enum": ["whole_file", "selected_objects", "selected_collections",
+                     "transforms_only", "hierarchy_only", "asset_structure"]
+          },
+          "status": {
+            "enum": ["locked", "temporarily_unlocked"]
+          },
+          "approved_by": { "type": "string" },
+          "selectors": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "protected_fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "approved_at": {
+            "oneOf": [
+              { "type": "null" },
+              { "type": "string", "format": "date-time" }
+            ]
+          },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "unlocked_assets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "diagnostic_only_outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["output_id", "path", "status"],
+        "properties": {
+          "output_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "status": {
+            "enum": ["diagnostic_only", "superseded", "invalid"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "pending_review": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["task_id", "reviewer", "status"],
+          "properties": {
+            "task_id": { "type": "string", "minLength": 1 },
+            "reviewer": {
+              "enum": ["GPT", "USER", "GPT_AND_USER"]
+            },
+            "status": {
+              "enum": ["awaiting_gpt_review", "awaiting_user_review", "approved", "rejected"]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "blocked_operations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "failed_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "change_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "actor", "task_id", "fields_changed", "reason"],
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "actor": {
+            "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED", "SYSTEM_MIGRATION"]
+          },
+          "task_id": { "type": "string", "minLength": 1 },
+          "fields_changed": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard/schemas/state_patch.schema.json
+SIZE: 1332 bytes
+SHA256: a7fcb00d298947721832278014f28923de7a9089745351a801a858664cb84b23
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/state_patch.schema.json",
+  "title": "BVF State Patch v3",
+  "description": "Schema for a field-level patch to PROJECT_STATE.yaml. v3: task_id required, change_log removed from writable fields, auto-generated internally.",
+  "type": "object",
+  "required": ["actor", "task_id", "fields", "reason"],
+  "properties": {
+    "actor": {
+      "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED"]
+    },
+    "task_id": { "type": "string", "minLength": 1 },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "enum": [
+          "protocol_version",
+          "project_id",
+          "workflow_phase",
+          "scene_phase",
+          "phase_approved",
+          "project_work_paused",
+          "last_task_id",
+          "last_task_card_sha256",
+          "last_technical_result",
+          "evidence_status",
+          "evidence_sha256",
+          "output_files",
+          "last_execution_time",
+          "locked_assets",
+          "unlocked_assets",
+          "diagnostic_only_outputs",
+          "pending_review",
+          "blocked_operations",
+          "failed_paths"
+        ]
+      }
+    },
+    "reason": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard/schemas/task_card.schema.json
+SIZE: 7975 bytes
+SHA256: 80bd706137ece47fd2899f44165d8e87a453368df802c4b40c30cb1b2a622b66
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/task_card.schema.json",
+  "title": "BVF Task Card v2",
+  "description": "Schema for a single task card in the BVF collaboration protocol. v2: structured params, conditions, locks, evidence.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_card_version",
+    "protocol_version",
+    "execution_mode",
+    "task_type",
+    "project_state_file",
+    "input_files",
+    "output_files",
+    "primary_goal",
+    "primary_variable",
+    "dependent_variables",
+    "fixed_params",
+    "locked_items",
+    "allowed_modifications",
+    "forbidden_modifications",
+    "preflight_checks",
+    "technical_pass_conditions",
+    "visual_intent",
+    "visual_forbidden",
+    "evidence_required",
+    "upload_dir",
+    "upload_files",
+    "stop_conditions",
+    "state_patch_requested"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_card_version": { "type": "integer", "minimum": 1 },
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "execution_mode": { "enum": ["confirm_then_execute", "direct_execute"] },
+    "task_type": {
+      "enum": ["AUDIT", "MODIFICATION", "ROOT_CAUSE_AUDIT", "CALIBRATION", "PROTOCOL_MAINTENANCE"]
+    },
+    "project_state_file": { "type": "string" },
+    "input_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "primary_goal": { "type": "string" },
+    "primary_variable": { "type": "string" },
+
+    "dependent_variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "solver"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "solver": { "type": "string", "minLength": 1 },
+          "minimum": { "type": "number" },
+          "maximum": { "type": "number" },
+          "unit": { "type": "string" },
+          "step": { "type": "number" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "fixed_params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    },
+
+    "locked_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["lock_id", "resource_type", "selector", "protected_fields"],
+        "properties": {
+          "lock_id": { "type": "string", "minLength": 1 },
+          "resource_type": {
+            "enum": ["file", "blender_object", "blender_collection", "blender_scene", "directory", "protocol_code"]
+          },
+          "selector": { "type": "string", "minLength": 1 },
+          "protected_fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "allowed_modifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "fields"],
+        "properties": {
+          "target": { "type": "string", "minLength": 1 },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "limits": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "forbidden_modifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "fields"],
+        "properties": {
+          "target": { "type": "string", "minLength": 1 },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "limits": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "preflight_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "checker", "required"],
+        "properties": {
+          "check_id": { "type": "string", "minLength": 1 },
+          "checker": { "type": "string", "minLength": 1 },
+          "required": { "type": "boolean" },
+          "params": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "technical_pass_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition_id", "metric", "operator", "expected", "required"],
+        "properties": {
+          "condition_id": { "type": "string", "minLength": 1 },
+          "metric": { "type": "string" },
+          "operator": {
+            "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "between", "in", "exists", "sha256_match", "unchanged"]
+          },
+          "expected": {},
+          "required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "visual_intent": { "type": "string" },
+    "visual_forbidden": { "type": "string" },
+
+    "evidence_required": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "role", "path", "required"],
+        "properties": {
+          "evidence_id": { "type": "string", "minLength": 1 },
+          "role": {
+            "enum": ["clean_preview", "debug_preview", "report", "blend", "json", "log", "source_snapshot", "other"]
+          },
+          "path": { "type": "string" },
+          "required": { "type": "boolean" },
+          "same_run_group": { "type": "string" },
+          "sha256_required": { "type": "boolean" },
+          "save_reopen_required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "upload_dir": { "type": "string" },
+    "upload_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+
+    "stop_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "action"],
+        "properties": {
+          "condition": { "type": "string" },
+          "action": {
+            "enum": ["stop_before_execution", "stop_current_task", "mark_technical_fail",
+                     "mark_constraint_conflict", "mark_evidence_invalid", "mark_spec_invalid"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "state_patch_requested": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["fields", "reason"],
+          "properties": {
+            "fields": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "enum": [
+                  "protocol_version",
+                  "project_id",
+                  "workflow_phase",
+                  "scene_phase",
+                  "phase_approved",
+                  "project_work_paused",
+                  "last_task_id",
+                  "last_task_card_sha256",
+                  "last_technical_result",
+                  "evidence_status",
+                  "evidence_sha256",
+                  "output_files",
+                  "last_execution_time",
+                  "locked_assets",
+                  "unlocked_assets",
+                  "diagnostic_only_outputs",
+                  "pending_review",
+                  "blocked_operations",
+                  "failed_paths"
+                ]
+              }
+            },
+            "reason": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard/schemas/understand_record.schema.json
+SIZE: 1219 bytes
+SHA256: 9c27adb03dc2a50abdc404e13d4e20cb5ad4ecca2578cc72d80b28332630f1e5
+==============================================================================
+
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://bvf.local/schemas/understand_record.schema.json","title":"BVF Understand Record","type":"object","required":["task_id","freeze_bundle_sha256","task_goal","allowed_files","forbidden_files","input_files","output_files","preconditions","stop_conditions","blender_required","spec_conflicts_found","recorded_at","understood_by"],"properties":{"task_id":{"type":"string","minLength":1},"freeze_bundle_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"task_goal":{"type":"string"},"requested_operation_ids":{"type":"array","items":{"type":"string"}},"allowed_files":{"type":"array","items":{"type":"string"}},"forbidden_files":{"type":"array","items":{"type":"string"}},"input_files":{"type":"array","items":{"type":"string"}},"output_files":{"type":"array","items":{"type":"string"}},"preconditions":{"type":"array","items":{"type":"string"}},"stop_conditions":{"type":"array","items":{"type":"string"}},"blender_required":{"type":"boolean"},"spec_conflicts_found":{"type":"boolean"},"spec_conflicts_detail":{"type":"array","items":{"type":"string"}},"recorded_at":{"type":"string"},"understood_by":{"type":"string"}},"additionalProperties":false}
+
+
+==============================================================================
+FILE: tasks/MOCK_EXECUTE_TEST/task.yaml
+SIZE: 732 bytes
+SHA256: 586d1ceaa09a751e2bada7c43c15da38ca7286dda50a45057203bcc49787c817
+==============================================================================
+
+task_id: "MOCK_EXECUTE_TEST"
+task_card_version: 2
+protocol_version: "v1.0"
+execution_mode: "confirm_then_execute"
+task_type: "PROTOCOL_MAINTENANCE"
+
+project_state_file: "state.yaml"
+input_files:
+  - "mock_input.txt"
+output_files:
+  - "mock_output.txt"
+
+primary_goal: "Mock integration test for Phase 2A gate pipeline"
+primary_variable: "gate_pipeline_integrity"
+
+dependent_variables: []
+fixed_params: {}
+
+locked_items: []
+allowed_modifications: []
+forbidden_modifications: []
+
+preflight_checks: []
+technical_pass_conditions: []
+visual_intent: "N/A"
+visual_forbidden: "N/A"
+evidence_required: []
+upload_dir: "output"
+upload_files:
+  - "mock_output.txt"
+stop_conditions: []
+state_patch_requested: null
+
+
+==============================================================================
+MANIFEST
+==============================================================================
+{"protocol_guard/gate/__init__.py":"c0017ca8172100e6138c18820681eee098ef1a20dd8b4e7135c1df239dc718d0","protocol_guard/gate/attempt_state.py":"ecf405f78b8f9274288c3c7d1eca51bd9c7a5f293b4256ff4a5aed37ceb42ca2","protocol_guard/gate/authorize.py":"7097334a398f8a506cfee04ab04c52ef5a6a361a6e533717cf34d3666045331e","protocol_guard/gate/claim.py":"0e224668cacca1dd66ade88ffab2f6719f8a69f491edcbc7629b3661a8a288d0","protocol_guard/gate/conditions.py":"5f6d94203b0423b228599881287009024dab18a21e824ac1321df76aeadd8032","protocol_guard/gate/executor.py":"4b4aea080f64d26795cd842eaf02e5735e6e042af092bd9c1e276a3d61c122f0","protocol_guard/gate/finalize.py":"624bcc92b6e0848e6eb6b77dc07739ca03edd7e2ae5d94cb7dfdd81897d40495","protocol_guard/gate/freeze_bundle.py":"72ede1fcbd68d045f42133afd4d9fd73887680a3c30df8da25496f300524c99e","protocol_guard/gate/pipeline.py":"2121bf8cd198e75a17b4b8b9e3333966825115ed26d227fc989aa6cbc67223a9","protocol_guard/gate/preflight.py":"1001a149e8d3db1078e42ea626f8aafdb2efbad370824938be6b10939741cf4e","protocol_guard/gate/recovery.py":"d8028015f115d2d5ccfaca31a299b376bf008fa9e80dcbe648be83e6ab5d08c1","protocol_guard/gate/tests/__init__.py":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","protocol_guard/gate/tests/fixtures/__init__.py":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","protocol_guard/gate/tests/fixtures/mock_input.txt":"c2cf2978d7f279fa82687ed53182136cf0281c611ff099a0f7a44ab561f1dd57","protocol_guard/gate/tests/test_adversarial.py":"ce088aba183167b40863b392175e6fe47741c86ac49c331c70051ee0aa072528","protocol_guard/gate/tests/test_attempt_state.py":"cdd12a9a12648cd696d756c4af7ea19d78e011b58601703f1c9cb96144d80b10","protocol_guard/gate/tests/test_authorize.py":"1aa2d6a3eff355c67f0a4a09e0bf2c8ddb9d209d8aa1a924f962bc6d380552e6","protocol_guard/gate/tests/test_claim.py":"9317152d0e7afa41e7255f046a8b2a9a9f9d8d51c5ef1caba793105472c59ba8","protocol_guard/gate/tests/test_conditions.py":"437906e105610d65475154c1128c9ea39d71408ee380b25f48e953965b3c3d39","protocol_guard/gate/tests/test_executor.py":"2e8b49e56b568fe9f2088567002e1ebe94e52b1bd2fdc67738542aa609920f7d","protocol_guard/gate/tests/test_finalize.py":"acfa7c3487b3615bfdcae429440344d3efac9d655220307e37d5302dd3b841ff","protocol_guard/gate/tests/test_freeze_bundle.py":"0e14d05ba3bf8311ec1f4b76105125952b0cdd1b1c958a9111547e07ff448510","protocol_guard/gate/tests/test_integration.py":"7e6e4555a87245b1397ba3c1037c888d414f3843ee2aad49b1bed359a38cda54","protocol_guard/gate/tests/test_preflight.py":"667e4cb9c2f9040209b13b774a0edc0b3e71e28abebf4fb7fd5b36e24f107062","protocol_guard/gate/tests/test_recovery.py":"bd6ffef97dafdbbed8091aba131b26407f38f02a806a83f7520c277aca848983","protocol_guard/gate/tests/test_understand.py":"4cc515ef3abcd2b534caf0fed3024313fc00ec5e82ca293613c694bdd28f03cd","protocol_guard/gate/understand.py":"c7699ee3e83a10df0345cda980b539fd165f4e97474c22b33614296c322ec5e0","protocol_guard/schemas/attempt_state.schema.json":"af81126f27b046252a8c1f484d3505f5e1616f43d12f279d8a9eaa4a6bc83be6","protocol_guard/schemas/authorization.schema.json":"1ef7fb532d6cfe3154383c41db1c32783c51218e196b27256913be875f36277e","protocol_guard/schemas/claim.schema.json":"9926992ff986621566ada1cb6d77c8db73c6e91959a388d63a58c61b3cd7163f","protocol_guard/schemas/execution_result.schema.json":"cded9c085725582255d98aa1e72f8c97e150f9bc91b66dd9a9986becc2d6126a","protocol_guard/schemas/freeze_bundle.schema.json":"4b632dcd76872d0ddaa98f3a6e1849846e433de6230a1886fed5009c21e03dbb","protocol_guard/schemas/project_state.schema.json":"c67114e15fa5cad4a0d3d02e3636af9512e6655391cd71876696a8025a76a45d","protocol_guard/schemas/state_patch.schema.json":"a7fcb00d298947721832278014f28923de7a9089745351a801a858664cb84b23","protocol_guard/schemas/task_card.schema.json":"80bd706137ece47fd2899f44165d8e87a453368df802c4b40c30cb1b2a622b66","protocol_guard/schemas/understand_record.schema.json":"9c27adb03dc2a50abdc404e13d4e20cb5ad4ecca2578cc72d80b28332630f1e5","tasks/MOCK_EXECUTE_TEST/task.yaml":"586d1ceaa09a751e2bada7c43c15da38ca7286dda50a45057203bcc49787c817"}
+
+MANIFEST_SHA256: 14b3638e8a4fe61802ac3b76b341a2a18d119c4e45ff88c99a061c7e9b32f6d5

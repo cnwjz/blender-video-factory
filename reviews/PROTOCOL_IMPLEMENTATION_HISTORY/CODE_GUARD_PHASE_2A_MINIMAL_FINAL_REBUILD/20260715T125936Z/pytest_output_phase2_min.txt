@@ -1,0 +1,1929 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 160 items
+
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_initial_project_state_passes PASSED [  0%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_technical_result_fails PASSED [  1%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_evidence_status_fails PASSED [  1%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_missing_required_field_fails PASSED [  2%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_missing_locked_assets_fails PASSED [  3%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_missing_blocked_operations_fails PASSED [  3%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_sha256_empty_string_fails PASSED [  4%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_sha256_null_passes PASSED [  5%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_sha256_64_hex_passes PASSED [  5%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_evidence_sha256_empty_string_fails PASSED [  6%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_evidence_sha256_null_passes PASSED [  6%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_last_execution_time_without_timezone_fails PASSED [  7%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_datetime_month_99_fails PASSED [  8%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_datetime_hour_25_fails PASSED [  8%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_valid_z_time_passes PASSED [  9%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_valid_offset_time_passes PASSED [ 10%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_disk_project_state_by_schema PASSED [ 10%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_change_log_entry_3_actor_is_system_migration PASSED [ 11%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_can_write_runtime_fields PASSED [ 11%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_locked_assets PASSED [ 12%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_project_id PASSED [ 13%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_unknown_field PASSED [ 13%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_writes_valid_runtime_field_passes PASSED [ 14%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_gpt_proposal_cannot_write_directly PASSED [ 15%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_user_approved_can_write_restricted_fields PASSED [ 15%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_claude_runtime_patch_succeeds PASSED [ 16%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_claude_project_id_rejected PASSED [ 16%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_atomic_failure_no_partial_change PASSED [ 17%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_invalid_enum_atomic_failure PASSED [ 18%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_invalid_evidence_status_atomic_failure PASSED [ 18%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_invalid_sha256_atomic_failure PASSED [ 19%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_does_not_modify_original_state PASSED [ 20%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_does_not_modify_original_patch PASSED [ 20%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_change_log_in_fields_rejected PASSED [ 21%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_auto_change_log_appended_on_success PASSED [ 21%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_no_change_log_appended_on_failure PASSED [ 22%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_gpt_proposal_without_approval_rejected PASSED [ 23%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_gpt_proposal_with_approval_succeeds PASSED [ 23%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_user_approved_writes_restricted_succeeds PASSED [ 24%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_candidate_state_passes_schema_after_apply PASSED [ 25%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_legacy_apply_patch_compatibility PASSED [ 25%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_reason_required PASSED [ 26%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_unknown_state_field_fails PASSED [ 26%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_valid_field_passes PASSED [ 27%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_task_id_required PASSED [ 28%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_save_valid_state_succeeds PASSED [ 28%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_save_invalid_state_fails PASSED [ 29%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_invalid_state_does_not_create_file PASSED [ 30%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_invalid_write_does_not_corrupt_existing_file PASSED [ 30%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_save_state_does_not_modify_input PASSED [ 31%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_saved_state_revalidates_on_reload PASSED [ 31%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_reread_validation_failure_cleans_temp_file PASSED [ 32%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_reread_failure_preserves_existing_file PASSED [ 33%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_read_exception_cleans_temp_file PASSED [ 33%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_successful_save_leaves_no_temp_file PASSED [ 34%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_replace_exception_cleans_temp_file PASSED [ 35%]
+protocol_guard/tests/test_project_state.py::TestGptProposalLogging::test_gpt_proposal_log_reason_has_source_prefix PASSED [ 35%]
+protocol_guard/tests/test_project_state.py::TestGptProposalLogging::test_direct_user_approved_no_gpt_prefix PASSED [ 36%]
+protocol_guard/tests/test_project_state.py::TestGptProposalLogging::test_gpt_proposal_log_actor_is_user_approved PASSED [ 36%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_last_task_id_matches_pending_review PASSED [ 37%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_output_files_belong_to_phase PASSED [ 38%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_output_files_exact_phase_1_4_set PASSED [ 38%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_change_log_has_phase_1_2_record PASSED [ 39%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_change_log_has_phase_1_3_record PASSED [ 40%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_change_log_has_phase_1_4_record PASSED [ 40%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_current_project_state_passes_schema PASSED [ 41%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_manifest_no_self_reference PASSED [ 41%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_report_modification_detected PASSED [ 42%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_pytest_modification_detected PASSED [ 43%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_state_non_sha_field_change_detected PASSED [ 43%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_evidence_sha_writeback_passes PASSED [ 44%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_sha_mismatch_detected PASSED [ 45%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_task_id_mismatch_detected PASSED [ 45%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_full_package_verifies PASSED [ 46%]
+protocol_guard/tests/test_project_state.py::TestEnumsRegression::test_five_main_results_unchanged PASSED [ 46%]
+protocol_guard/tests/test_project_state.py::TestEnumsRegression::test_three_evidence_statuses_unchanged PASSED [ 47%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_valid_main_results PASSED [ 48%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_evidence_recovered_not_main_result PASSED [ 48%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_technical_pass_is_valid PASSED [ 49%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_illegal_result_rejected PASSED [ 50%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_evidence_recovered_is_not_a_technical_result PASSED [ 50%]
+protocol_guard/tests/test_result.py::TestEvidenceStatus::test_valid_evidence_statuses PASSED [ 51%]
+protocol_guard/tests/test_result.py::TestEvidenceStatus::test_illegal_evidence_status_rejected PASSED [ 51%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_first_freeze_succeeds PASSED [ 52%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_verify_succeeds_on_unchanged_task PASSED [ 53%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_modified_task_fails_verification PASSED [ 53%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_existing_frozen_rejects_overwrite PASSED [ 54%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_freezing_nonexistent_dir_creates_it PASSED [ 55%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_valid_task_passes PASSED [ 55%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_missing_required_field_fails PASSED [ 56%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_invalid_execution_mode_fails PASSED [ 56%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_primary_variable_not_single_string_fails PASSED [ 57%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_empty_primary_variable_fails PASSED [ 58%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_fixed_params_as_object_passes PASSED [ 58%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_fixed_params_as_array_fails PASSED [ 59%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_dependent_variable_missing_name_fails PASSED [ 60%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_dependent_variable_duplicate_name_fails PASSED [ 60%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_primary_overlaps_fixed_param_key_fails PASSED [ 61%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_primary_overlaps_dependent_variable_name_fails PASSED [ 61%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_dependent_and_fixed_overlap_fails PASSED [ 62%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_condition_missing_operator_fails PASSED [ 63%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_between_expected_not_two_numbers_fails PASSED [ 63%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_between_expected_non_numeric_fails PASSED [ 64%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_condition_id_duplicate_fails PASSED [ 65%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_in_operator_non_empty_array_passes PASSED [ 65%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_locked_items_as_strings_fails PASSED [ 66%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_locked_items_structured_passes PASSED [ 66%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_null_passes PASSED [ 67%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_empty_object_fails PASSED [ 68%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_unknown_field_fails PASSED [ 68%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_missing_reason_fails PASSED [ 69%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_unknown_ps_field_fails PASSED [ 70%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_known_ps_field_passes PASSED [ 70%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_output_files_empty_fails PASSED [ 71%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_upload_files_duplicate_fails PASSED [ 71%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_input_files_duplicate_fails PASSED [ 72%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_allowed_forbidden_same_target_same_field_fails PASSED [ 73%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_allowed_forbidden_same_target_no_overlap_passes PASSED [ 73%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_allowed_forbidden_different_target_passes PASSED [ 74%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_invalid_task_type_fails PASSED [ 75%]
+protocol_guard/tests/test_task_schema.py::TestVisualIntentNaturalLanguage::test_visual_intent_allows_natural_language PASSED [ 75%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_abs_rejected PASSED [ 76%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_parent_rejected PASSED [ 76%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_unc_rejected PASSED [ 77%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_drive_rel_rejected PASSED [ 78%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_normal_ok PASSED [ 78%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_clean_worktree_pass FAILED [ 79%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_root_ok FAILED [ 80%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_tasks_dir_ok FAILED [ 80%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_nested_dir_ok FAILED [ 81%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_oos_committed_fail FAILED [ 81%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_protected_sha_mismatch_fail FAILED [ 82%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_nongit_dir_error FAILED [ 83%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_worktree_clean_false_error PASSED [ 83%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_policy_sha_changed_error FAILED [ 84%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_baseline_not_found_error FAILED [ 85%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_no_file_writes FAILED [ 85%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_valid_pass PASSED [ 86%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_tasks_dir_ok PASSED [ 86%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_nested_dir_ok PASSED [ 87%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_hash_mismatch_fail PASSED [ 88%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_manifest_self_ref_fail PASSED [ 88%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_missing_fail FAILED [ 89%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_extra_file_fail PASSED [ 90%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_nongit_error PASSED [ 90%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_spec_sha_changed_error PASSED [ 91%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_dup_package_path_error PASSED [ 91%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_no_file_writes PASSED [ 92%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_oos_add_fail FAILED [ 93%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_denied_delete_fail FAILED [ 93%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_unstaged_delete_fail FAILED [ 94%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_committed_oos_fail FAILED [ 95%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_protected_sha_wrong_fail FAILED [ 95%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_worktree_clean_false_error PASSED [ 96%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_policy_sha_wrong_error FAILED [ 96%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_nongit_error FAILED [ 97%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_upload_spec_sha_wrong_error PASSED [ 98%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_source_swapped_fail PASSED [ 98%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_dup_package_path_error PASSED [ 99%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_no_file_writes_either FAILED [100%]
+
+================================== FAILURES ===================================
+________________ TestChangeScopeCheck.test_clean_worktree_pass ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE978A5D0>
+
+    def test_clean_worktree_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._setup(td)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp3reganh4\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp3reganh4\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+__________________ TestChangeScopeCheck.test_task_in_root_ok __________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE978AAD0>
+
+    def test_task_in_root_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._setup(td, task_subdir=None)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp7j6cxyh7\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp7j6cxyh7\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_______________ TestChangeScopeCheck.test_task_in_tasks_dir_ok ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9783100>
+
+    def test_task_in_tasks_dir_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._setup(td, task_subdir="tasks")
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpmtoh0gjy\\tasks\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpmtoh0gjy\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_______________ TestChangeScopeCheck.test_task_in_nested_dir_ok _______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9782C40>
+
+    def test_task_in_nested_dir_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._setup(td, task_subdir="tasks/nested")
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpe_u7mmst\\tasks/nested\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpe_u7mmst\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+________________ TestChangeScopeCheck.test_oos_committed_fail _________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE8631C70>
+
+    def test_oos_committed_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            _write(repo, "bad.txt", "bad")
+            _git_commit(repo, "bad")
+            _write(repo, "policy.json", json.dumps({"schema_version": "1", "task_id": "TASK_CS",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                "denied_paths": [{"path": "bad.txt", "path_type": "file"}],
+                "protected_files": []}))
+            bc = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = os.path.join(repo, "policy.json")
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpxi5qdz3l\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpxi5qdz3l\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+____________ TestChangeScopeCheck.test_protected_sha_mismatch_fail ____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9A6C6B0>
+
+    def test_protected_sha_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "secret.key", "original")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            _write(repo, "secret.key", "tampered")
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                "denied_paths": [], "protected_files": [
+                    {"path": "secret.key", "sha256": hashlib.sha256(b"original").hexdigest()}]}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpc5vrv5lj\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpc5vrv5lj\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_________________ TestChangeScopeCheck.test_nongit_dir_error __________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9A6C050>
+
+    def test_nongit_dir_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": "x" * 40, "policy_path": "p.json",
+                "policy_sha256": "f" * 64, "worktree_clean_at_approval": True})
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(td, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpmdk7fhso\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpmdk7fhso\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_____________ TestChangeScopeCheck.test_policy_sha_changed_error ______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9733A50>
+
+    def test_policy_sha_changed_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = _write(repo, "policy.json", json.dumps({"schema_version": "1", "task_id": "TASK_CS",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"}], "denied_paths": [], "protected_files": []}))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": "f" * 64, "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:199: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpys_3eawe\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpys_3eawe\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_____________ TestChangeScopeCheck.test_baseline_not_found_error ______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9765A90>
+
+    def test_baseline_not_found_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            pp = _write(repo, "policy.json", json.dumps({"schema_version": "1", "task_id": "TASK_CS",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"}], "denied_paths": [], "protected_files": []}))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": "deadbeef" * 5, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp5ga4kz45\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp5ga4kz45\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+__________________ TestChangeScopeCheck.test_no_file_writes ___________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001FDE9765C70>
+
+    def test_no_file_writes(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._setup(td)
+            before = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: before.add(os.path.join(dp, fn))
+>           change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmps36pbqo2\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmps36pbqo2\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_______________ TestUploadPackageCheck.test_source_missing_fail _______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001FDE9A6C380>
+
+    def test_source_missing_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._setup(td, [{"package_path": "r.md", "source_path": "missing/file.txt"}])
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 0 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:306: AssertionError
+__________________ TestAdversarial.test_staged_oos_add_fail ___________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE978AD50>
+
+    def test_staged_oos_add_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._cs_setup(td, extra_files={"rogue.txt": "bad"})
+            _git_add(repo, "rogue.txt")
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:407: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpzh281a9k\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpzh281a9k\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_______________ TestAdversarial.test_staged_denied_delete_fail ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE978AE90>
+
+    def test_staged_denied_delete_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _write(repo, "denied.txt", "x")
+            _git_commit(repo, "init")
+            _write(repo, "policy.json", json.dumps({"schema_version": "1", "task_id": "TASK_ADV",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                "denied_paths": [{"path": "denied.txt", "path_type": "file"}], "protected_files": []}))
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            os.remove(os.path.join(repo, "denied.txt"))
+            _git_add(repo, "denied.txt")
+            pp = os.path.join(repo, "policy.json")
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:430: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp_59m0zq1\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp_59m0zq1\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+__________________ TestAdversarial.test_unstaged_delete_fail __________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE97823F0>
+
+    def test_unstaged_delete_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._cs_setup(td, extra_files={"other.txt": "x"})
+            _git_add(repo, "other.txt")
+            _git_commit(repo, "add other")
+            # Delete without staging
+            os.remove(os.path.join(repo, "other.txt"))
+            bc2 = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = os.path.join(repo, "policy.json")
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": bc2, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task2.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp, "frozen2")
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:449: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp32yjdf0c\\task2.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp32yjdf0c\\frozen2'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+___________________ TestAdversarial.test_committed_oos_fail ___________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE9781BA0>
+
+    def test_committed_oos_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._cs_setup(td, extra_files={"bad.txt": "bad"})
+            _git_commit(repo, "bad")
+            bc2 = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = os.path.join(repo, "policy.json")
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": bc2, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task2.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp, "frozen2")
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:465: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp9w8f9ljr\\task2.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp9w8f9ljr\\frozen2'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+________________ TestAdversarial.test_protected_sha_wrong_fail ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE8632210>
+
+    def test_protected_sha_wrong_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._cs_setup(td, protected=[{"path": "ok.txt", "sha256": "f" * 64}])
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:473: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmptnc9bmvt\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmptnc9bmvt\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_________________ TestAdversarial.test_policy_sha_wrong_error _________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE9A6C8D0>
+
+    def test_policy_sha_wrong_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = _write(repo, "policy.json", json.dumps({"schema_version": "1", "task_id": "TASK_ADV",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"}], "denied_paths": [], "protected_files": []}))
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": "b" * 64, "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(repo, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:499: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpfa6shdmb\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpfa6shdmb\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+______________________ TestAdversarial.test_nongit_error ______________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE97D9350>
+
+    def test_nongit_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": "x" * 40, "policy_path": "p.json",
+                "policy_sha256": "f" * 64, "worktree_clean_at_approval": True})
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _frozen(td, tp)
+>           code, result = change_scope_check(tp, fd)
+
+protocol_guard\phase2_min\tests\test_checkers.py:511: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbits7zjz\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbits7zjz\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+_________________ TestAdversarial.test_no_file_writes_either __________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001FDE971B310>
+
+    def test_no_file_writes_either(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp_cs, fd_cs, repo = self._cs_setup(td)
+            before = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: before.add(os.path.join(dp, fn))
+>           change_scope_check(tp_cs, fd_cs)
+
+protocol_guard\phase2_min\tests\test_checkers.py:585: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+task_path = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpp9qztg2k\\task.yaml'
+frozen_dir = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpp9qztg2k\\frozen'
+
+    def change_scope_check(task_path, frozen_dir):
+        """Check worktree changes since baseline comply with frozen policy.
+    
+        Returns: (exit_code: int, result: dict)
+            0 = PASS, 1 = FAIL (policy violation), 2 = ERROR (invalid input)
+        """
+        result = {
+            "schema_version": "1",
+            "checker": "change_scope_check",
+            "task_id": None,
+            "baseline_commit_sha": None,
+            "policy_sha256": None,
+            "protected_file_results": [],
+            "out_of_scope_changes": [],
+            "input_errors": [],
+            "result": None,
+        }
+        errors = result["input_errors"]
+    
+        # 1. Verify frozen task
+        match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+        if not match:
+            errors.append(f"Frozen task verification failed: {ferr}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 2. Load task card and frozen task
+        task_data = load_task_card(task_path)
+        frozen_data, ferr2 = load_frozen_task(frozen_dir)
+        if frozen_data is None:
+            errors.append(ferr2)
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        task_id = task_data.get("task_id", "unknown")
+        result["task_id"] = task_id
+    
+        # 3. Read fixed_params from frozen task
+        fixed = frozen_data.get("fixed_params", {})
+        if not isinstance(fixed, dict):
+            errors.append("fixed_params must be a dict")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        baseline_commit = fixed.get("baseline_commit_sha")
+        policy_path = fixed.get("policy_path")
+        policy_sha = fixed.get("policy_sha256")
+        worktree_clean = fixed.get("worktree_clean_at_approval")
+    
+        result["baseline_commit_sha"] = baseline_commit
+    
+        # Validate worktree_clean_at_approval
+        if worktree_clean is not True:
+            errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        if not baseline_commit or not policy_path or not policy_sha:
+            errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 4. Validate policy_path is safe relative path
+        try:
+            normalize_path(policy_path)
+        except ValueError as e:
+            errors.append(f"policy_path rejected: {e}")
+            result["result"] = "ERROR"
+            return (2, result)
+    
+        # 5. Verify policy SHA256 (resolve relative to repo_root)
+>       policy_abs = os.path.normpath(os.path.join(repo_root, policy_path))
+E       UnboundLocalError: cannot access local variable 'repo_root' where it is not associated with a value
+
+protocol_guard\phase2_min\change_scope_check.py:84: UnboundLocalError
+=========================== short test summary info ===========================
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_clean_worktree_pass
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_root_ok
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_tasks_dir_ok
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_nested_dir_ok
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_oos_committed_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_protected_sha_mismatch_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_nongit_dir_error
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_policy_sha_changed_error
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_baseline_not_found_error
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_no_file_writes
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_missing_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_oos_add_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_denied_delete_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_unstaged_delete_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_committed_oos_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_protected_sha_wrong_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_policy_sha_wrong_error
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_nongit_error
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_no_file_writes_either
+======================= 19 failed, 141 passed in 5.20s ========================

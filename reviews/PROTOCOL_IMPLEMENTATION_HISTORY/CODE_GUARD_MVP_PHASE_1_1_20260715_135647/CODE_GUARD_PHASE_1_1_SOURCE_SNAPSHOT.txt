@@ -1,0 +1,1727 @@
+﻿# CODE GUARD PHASE 1.1 SOURCE SNAPSHOT
+# Generated: 2026-07-15T13:25:23+08:00
+
+==============================================================================
+FILE: protocol_guard\result.py
+SIZE: 638 bytes
+SHA256: c6cf1ab1a907e1bd38e6da8bf7c420ded2e3f4209c59ddb43126db91ae95e9e6
+==============================================================================
+
+"""TECHNICAL_RESULT enum and evidence status constants.
+
+Spec: only these 5 main results exist. EVIDENCE_RECOVERED is NOT a main result.
+"""
+
+from enum import Enum
+
+
+class TechnicalResult(Enum):
+    TECHNICAL_PASS = "TECHNICAL_PASS"
+    TECHNICAL_FAIL = "TECHNICAL_FAIL"
+    CONSTRAINT_CONFLICT = "CONSTRAINT_CONFLICT"
+    EVIDENCE_INVALID = "EVIDENCE_INVALID"
+    SPEC_INVALID = "SPEC_INVALID"
+
+
+class EvidenceStatus(Enum):
+    VALID = "VALID"
+    RECOVERED = "RECOVERED"
+    INVALID = "INVALID"
+
+
+VALID_TECHNICAL_RESULTS = frozenset(r.value for r in TechnicalResult)
+VALID_EVIDENCE_STATUSES = frozenset(s.value for s in EvidenceStatus)
+
+
+==============================================================================
+FILE: protocol_guard\task_schema.py
+SIZE: 6035 bytes
+SHA256: 1686d70f70890167507f85dae16c209d7c4d84237b6277d16bd5f84834c60164
+==============================================================================
+
+"""Task card validation using JSON Schema v2 + cross-field constraint checks."""
+
+import json
+import os
+import yaml
+
+_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schemas", "task_card.schema.json")
+PS_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schemas", "project_state.schema.json")
+
+
+def _load_schema():
+    with open(_SCHEMA_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _load_ps_schema():
+    with open(PS_SCHEMA_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _unique_ids(items, key):
+    """Check that a list of dicts has unique values for `key`. Returns set of duplicates."""
+    seen = set()
+    dups = set()
+    for item in items:
+        val = item.get(key)
+        if val in seen:
+            dups.add(val)
+        seen.add(val)
+    return dups
+
+
+def validate_task_card(task_data, schema=None):
+    """Validate a task card dict. Returns (is_valid, list_of_errors)."""
+    import jsonschema
+
+    if schema is None:
+        schema = _load_schema()
+
+    errors = []
+
+    # 1. JSON Schema structural validation
+    try:
+        jsonschema.validate(instance=task_data, schema=schema)
+    except jsonschema.ValidationError as e:
+        errors.append(f"Schema violation: {e.message}")
+        return False, errors
+
+    # 2. primary_variable must be a non-empty single string
+    pv = task_data.get("primary_variable")
+    if not isinstance(pv, str) or len(pv) == 0:
+        errors.append("primary_variable must be a non-empty single string")
+
+    # 3. Cross-field constraint: no parameter overlaps
+    pv_set = {pv} if isinstance(pv, str) and pv else set()
+
+    # fixed_params is now an object; keys are the param names
+    fixed = task_data.get("fixed_params", {})
+    if not isinstance(fixed, dict):
+        errors.append("fixed_params must be an object")
+        fixed_keys = set()
+    else:
+        fixed_keys = set(fixed.keys())
+
+    # dependent_variables is now an array of objects with a "name" key
+    dep_vars = task_data.get("dependent_variables", [])
+    dep_names = set()
+    if isinstance(dep_vars, list):
+        for dv in dep_vars:
+            if isinstance(dv, dict) and "name" in dv:
+                dep_names.add(dv["name"])
+
+    dup_pv_dep = pv_set & dep_names
+    dup_pv_fixed = pv_set & fixed_keys
+    dup_dep_fixed = dep_names & fixed_keys
+
+    if dup_pv_dep:
+        errors.append(f"Parameters in both primary_variable and dependent_variables: {dup_pv_dep}")
+    if dup_pv_fixed:
+        errors.append(f"Parameters in both primary_variable and fixed_params: {dup_pv_fixed}")
+    if dup_dep_fixed:
+        errors.append(f"Parameters in both dependent_variables and fixed_params: {dup_dep_fixed}")
+
+    # 4. dependent_variables: each name must be unique
+    if isinstance(dep_vars, list):
+        dep_name_dups = _unique_ids(dep_vars, "name")
+        if dep_name_dups:
+            errors.append(f"Duplicate dependent_variable names: {dep_name_dups}")
+
+    # 5. preflight_checks: check_id must be unique
+    preflight = task_data.get("preflight_checks", [])
+    if isinstance(preflight, list):
+        pf_dups = _unique_ids(preflight, "check_id")
+        if pf_dups:
+            errors.append(f"Duplicate preflight check_ids: {pf_dups}")
+
+    # 6. technical_pass_conditions: condition_id must be unique
+    conditions = task_data.get("technical_pass_conditions", [])
+    if isinstance(conditions, list):
+        cond_dups = _unique_ids(conditions, "condition_id")
+        if cond_dups:
+            errors.append(f"Duplicate condition_ids: {cond_dups}")
+
+        # 7. Validate "between" expects an array of two numbers
+        for cond in conditions:
+            op = cond.get("operator")
+            exp = cond.get("expected")
+            if op == "between":
+                if not isinstance(exp, list) or len(exp) != 2 or not all(isinstance(v, (int, float)) for v in exp):
+                    errors.append(f"condition_id={cond.get('condition_id')}: 'between' operator requires expected=[min, max] as two numbers")
+            elif op == "in":
+                if not isinstance(exp, list) or len(exp) == 0:
+                    errors.append(f"condition_id={cond.get('condition_id')}: 'in' operator requires expected as non-empty array")
+
+    # 8. locked_items: lock_id must be unique
+    locks = task_data.get("locked_items", [])
+    if isinstance(locks, list):
+        lock_dups = _unique_ids(locks, "lock_id")
+        if lock_dups:
+            errors.append(f"Duplicate lock_ids: {lock_dups}")
+
+    # 9. evidence_required: evidence_id must be unique
+    evidence = task_data.get("evidence_required", [])
+    if isinstance(evidence, list):
+        ev_dups = _unique_ids(evidence, "evidence_id")
+        if ev_dups:
+            errors.append(f"Duplicate evidence_ids: {ev_dups}")
+
+    # 10. state_patch_requested: if not null, must have fields and reason
+    spr = task_data.get("state_patch_requested")
+    if spr is not None:
+        if not isinstance(spr, dict):
+            errors.append("state_patch_requested must be null or an object")
+        else:
+            if "fields" not in spr or not isinstance(spr.get("fields"), dict) or len(spr.get("fields", {})) == 0:
+                errors.append("state_patch_requested.fields must be a non-empty object")
+            if "reason" not in spr or not isinstance(spr.get("reason"), str) or len(spr.get("reason", "")) == 0:
+                errors.append("state_patch_requested.reason must be a non-empty string")
+            if set(spr.keys()) - {"fields", "reason"}:
+                errors.append("state_patch_requested has unknown fields beyond 'fields' and 'reason'")
+
+    return (len(errors) == 0, errors)
+
+
+def load_task_card(task_path):
+    """Load a task card YAML file and return the parsed dict."""
+    with open(task_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def validate_task_file(task_path):
+    """Load and validate a task card YAML file. Returns (is_valid, errors)."""
+    task_data = load_task_card(task_path)
+    return validate_task_card(task_data)
+
+
+==============================================================================
+FILE: protocol_guard\state\project_state.py
+SIZE: 7259 bytes
+SHA256: 577ed8dae8cee6e07f732e085f8688c4cc9c9db105474a03b6485d432e255169
+==============================================================================
+
+"""PROJECT_STATE.yaml management with field-level actor permissions.
+
+Field permissions:
+  CLAUDE: last_task_id, last_task_card_sha256, last_technical_result,
+          evidence_status, evidence_sha256, output_files, last_execution_time
+  GPT_PROPOSAL: can generate suggestions but CANNOT write directly
+  USER_APPROVED: can write restricted fields (workflow_phase, scene_phase,
+                 phase_approved, locked_assets, unlocked_assets,
+                 blocked_operations, failed_paths, project_work_paused,
+                 protocol_version, diagnostic_only_outputs, pending_review,
+                 change_log)
+"""
+
+import json
+import os
+import yaml
+
+from protocol_guard.result import VALID_TECHNICAL_RESULTS, VALID_EVIDENCE_STATUSES
+
+_SCHEMA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "schemas", "project_state.schema.json"
+)
+
+CLAUDE_WRITABLE = frozenset({
+    "last_task_id",
+    "last_task_card_sha256",
+    "last_technical_result",
+    "evidence_status",
+    "evidence_sha256",
+    "output_files",
+    "last_execution_time",
+})
+
+RESTRICTED_FIELDS = frozenset({
+    "workflow_phase",
+    "scene_phase",
+    "phase_approved",
+    "locked_assets",
+    "unlocked_assets",
+    "blocked_operations",
+    "failed_paths",
+    "project_work_paused",
+    "protocol_version",
+    "diagnostic_only_outputs",
+    "pending_review",
+    "change_log",
+})
+
+
+SHA256_PATTERN_RE = None  # compiled lazily
+
+
+def _sha256_pattern():
+    global SHA256_PATTERN_RE
+    if SHA256_PATTERN_RE is None:
+        import re
+        SHA256_PATTERN_RE = re.compile(r'^[a-f0-9]{64}$')
+    return SHA256_PATTERN_RE
+
+
+def _load_schema():
+    with open(_SCHEMA_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def validate_state(state_data, schema=None):
+    """Validate PROJECT_STATE data against its JSON Schema. Returns (is_valid, errors)."""
+    import jsonschema
+
+    if schema is None:
+        schema = _load_schema()
+
+    errors = []
+    try:
+        jsonschema.validate(instance=state_data, schema=schema)
+    except jsonschema.ValidationError as e:
+        errors.append(f"Schema violation: {e.message}")
+        return False, errors
+
+    # Validate enum values
+    tr = state_data.get("last_technical_result")
+    if tr is not None and tr not in VALID_TECHNICAL_RESULTS:
+        errors.append(f"Invalid technical_result: {tr}")
+
+    es = state_data.get("evidence_status")
+    if es is not None and es not in VALID_EVIDENCE_STATUSES:
+        errors.append(f"Invalid evidence_status: {es}")
+
+    # Validate SHA256 fields: null or 64-char hex, NOT empty string
+    for sha_field in ["last_task_card_sha256", "evidence_sha256"]:
+        val = state_data.get(sha_field)
+        if val is not None:
+            if not isinstance(val, str):
+                errors.append(f"{sha_field} must be null or a 64-char hex string, got: {type(val).__name__}")
+            elif len(val) == 0:
+                errors.append(f"{sha_field} must be null, not empty string — use null for unknown")
+            elif not _sha256_pattern().match(val):
+                errors.append(f"{sha_field} must be a 64-char lowercase hex string, got: '{val}'")
+
+    # Validate last_execution_time: null or ISO 8601 with timezone
+    let = state_data.get("last_execution_time")
+    if let is not None:
+        if not isinstance(let, str) or len(let) == 0:
+            errors.append("last_execution_time must be null or ISO 8601 string, not empty string")
+        elif "T" not in let:
+            errors.append("last_execution_time must be ISO 8601 with time component")
+        else:
+            has_tz = let.endswith("Z")
+            if not has_tz and "T" in let:
+                time_part = let.split("T")[1] if "T" in let else ""
+                has_tz = "+" in time_part or "-" in time_part
+            if not has_tz:
+                errors.append("last_execution_time must include timezone (Z, +HH:MM, -HH:MM)")
+
+    # Validate pending_review: Claude can only set awaiting_gpt_review
+    pr = state_data.get("pending_review")
+    if isinstance(pr, dict):
+        pr_status = pr.get("status")
+        if pr_status is not None and pr_status not in ("awaiting_gpt_review", "awaiting_user_review", "approved", "rejected"):
+            errors.append(f"Invalid pending_review.status: {pr_status}")
+
+    return (len(errors) == 0, errors)
+
+
+def validate_patch(actor, patch_fields):
+    """Validate that an actor can write the given fields.
+
+    Returns (allowed, blocked_fields, reason).
+    """
+    if not isinstance(patch_fields, dict):
+        return (False, [], "patch_fields must be a dict")
+
+    requested = set(patch_fields.keys())
+
+    if actor == "CLAUDE":
+        blocked = requested & RESTRICTED_FIELDS
+        if blocked:
+            return (False, list(blocked),
+                    f"CLAUDE cannot write restricted fields: {list(blocked)}")
+        return (True, [], "")
+
+    elif actor == "GPT_PROPOSAL":
+        return (False, list(requested),
+                "GPT_PROPOSAL cannot directly write any field — generate a proposal only")
+
+    elif actor == "USER_APPROVED":
+        return (True, [], "")
+
+    else:
+        return (False, list(requested), f"Unknown actor: {actor}")
+
+
+def apply_patch(state_data, actor, patch_fields, approval=None):
+    """Validate and apply a field-level patch.
+
+    change_log is APPEND-ONLY. Existing entries are never overwritten or deleted.
+    New entries are appended to the existing list.
+
+    approval: required if actor is GPT_PROPOSAL — must be a dict with
+              'approved_by': 'USER_APPROVED' and optionally 'approved_fields'.
+
+    Returns (success, new_state, errors).
+    """
+    allowed, blocked, reason = validate_patch(actor, patch_fields)
+    if not allowed:
+        if actor == "GPT_PROPOSAL" and approval is not None:
+            if approval.get("approved_by") != "USER_APPROVED":
+                return (False, state_data, ["GPT_PROPOSAL patches require USER_APPROVED approval"])
+            approved_fields = approval.get("approved_fields", list(patch_fields.keys()))
+            fields_to_apply = {k: v for k, v in patch_fields.items() if k in approved_fields}
+        else:
+            return (False, state_data, [reason])
+    else:
+        fields_to_apply = patch_fields
+
+    new_state = dict(state_data)
+
+    # Special handling: change_log is append-only
+    if "change_log" in fields_to_apply:
+        existing_log = list(state_data.get("change_log", []))
+        new_entries = fields_to_apply["change_log"]
+        if not isinstance(new_entries, list):
+            return (False, state_data, ["change_log must be an array"])
+        # Append — never overwrite existing entries
+        new_state["change_log"] = existing_log + list(new_entries)
+        del fields_to_apply["change_log"]
+
+    new_state.update(fields_to_apply)
+    return (True, new_state, [])
+
+
+def load_state(state_path):
+    """Load PROJECT_STATE.yaml and return the parsed dict."""
+    with open(state_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def save_state(state_data, state_path):
+    """Save PROJECT_STATE data to a YAML file."""
+    with open(state_path, "w", encoding="utf-8") as f:
+        yaml.dump(state_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+
+==============================================================================
+FILE: protocol_guard\frozen\snapshot.py
+SIZE: 2637 bytes
+SHA256: e1bf58706547f3e05ad39b0d9fcaaccee33ae3679c4cdc0153751c9fdd5bff77
+==============================================================================
+
+"""SHA256-based task card freezing and verification.
+
+Freeze: copy task.yaml → frozen_task.yaml + frozen_task.sha256
+Verify: re-hash task.yaml and compare against stored SHA256.
+Re-freeze: rejected if frozen_task.yaml already exists (must bump version or change task_id).
+"""
+
+import hashlib
+import os
+import shutil
+import yaml
+
+
+def _sha256_file(path):
+    """Compute SHA256 hex digest of a file."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _sha256_text(text):
+    """Compute SHA256 hex digest of a string."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def freeze_task(task_path, frozen_dir):
+    """Freeze a task card: copy task + write SHA256.
+
+    Args:
+        task_path: Path to task.yaml
+        frozen_dir: Directory to write frozen_task.yaml and frozen_task.sha256
+
+    Returns:
+        (success, sha256_hex, error_message)
+        If frozen_task.yaml already exists in frozen_dir, returns (False, None, error).
+    """
+    os.makedirs(frozen_dir, exist_ok=True)
+
+    frozen_yaml = os.path.join(frozen_dir, "frozen_task.yaml")
+    frozen_sha = os.path.join(frozen_dir, "frozen_task.sha256")
+
+    if os.path.exists(frozen_yaml):
+        return (False, None,
+                f"Frozen task already exists at {frozen_yaml}. "
+                f"Bump task_card_version or use a new task_id to re-freeze.")
+
+    sha = _sha256_file(task_path)
+    shutil.copy2(task_path, frozen_yaml)
+    with open(frozen_sha, "w", encoding="utf-8") as f:
+        f.write(sha + "\n")
+
+    return (True, sha, "")
+
+
+def verify_frozen_task(task_path, frozen_dir):
+    """Verify that task.yaml matches the frozen snapshot.
+
+    Args:
+        task_path: Path to current task.yaml
+        frozen_dir: Directory containing frozen_task.yaml and frozen_task.sha256
+
+    Returns:
+        (match, current_sha256, frozen_sha256, error_message)
+        match is True if SHA256s are identical.
+    """
+    frozen_yaml = os.path.join(frozen_dir, "frozen_task.yaml")
+    frozen_sha = os.path.join(frozen_dir, "frozen_task.sha256")
+
+    if not os.path.exists(frozen_yaml):
+        return (False, None, None, f"Frozen task not found at {frozen_yaml}")
+    if not os.path.exists(frozen_sha):
+        return (False, None, None, f"SHA256 file not found at {frozen_sha}")
+
+    with open(frozen_sha, "r", encoding="utf-8") as f:
+        stored_sha = f.read().strip()
+
+    current_sha = _sha256_file(task_path)
+
+    return (current_sha == stored_sha, current_sha, stored_sha, "")
+
+
+==============================================================================
+FILE: protocol_guard\schemas\task_card.schema.json
+SIZE: 7170 bytes
+SHA256: 1d4ef769e56f0d38fc13dbf25eebc58e2a0d09aec88ca5b01067fdcff1ef4fc2
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/task_card.schema.json",
+  "title": "BVF Task Card v2",
+  "description": "Schema for a single task card in the BVF collaboration protocol. v2: structured params, conditions, locks, evidence.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_card_version",
+    "protocol_version",
+    "execution_mode",
+    "task_type",
+    "project_state_file",
+    "input_files",
+    "output_files",
+    "primary_goal",
+    "primary_variable",
+    "dependent_variables",
+    "fixed_params",
+    "locked_items",
+    "allowed_modifications",
+    "forbidden_modifications",
+    "preflight_checks",
+    "technical_pass_conditions",
+    "visual_intent",
+    "visual_forbidden",
+    "evidence_required",
+    "upload_dir",
+    "upload_files",
+    "stop_conditions",
+    "state_patch_requested"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_card_version": { "type": "integer", "minimum": 1 },
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "execution_mode": { "enum": ["confirm_then_execute", "direct_execute"] },
+    "task_type": {
+      "enum": ["AUDIT", "MODIFICATION", "ROOT_CAUSE_AUDIT", "CALIBRATION", "PROTOCOL_MAINTENANCE"]
+    },
+    "project_state_file": { "type": "string" },
+    "input_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "primary_goal": { "type": "string" },
+    "primary_variable": { "type": "string" },
+
+    "dependent_variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "solver"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "solver": { "type": "string", "minLength": 1 },
+          "minimum": { "type": "number" },
+          "maximum": { "type": "number" },
+          "unit": { "type": "string" },
+          "step": { "type": "number" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "fixed_params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    },
+
+    "locked_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["lock_id", "resource_type", "selector", "protected_fields"],
+        "properties": {
+          "lock_id": { "type": "string", "minLength": 1 },
+          "resource_type": {
+            "enum": ["file", "blender_object", "blender_collection", "blender_scene", "directory", "protocol_code"]
+          },
+          "selector": { "type": "string", "minLength": 1 },
+          "protected_fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "allowed_modifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "fields"],
+        "properties": {
+          "target": { "type": "string", "minLength": 1 },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "limits": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "forbidden_modifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "fields"],
+        "properties": {
+          "target": { "type": "string", "minLength": 1 },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "limits": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "preflight_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "checker", "required"],
+        "properties": {
+          "check_id": { "type": "string", "minLength": 1 },
+          "checker": { "type": "string", "minLength": 1 },
+          "required": { "type": "boolean" },
+          "params": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "technical_pass_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition_id", "metric", "operator", "expected", "required"],
+        "properties": {
+          "condition_id": { "type": "string", "minLength": 1 },
+          "metric": { "type": "string" },
+          "operator": {
+            "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "between", "in", "exists", "sha256_match", "unchanged"]
+          },
+          "expected": {},
+          "required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "visual_intent": { "type": "string" },
+    "visual_forbidden": { "type": "string" },
+
+    "evidence_required": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "role", "path", "required"],
+        "properties": {
+          "evidence_id": { "type": "string", "minLength": 1 },
+          "role": {
+            "enum": ["clean_preview", "debug_preview", "report", "blend", "json", "log", "source_snapshot", "other"]
+          },
+          "path": { "type": "string" },
+          "required": { "type": "boolean" },
+          "same_run_group": { "type": "string" },
+          "sha256_required": { "type": "boolean" },
+          "save_reopen_required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "upload_dir": { "type": "string" },
+    "upload_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+
+    "stop_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "action"],
+        "properties": {
+          "condition": { "type": "string" },
+          "action": {
+            "enum": ["stop_before_execution", "stop_current_task", "mark_technical_fail",
+                     "mark_constraint_conflict", "mark_evidence_invalid", "mark_spec_invalid"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "state_patch_requested": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["fields", "reason"],
+          "properties": {
+            "fields": {
+              "type": "object",
+              "minProperties": 1
+            },
+            "reason": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard\schemas\project_state.schema.json
+SIZE: 4909 bytes
+SHA256: 0c5bc4a4735848268a6c71355b1cc06cd431e60789e97ba97cb46693d3d7f866
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/project_state.schema.json",
+  "title": "BVF Project State v2",
+  "description": "Schema for PROJECT_STATE.yaml. v2: structured locks, diagnostics, change_log, pending_review.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "project_id",
+    "workflow_phase",
+    "scene_phase",
+    "phase_approved",
+    "project_work_paused",
+    "last_task_id",
+    "last_task_card_sha256",
+    "last_technical_result",
+    "evidence_status",
+    "evidence_sha256",
+    "output_files",
+    "last_execution_time",
+    "locked_assets",
+    "unlocked_assets",
+    "diagnostic_only_outputs",
+    "pending_review",
+    "blocked_operations",
+    "failed_paths",
+    "change_log"
+  ],
+  "properties": {
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "workflow_phase": { "type": "string" },
+    "scene_phase": { "type": "string" },
+    "phase_approved": { "type": "boolean" },
+    "project_work_paused": { "type": "boolean" },
+
+    "last_task_id": { "type": "string" },
+    "last_task_card_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "last_technical_result": {
+      "enum": ["TECHNICAL_PASS", "TECHNICAL_FAIL", "CONSTRAINT_CONFLICT",
+               "EVIDENCE_INVALID", "SPEC_INVALID"]
+    },
+    "evidence_status": {
+      "enum": ["VALID", "RECOVERED", "INVALID"]
+    },
+    "evidence_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "last_execution_time": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "format": "date-time" }
+      ]
+    },
+
+    "locked_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "path", "lock_scope", "status", "approved_by"],
+        "properties": {
+          "asset_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "lock_scope": {
+            "enum": ["whole_file", "selected_objects", "selected_collections",
+                     "transforms_only", "hierarchy_only", "asset_structure"]
+          },
+          "status": {
+            "enum": ["locked", "temporarily_unlocked"]
+          },
+          "approved_by": { "type": "string" },
+          "selectors": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "protected_fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "approved_at": { "type": "string" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "unlocked_assets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "diagnostic_only_outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["output_id", "path", "status"],
+        "properties": {
+          "output_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "status": {
+            "enum": ["diagnostic_only", "superseded", "invalid"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "pending_review": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["task_id", "reviewer", "status"],
+          "properties": {
+            "task_id": { "type": "string", "minLength": 1 },
+            "reviewer": {
+              "enum": ["GPT", "USER", "GPT_AND_USER"]
+            },
+            "status": {
+              "enum": ["awaiting_gpt_review", "awaiting_user_review", "approved", "rejected"]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "blocked_operations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "failed_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "change_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "actor", "task_id", "fields_changed", "reason"],
+        "properties": {
+          "timestamp": { "type": "string" },
+          "actor": {
+            "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED", "SYSTEM_MIGRATION"]
+          },
+          "task_id": { "type": "string", "minLength": 1 },
+          "fields_changed": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard\schemas\state_patch.schema.json
+SIZE: 1270 bytes
+SHA256: 63106c591656bf007f59f0e629664afc0766d514ba495bea7ca97e95c232e2a1
+==============================================================================
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/state_patch.schema.json",
+  "title": "BVF State Patch v2",
+  "description": "Schema for a field-level patch to PROJECT_STATE.yaml. v2: reason required, fields validated against PROJECT_STATE schema.",
+  "type": "object",
+  "required": ["actor", "fields", "reason"],
+  "properties": {
+    "actor": {
+      "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED"]
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "enum": [
+          "protocol_version",
+          "project_id",
+          "workflow_phase",
+          "scene_phase",
+          "phase_approved",
+          "project_work_paused",
+          "last_task_id",
+          "last_task_card_sha256",
+          "last_technical_result",
+          "evidence_status",
+          "evidence_sha256",
+          "output_files",
+          "last_execution_time",
+          "locked_assets",
+          "unlocked_assets",
+          "diagnostic_only_outputs",
+          "pending_review",
+          "blocked_operations",
+          "failed_paths",
+          "change_log"
+        ]
+      }
+    },
+    "reason": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}
+
+
+==============================================================================
+FILE: protocol_guard\tests\test_result.py
+SIZE: 1312 bytes
+SHA256: 13b7486f09ab2e00489b65f984405ff7bc2b8369e98e0f01109be18c8fe1c207
+==============================================================================
+
+"""Test TECHNICAL_RESULT enum and evidence status constants."""
+
+import pytest
+from protocol_guard.result import (
+    TechnicalResult,
+    EvidenceStatus,
+    VALID_TECHNICAL_RESULTS,
+    VALID_EVIDENCE_STATUSES,
+)
+
+
+class TestTechnicalResult:
+    def test_valid_main_results(self):
+        expected = {"TECHNICAL_PASS", "TECHNICAL_FAIL", "CONSTRAINT_CONFLICT",
+                    "EVIDENCE_INVALID", "SPEC_INVALID"}
+        assert VALID_TECHNICAL_RESULTS == expected
+
+    def test_evidence_recovered_not_main_result(self):
+        assert "EVIDENCE_RECOVERED" not in VALID_TECHNICAL_RESULTS
+
+    def test_technical_pass_is_valid(self):
+        assert TechnicalResult("TECHNICAL_PASS") == TechnicalResult.TECHNICAL_PASS
+
+    def test_illegal_result_rejected(self):
+        with pytest.raises(ValueError):
+            TechnicalResult("BOGUS_RESULT")
+
+    def test_evidence_recovered_is_not_a_technical_result(self):
+        with pytest.raises(ValueError):
+            TechnicalResult("EVIDENCE_RECOVERED")
+
+
+class TestEvidenceStatus:
+    def test_valid_evidence_statuses(self):
+        expected = {"VALID", "RECOVERED", "INVALID"}
+        assert VALID_EVIDENCE_STATUSES == expected
+
+    def test_illegal_evidence_status_rejected(self):
+        with pytest.raises(ValueError):
+            EvidenceStatus("BOGUS")
+
+
+==============================================================================
+FILE: protocol_guard\tests\test_task_schema.py
+SIZE: 9732 bytes
+SHA256: 258444d0a8920977a5815ef3fb853365b0f4854450cf0e424164914b5fe868b0
+==============================================================================
+
+"""Test task card schema validation v2 — structured params, conditions, locks, evidence."""
+
+import pytest
+from protocol_guard.task_schema import validate_task_card
+
+
+def _valid_task():
+    return {
+        "task_id": "TEST_001",
+        "task_card_version": 2,
+        "protocol_version": "v1.0",
+        "execution_mode": "confirm_then_execute",
+        "task_type": "AUDIT",
+        "project_state_file": "PROJECT_STATE.yaml",
+        "input_files": ["scene/test.blend"],
+        "output_files": ["scene/test_out.blend", "reports/report.md"],
+        "primary_goal": "Verify framing feasibility",
+        "primary_variable": "camera_distance_m",
+
+        "dependent_variables": [
+            {
+                "name": "camera_shift_y",
+                "solver": "analytical_bbox_centering",
+                "minimum": -1.0,
+                "maximum": 1.0,
+                "unit": "normalized_camera_shift",
+            }
+        ],
+
+        "fixed_params": {
+            "lens_mm": 24,
+            "sensor_fit": "HORIZONTAL",
+            "elevation_deg": 25,
+        },
+
+        "locked_items": [
+            {
+                "lock_id": "character_roots",
+                "resource_type": "blender_collection",
+                "selector": "CHR_*",
+                "protected_fields": ["location", "rotation_euler", "scale", "hierarchy"],
+            }
+        ],
+
+        "allowed_modifications": [
+            {"target": "Camera", "fields": ["location"]}
+        ],
+
+        "forbidden_modifications": [
+            {"target": "CHR_*", "fields": ["location", "rotation_euler", "scale"]}
+        ],
+
+        "preflight_checks": [
+            {"check_id": "input_scene_exists", "checker": "file_exists", "required": True}
+        ],
+
+        "technical_pass_conditions": [
+            {"condition_id": "no_clipping", "metric": "clipped_count", "operator": "eq", "expected": 0, "required": True},
+            {"condition_id": "content_h", "metric": "proj_h_pct", "operator": "between", "expected": [56, 61], "required": True},
+        ],
+
+        "visual_intent": "Camera shows checkout counters clearly",
+        "visual_forbidden": "No character clipping",
+
+        "evidence_required": [
+            {"evidence_id": "clean", "role": "clean_preview", "path": "clean.png", "required": True},
+        ],
+
+        "upload_dir": "reviews/UPLOAD_NEXT",
+        "upload_files": ["clean.png", "debug.png", "report.md"],
+
+        "stop_conditions": [
+            {"condition": "sha256_mismatch", "action": "stop_before_execution"},
+        ],
+
+        "state_patch_requested": {
+            "fields": {"scene_phase": "done"},
+            "reason": "Complete",
+        },
+    }
+
+
+class TestTaskCardValidationV2:
+    # ── Basic structural validation ──
+    def test_valid_task_passes(self):
+        ok, errs = validate_task_card(_valid_task())
+        assert ok, f"Expected valid but got errors: {errs}"
+
+    def test_missing_required_field_fails(self):
+        task = _valid_task()
+        del task["task_id"]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_invalid_execution_mode_fails(self):
+        task = _valid_task()
+        task["execution_mode"] = "bypass_everything"
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── primary_variable constraints ──
+    def test_primary_variable_not_single_string_fails(self):
+        task = _valid_task()
+        task["primary_variable"] = ["lens", "distance"]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_empty_primary_variable_fails(self):
+        task = _valid_task()
+        task["primary_variable"] = ""
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── fixed_params new type: object ──
+    def test_fixed_params_as_object_passes(self):
+        task = _valid_task()
+        ok, errs = validate_task_card(task)
+        assert ok
+
+    def test_fixed_params_as_array_fails(self):
+        task = _valid_task()
+        task["fixed_params"] = ["lens_mm", "sensor_fit"]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── dependent_variables structured validation ──
+    def test_dependent_variable_missing_name_fails(self):
+        task = _valid_task()
+        task["dependent_variables"] = [{"solver": "test"}]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_dependent_variable_duplicate_name_fails(self):
+        task = _valid_task()
+        task["dependent_variables"] = [
+            {"name": "shift_y", "solver": "centering"},
+            {"name": "shift_y", "solver": "other"},
+        ]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── Cross-field overlap ──
+    def test_primary_overlaps_fixed_param_key_fails(self):
+        task = _valid_task()
+        task["primary_variable"] = "lens_mm"
+        task["fixed_params"] = {"lens_mm": 24}
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_primary_overlaps_dependent_variable_name_fails(self):
+        task = _valid_task()
+        task["primary_variable"] = "camera_shift_y"
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_dependent_and_fixed_overlap_fails(self):
+        task = _valid_task()
+        task["dependent_variables"] = [{"name": "lens_mm", "solver": "test"}]
+        task["fixed_params"] = {"lens_mm": 24}
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── technical_pass_conditions ──
+    def test_condition_missing_operator_fails(self):
+        task = _valid_task()
+        task["technical_pass_conditions"] = [
+            {"condition_id": "test", "metric": "x", "expected": 0, "required": True}
+        ]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_between_expected_not_two_numbers_fails(self):
+        task = _valid_task()
+        task["technical_pass_conditions"] = [
+            {"condition_id": "test", "metric": "x", "operator": "between", "expected": [1], "required": True}
+        ]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_between_expected_non_numeric_fails(self):
+        task = _valid_task()
+        task["technical_pass_conditions"] = [
+            {"condition_id": "test", "metric": "x", "operator": "between", "expected": ["a", "b"], "required": True}
+        ]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_condition_id_duplicate_fails(self):
+        task = _valid_task()
+        task["technical_pass_conditions"] = [
+            {"condition_id": "dup", "metric": "x", "operator": "eq", "expected": 0, "required": True},
+            {"condition_id": "dup", "metric": "y", "operator": "eq", "expected": 1, "required": True},
+        ]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_in_operator_non_empty_array_passes(self):
+        task = _valid_task()
+        task["technical_pass_conditions"] = [
+            {"condition_id": "check", "metric": "status", "operator": "in", "expected": [0, 1, 2], "required": True}
+        ]
+        ok, errs = validate_task_card(task)
+        assert ok
+
+    # ── locked_items structured ──
+    def test_locked_items_as_strings_fails(self):
+        task = _valid_task()
+        task["locked_items"] = ["character_library", "counter_geometry"]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_locked_items_structured_passes(self):
+        task = _valid_task()
+        ok, errs = validate_task_card(task)
+        assert ok
+
+    # ── state_patch_requested ──
+    def test_state_patch_requested_null_passes(self):
+        task = _valid_task()
+        task["state_patch_requested"] = None
+        ok, errs = validate_task_card(task)
+        assert ok
+
+    def test_state_patch_requested_empty_object_fails(self):
+        task = _valid_task()
+        task["state_patch_requested"] = {}
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_state_patch_requested_unknown_field_fails(self):
+        task = _valid_task()
+        task["state_patch_requested"] = {
+            "fields": {"x": 1},
+            "reason": "test",
+            "extra_field": "should_not_be_here",
+        }
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_state_patch_requested_missing_reason_fails(self):
+        task = _valid_task()
+        task["state_patch_requested"] = {"fields": {"x": 1}}
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── output_files / upload_files constraints ──
+    def test_output_files_empty_fails(self):
+        task = _valid_task()
+        task["output_files"] = []
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_upload_files_duplicate_fails(self):
+        task = _valid_task()
+        task["upload_files"] = ["a.png", "b.png", "a.png"]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    def test_input_files_duplicate_fails(self):
+        task = _valid_task()
+        task["input_files"] = ["a.blend", "a.blend"]
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+    # ── Legacy validation still applies ──
+    def test_invalid_task_type_fails(self):
+        task = _valid_task()
+        task["task_type"] = "FANCY_NEW_TYPE"
+        ok, errs = validate_task_card(task)
+        assert not ok
+
+
+class TestVisualIntentNaturalLanguage:
+    def test_visual_intent_allows_natural_language(self):
+        task = _valid_task()
+        task["visual_intent"] = "画面应该像一个温馨的日本便利店，暖色调灯光"
+        ok, errs = validate_task_card(task)
+        assert ok
+
+
+==============================================================================
+FILE: protocol_guard\tests\test_project_state.py
+SIZE: 10060 bytes
+SHA256: 3b7f22cfd5b4902f0e926d69e74f033b50e54d87420360566f848017615e1f1b
+==============================================================================
+
+"""Test PROJECT_STATE v2 validation and field-level permissions."""
+
+import os
+import pytest
+import yaml
+
+from protocol_guard.state.project_state import (
+    validate_state,
+    validate_patch,
+    apply_patch,
+    load_state,
+)
+
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+STATE_PATH = os.path.join(PROJECT_ROOT, "PROJECT_STATE.yaml")
+
+
+def _base_state():
+    return {
+        "protocol_version": "v1.0",
+        "project_id": "test_project",
+        "workflow_phase": "testing",
+        "scene_phase": "test_phase",
+        "phase_approved": False,
+        "project_work_paused": True,
+        "last_task_id": "TEST_001",
+        "last_task_card_sha256": None,
+        "last_technical_result": "TECHNICAL_PASS",
+        "evidence_status": "VALID",
+        "evidence_sha256": None,
+        "output_files": ["test.md"],
+        "last_execution_time": None,
+        "locked_assets": [],
+        "unlocked_assets": [],
+        "diagnostic_only_outputs": [],
+        "pending_review": None,
+        "blocked_operations": ["禁止测试操作"],
+        "failed_paths": [],
+        "change_log": [
+            {
+                "timestamp": "2026-01-01T00:00:00+00:00",
+                "actor": "SYSTEM_MIGRATION",
+                "task_id": "INIT",
+                "fields_changed": ["initial_state"],
+                "reason": "Initial creation",
+            }
+        ],
+    }
+
+
+class TestProjectStateSchemaV2:
+    def test_initial_project_state_passes(self):
+        """Disk PROJECT_STATE.yaml must pass schema validation."""
+        state = load_state(STATE_PATH)
+        ok, errs = validate_state(state)
+        assert ok, f"PROJECT_STATE.yaml failed validation: {errs}"
+
+    def test_invalid_technical_result_fails(self):
+        state = _base_state()
+        state["last_technical_result"] = "BOGUS_RESULT"
+        ok, errs = validate_state(state)
+        assert not ok
+
+    def test_invalid_evidence_status_fails(self):
+        state = _base_state()
+        state["evidence_status"] = "BOGUS"
+        ok, errs = validate_state(state)
+        assert not ok
+
+    def test_missing_required_field_fails(self):
+        state = _base_state()
+        del state["workflow_phase"]
+        ok, errs = validate_state(state)
+        assert not ok
+
+    # ── New required fields ──
+    def test_missing_locked_assets_fails(self):
+        state = _base_state()
+        del state["locked_assets"]
+        ok, errs = validate_state(state)
+        assert not ok
+
+    def test_missing_blocked_operations_fails(self):
+        state = _base_state()
+        del state["blocked_operations"]
+        ok, errs = validate_state(state)
+        assert not ok
+
+    # ── SHA256 validation ──
+    def test_sha256_empty_string_fails(self):
+        state = _base_state()
+        state["last_task_card_sha256"] = ""
+        ok, errs = validate_state(state)
+        assert not ok
+
+    def test_sha256_null_passes(self):
+        state = _base_state()
+        state["last_task_card_sha256"] = None
+        ok, errs = validate_state(state)
+        assert ok
+
+    def test_sha256_64_hex_passes(self):
+        state = _base_state()
+        state["last_task_card_sha256"] = "a" * 64
+        ok, errs = validate_state(state)
+        assert ok
+
+    def test_evidence_sha256_empty_string_fails(self):
+        state = _base_state()
+        state["evidence_sha256"] = ""
+        ok, errs = validate_state(state)
+        assert not ok
+
+    def test_evidence_sha256_null_passes(self):
+        state = _base_state()
+        state["evidence_sha256"] = None
+        ok, errs = validate_state(state)
+        assert ok
+
+    # ── last_execution_time ──
+    def test_last_execution_time_without_timezone_fails(self):
+        state = _base_state()
+        state["last_execution_time"] = "2026-01-01T00:00:00"
+        ok, errs = validate_state(state)
+        assert not ok
+
+
+class TestFieldPermissions:
+    def test_claude_can_write_runtime_fields(self):
+        allowed, blocked, reason = validate_patch("CLAUDE", {
+            "last_task_id": "TASK_002",
+            "last_technical_result": "TECHNICAL_FAIL",
+            "evidence_status": "VALID",
+        })
+        assert allowed, f"CLAUDE should be allowed: {reason}"
+
+    def test_claude_cannot_write_locked_assets(self):
+        allowed, blocked, reason = validate_patch("CLAUDE", {
+            "locked_assets": [{"asset_id": "x", "path": "x.blend", "lock_scope": "whole_file", "status": "locked", "approved_by": "USER"}]
+        })
+        assert not allowed
+        assert "locked_assets" in blocked
+
+    def test_claude_cannot_write_scene_phase(self):
+        allowed, blocked, reason = validate_patch("CLAUDE", {
+            "scene_phase": "L1-D"
+        })
+        assert not allowed
+
+    def test_gpt_proposal_cannot_write_directly(self):
+        allowed, blocked, reason = validate_patch("GPT_PROPOSAL", {
+            "scene_phase": "camera_locked"
+        })
+        assert not allowed
+        assert "cannot directly write" in reason.lower()
+
+    def test_user_approved_can_write_restricted_fields(self):
+        allowed, blocked, reason = validate_patch("USER_APPROVED", {
+            "scene_phase": "camera_locked",
+            "phase_approved": True,
+            "locked_assets": [],
+        })
+        assert allowed, f"USER_APPROVED should be allowed: {reason}"
+
+
+class TestApplyPatch:
+    def test_apply_claude_runtime_patch_succeeds(self):
+        state = _base_state()
+        ok, new_state, errs = apply_patch(state, "CLAUDE", {
+            "last_task_id": "TASK_003",
+            "last_technical_result": "TECHNICAL_PASS",
+        })
+        assert ok
+        assert new_state["last_task_id"] == "TASK_003"
+
+    def test_apply_claude_restricted_patch_rejected(self):
+        state = _base_state()
+        ok, new_state, errs = apply_patch(state, "CLAUDE", {
+            "locked_assets": [],
+        })
+        assert not ok
+        assert new_state == state
+
+    def test_apply_user_approved_restricted_patch_succeeds(self):
+        state = _base_state()
+        ok, new_state, errs = apply_patch(state, "USER_APPROVED", {
+            "scene_phase": "camera_locked",
+            "phase_approved": True,
+        })
+        assert ok
+        assert new_state["scene_phase"] == "camera_locked"
+
+    def test_gpt_proposal_with_approval_succeeds(self):
+        state = _base_state()
+        ok, new_state, errs = apply_patch(
+            state, "GPT_PROPOSAL",
+            {"scene_phase": "camera_locked"},
+            approval={"approved_by": "USER_APPROVED", "approved_fields": ["scene_phase"]}
+        )
+        assert ok
+        assert new_state["scene_phase"] == "camera_locked"
+
+    def test_gpt_proposal_without_approval_rejected(self):
+        state = _base_state()
+        ok, new_state, errs = apply_patch(state, "GPT_PROPOSAL", {
+            "scene_phase": "camera_locked",
+        })
+        assert not ok
+
+    # ── change_log append-only ──
+    def test_change_log_append_preserves_existing(self):
+        state = _base_state()
+        original_len = len(state["change_log"])
+        ok, new_state, errs = apply_patch(state, "USER_APPROVED", {
+            "change_log": [
+                {
+                    "timestamp": "2026-02-01T00:00:00+00:00",
+                    "actor": "CLAUDE",
+                    "task_id": "NEW",
+                    "fields_changed": ["x"],
+                    "reason": "New entry",
+                }
+            ]
+        })
+        assert ok
+        assert len(new_state["change_log"]) == original_len + 1
+        assert new_state["change_log"][0]["task_id"] == "INIT"
+
+    def test_change_log_overwrite_rejected(self):
+        """Existing change_log entries must survive apply_patch — append only."""
+        state = _base_state()
+        original_first = state["change_log"][0]["task_id"]
+        ok, new_state, errs = apply_patch(state, "USER_APPROVED", {
+            "change_log": [
+                {
+                    "timestamp": "2026-02-01T00:00:00+00:00",
+                    "actor": "CLAUDE",
+                    "task_id": "OVERWRITE",
+                    "fields_changed": ["x"],
+                    "reason": "Attempted overwrite",
+                }
+            ]
+        })
+        assert ok
+        assert new_state["change_log"][0]["task_id"] == original_first
+        assert new_state["change_log"][1]["task_id"] == "OVERWRITE"
+
+
+class TestStatePatchSchemaV2:
+    def test_patch_reason_required(self):
+        """state_patch must have reason."""
+        import json
+        import jsonschema
+        ps_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "schemas", "state_patch.schema.json")
+        with open(ps_path, "r", encoding="utf-8") as f:
+            patch_schema = json.load(f)
+
+        # Missing reason should fail
+        patch = {"actor": "CLAUDE", "fields": {"last_task_id": "X"}}
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(instance=patch, schema=patch_schema)
+
+    def test_patch_unknown_state_field_fails(self):
+        """state_patch fields must use known PROJECT_STATE field names."""
+        import json
+        import jsonschema
+        ps_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "schemas", "state_patch.schema.json")
+        with open(ps_path, "r", encoding="utf-8") as f:
+            patch_schema = json.load(f)
+
+        patch = {"actor": "CLAUDE", "fields": {"not_a_real_field": 42}, "reason": "test"}
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(instance=patch, schema=patch_schema)
+
+    def test_patch_valid_field_passes(self):
+        import json
+        import jsonschema
+        ps_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "schemas", "state_patch.schema.json")
+        with open(ps_path, "r", encoding="utf-8") as f:
+            patch_schema = json.load(f)
+
+        patch = {"actor": "CLAUDE", "fields": {"last_task_id": "X"}, "reason": "test"}
+        jsonschema.validate(instance=patch, schema=patch_schema)
+
+
+==============================================================================
+FILE: protocol_guard\tests\test_snapshot.py
+SIZE: 4529 bytes
+SHA256: e7c5b65e1a18dc8bf95c355e12eb38eccf3c8f0397521d089c74d4c83ce55237
+==============================================================================
+
+"""Test task card freeze and verification — v2 task format compatible."""
+
+import os
+import tempfile
+import yaml
+
+from protocol_guard.frozen.snapshot import freeze_task, verify_frozen_task
+
+
+def _write_task(task_dir, task_data):
+    task_path = os.path.join(task_dir, "task.yaml")
+    with open(task_path, "w", encoding="utf-8") as f:
+        yaml.dump(task_data, f, default_flow_style=False, allow_unicode=True)
+    return task_path
+
+
+def _base_task():
+    return {
+        "task_id": "FREEZE_TEST",
+        "task_card_version": 2,
+        "protocol_version": "v1.0",
+        "execution_mode": "confirm_then_execute",
+        "task_type": "AUDIT",
+        "project_state_file": "PROJECT_STATE.yaml",
+        "input_files": ["test.blend"],
+        "output_files": ["test_out.blend", "report.md"],
+        "primary_goal": "Test freeze",
+        "primary_variable": "camera_distance_m",
+        "dependent_variables": [
+            {"name": "shift_y", "solver": "centering"},
+        ],
+        "fixed_params": {"lens_mm": 24},
+        "locked_items": [
+            {"lock_id": "chars", "resource_type": "blender_collection", "selector": "CHR_*", "protected_fields": ["location"]},
+        ],
+        "allowed_modifications": [{"target": "Camera", "fields": ["location"]}],
+        "forbidden_modifications": [{"target": "CHR_*", "fields": ["location"]}],
+        "preflight_checks": [{"check_id": "c1", "checker": "file_exists", "required": True}],
+        "technical_pass_conditions": [
+            {"condition_id": "c1", "metric": "h", "operator": "gte", "expected": 48, "required": True},
+        ],
+        "visual_intent": "Clear view",
+        "visual_forbidden": "No clipping",
+        "evidence_required": [{"evidence_id": "clean", "role": "clean_preview", "path": "clean.png", "required": True}],
+        "upload_dir": "reviews",
+        "upload_files": ["clean.png", "report.md"],
+        "stop_conditions": [{"condition": "fail", "action": "stop_current_task"}],
+        "state_patch_requested": None,
+    }
+
+
+class TestFreezeTask:
+    def test_first_freeze_succeeds(self):
+        with tempfile.TemporaryDirectory() as td:
+            task_path = _write_task(td, _base_task())
+            frozen_dir = os.path.join(td, "frozen")
+            ok, sha, err = freeze_task(task_path, frozen_dir)
+            assert ok, f"Freeze failed: {err}"
+            assert sha is not None
+            assert len(sha) == 64
+            assert os.path.exists(os.path.join(frozen_dir, "frozen_task.yaml"))
+            assert os.path.exists(os.path.join(frozen_dir, "frozen_task.sha256"))
+
+    def test_verify_succeeds_on_unchanged_task(self):
+        with tempfile.TemporaryDirectory() as td:
+            task_path = _write_task(td, _base_task())
+            frozen_dir = os.path.join(td, "frozen")
+            ok, sha, err = freeze_task(task_path, frozen_dir)
+            assert ok
+
+            match, current, stored, verify_err = verify_frozen_task(task_path, frozen_dir)
+            assert match, f"Verification failed: {verify_err}"
+            assert current == stored
+
+    def test_modified_task_fails_verification(self):
+        with tempfile.TemporaryDirectory() as td:
+            task_path = _write_task(td, _base_task())
+            frozen_dir = os.path.join(td, "frozen")
+            ok, sha, err = freeze_task(task_path, frozen_dir)
+            assert ok
+
+            task_data = _base_task()
+            task_data["primary_variable"] = "different_lens"
+            _write_task(td, task_data)
+
+            match, current, stored, verify_err = verify_frozen_task(task_path, frozen_dir)
+            assert not match, "Modified task should fail verification"
+            assert current != stored
+
+    def test_existing_frozen_rejects_overwrite(self):
+        with tempfile.TemporaryDirectory() as td:
+            task_path = _write_task(td, _base_task())
+            frozen_dir = os.path.join(td, "frozen")
+            ok, sha, err = freeze_task(task_path, frozen_dir)
+            assert ok
+
+            ok2, sha2, err2 = freeze_task(task_path, frozen_dir)
+            assert not ok2, "Second freeze should be rejected"
+            assert "already exists" in err2.lower()
+
+    def test_freezing_nonexistent_dir_creates_it(self):
+        with tempfile.TemporaryDirectory() as td:
+            task_path = _write_task(td, _base_task())
+            frozen_dir = os.path.join(td, "nested", "frozen")
+            ok, sha, err = freeze_task(task_path, frozen_dir)
+            assert ok
+            assert os.path.isdir(frozen_dir)
+
+
+==============================================================================
+MANIFEST
+==============================================================================
+{"protocol_guard\\frozen\\snapshot.py":"e1bf58706547f3e05ad39b0d9fcaaccee33ae3679c4cdc0153751c9fdd5bff77","protocol_guard\\result.py":"c6cf1ab1a907e1bd38e6da8bf7c420ded2e3f4209c59ddb43126db91ae95e9e6","protocol_guard\\schemas\\project_state.schema.json":"0c5bc4a4735848268a6c71355b1cc06cd431e60789e97ba97cb46693d3d7f866","protocol_guard\\schemas\\state_patch.schema.json":"63106c591656bf007f59f0e629664afc0766d514ba495bea7ca97e95c232e2a1","protocol_guard\\schemas\\task_card.schema.json":"1d4ef769e56f0d38fc13dbf25eebc58e2a0d09aec88ca5b01067fdcff1ef4fc2","protocol_guard\\state\\project_state.py":"577ed8dae8cee6e07f732e085f8688c4cc9c9db105474a03b6485d432e255169","protocol_guard\\task_schema.py":"1686d70f70890167507f85dae16c209d7c4d84237b6277d16bd5f84834c60164","protocol_guard\\tests\\test_project_state.py":"3b7f22cfd5b4902f0e926d69e74f033b50e54d87420360566f848017615e1f1b","protocol_guard\\tests\\test_result.py":"13b7486f09ab2e00489b65f984405ff7bc2b8369e98e0f01109be18c8fe1c207","protocol_guard\\tests\\test_snapshot.py":"e7c5b65e1a18dc8bf95c355e12eb38eccf3c8f0397521d089c74d4c83ce55237","protocol_guard\\tests\\test_task_schema.py":"258444d0a8920977a5815ef3fb853365b0f4854450cf0e424164914b5fe868b0"}
+
+MANIFEST_SHA256: e85f8bf341929f0d40010a74fdb46bcd253a9d85af11ac9718fe3fb065ea6b29

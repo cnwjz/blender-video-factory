@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/state_patch.schema.json",
+  "title": "BVF State Patch v2",
+  "description": "Schema for a field-level patch to PROJECT_STATE.yaml. v2: reason required, fields validated against PROJECT_STATE schema.",
+  "type": "object",
+  "required": ["actor", "fields", "reason"],
+  "properties": {
+    "actor": {
+      "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED"]
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "enum": [
+          "protocol_version",
+          "project_id",
+          "workflow_phase",
+          "scene_phase",
+          "phase_approved",
+          "project_work_paused",
+          "last_task_id",
+          "last_task_card_sha256",
+          "last_technical_result",
+          "evidence_status",
+          "evidence_sha256",
+          "output_files",
+          "last_execution_time",
+          "locked_assets",
+          "unlocked_assets",
+          "diagnostic_only_outputs",
+          "pending_review",
+          "blocked_operations",
+          "failed_paths",
+          "change_log"
+        ]
+      }
+    },
+    "reason": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

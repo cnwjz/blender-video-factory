@@ -1,0 +1,19 @@
+Phase 2 Min Adversarial Verification
+
+1. Protected files unchanged: PASS
+2. Phase 1 test count unchanged (121): PASS
+3. No file writes during check: PASS
+4. Path traversal blocked: PASS
+5. Policy SHA mismatch returns FAIL: PASS
+6. Baseline commit not found returns ERROR: PASS
+7. Out-of-scope change returns FAIL: PASS
+8. Protected file change returns FAIL: PASS
+9. Manifest self-reference blocked: PASS
+10. Hash mismatch detected: PASS
+11. Extra file detected: PASS
+12. Task ID mismatch blocked: PASS
+13. Unapproved source blocked: PASS
+14. All 22 Phase 2 Min tests pass: PASS
+15. All 121 Phase 1 tests unchanged: PASS
+16. No Blender called: PASS
+17. No subprocess (except git read-only): PASS

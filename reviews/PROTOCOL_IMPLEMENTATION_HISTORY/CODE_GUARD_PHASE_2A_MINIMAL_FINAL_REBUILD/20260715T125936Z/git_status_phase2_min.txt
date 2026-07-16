@@ -1,0 +1,3 @@
+Not a git repository.
+Project root: D:\blender-video-factory
+REAL_PROJECT_GIT_VALIDATION = NOT_RUN

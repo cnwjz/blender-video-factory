@@ -1,0 +1,26 @@
+{
+  "after_restore": {
+    "CODE_GUARD_PHASE_1_4_SOURCE_SNAPSHOT.txt": "46506ee99fec1e3d287d3be7cd888223af2edfeb6206de0a98b7cd363161273d",
+    "adversarial_test_output.txt": "695f1d16475836d7febafd0e3f697feeecf909ec5e3acf5326392701574f9444",
+    "pytest_output.txt": "504d9ec2fd58420e58e46fda0ddd6288436279718d0b6bba1718bd50eee1cd55"
+  },
+  "before_restore": {
+    "CODE_GUARD_PHASE_1_4_SOURCE_SNAPSHOT.txt": "46506ee99fec1e3d287d3be7cd888223af2edfeb6206de0a98b7cd363161273d",
+    "adversarial_test_output.txt": "137ae76bf7ff3473759fcde80dd4e23705f25b7dce342db662145b36177c3a23",
+    "pytest_output.txt": "f769bf239de93a2f0797fdee3225ab1c960c45c72d911a8811375edf66de95a3"
+  },
+  "blender_executed": false,
+  "errors": [],
+  "expected_hashes": {
+    "adversarial": "695f1d16475836d7febafd0e3f697feeecf909ec5e3acf5326392701574f9444",
+    "pytest": "504d9ec2fd58420e58e46fda0ddd6288436279718d0b6bba1718bd50eee1cd55",
+    "snapshot": "46506ee99fec1e3d287d3be7cd888223af2edfeb6206de0a98b7cd363161273d"
+  },
+  "local_archive_search": "No matching copies found in reviews/ subdirectories",
+  "manifest_verification_passed": true,
+  "project_state_after_sha256": "1d9b24ecbea869b1a184d7271b9e32f83b571acaf583df507f69850534f6413f",
+  "project_state_before_sha256": "1d9b24ecbea869b1a184d7271b9e32f83b571acaf583df507f69850534f6413f",
+  "project_state_unchanged": true,
+  "recovery_source": "User downloaded from ChatGPT file library (original upload 2026-07-15 07:28:31)",
+  "status": "RESTORED_AND_VERIFIED"
+}

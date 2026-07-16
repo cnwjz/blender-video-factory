@@ -1,0 +1,38 @@
+=== Phase 1.4 Adversarial Integrity Test ===
+
+1. Reread validation failure leaves no temp file
+  PASS: reread fail returns False
+  PASS: no file created
+  PASS: no temp files left
+
+2. Read exception leaves no temp file
+  PASS: read exception returns False
+  PASS: no temp files left
+
+3. Replace exception leaves original intact
+  PASS: initial save succeeds
+  PASS: replace exception returns False
+  PASS: original file bytes unchanged
+  PASS: no temp files left
+
+4. Valid save leaves no temp file
+  PASS: valid save succeeds
+  PASS: file exists
+  PASS: no temp files left
+
+5. Manifest has no self reference
+  PASS: build succeeds
+  PASS: no evidence_manifest.json in files
+  PASS: no PROJECT_STATE.yaml in files
+
+6. Tampered report is detected
+  PASS: initial verify passes
+  PASS: tampered report detected
+
+7. Tampered state is detected
+  PASS: initial verify passes
+  PASS: tampered state detected
+
+==================================================
+RESULTS: 19 passed, 0 failed
+==================================================

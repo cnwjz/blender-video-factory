@@ -1,0 +1,188 @@
+{
+  "Customer_01": {
+    "instance_name": "Customer_01",
+    "armature_name": "CHR_MALE_A_Armature",
+    "action_name": "root|idle|Animation Base Layer",
+    "action_frame_range": "<Vector (1.0000, 82.0000)>",
+    "selected_frame": 20,
+    "bbox_min": [
+      -5.9524,
+      -0.5766,
+      0.0
+    ],
+    "bbox_max": [
+      -4.0476,
+      0.3928,
+      1.7823
+    ],
+    "height": 1.7823,
+    "width": 1.9049,
+    "depth": 0.9694,
+    "lowest_z": 0.0,
+    "highest_z": 1.7823,
+    "body_center_z": 0.4589,
+    "head_center_z": 1.3222,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "icosphere_count": 0,
+    "forward_world_y": 1.0,
+    "face_plus_y": true,
+    "validation_result": "PASSED"
+  },
+  "Customer_02": {
+    "instance_name": "Customer_02",
+    "armature_name": "CHR_FEMALE_A_Armature",
+    "action_name": "root|idle|Animation Base Layer",
+    "action_frame_range": "<Vector (1.0000, 82.0000)>",
+    "selected_frame": 20,
+    "bbox_min": [
+      -3.5665,
+      -0.7002,
+      0.1103
+    ],
+    "bbox_max": [
+      -1.4335,
+      0.39,
+      1.7244
+    ],
+    "height": 1.6141,
+    "width": 2.1329,
+    "depth": 1.0901,
+    "lowest_z": 0.1103,
+    "highest_z": 1.7244,
+    "body_center_z": 0.4825,
+    "head_center_z": 1.267,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "icosphere_count": 0,
+    "forward_world_y": 1.0,
+    "face_plus_y": true,
+    "validation_result": "PASSED"
+  },
+  "Customer_03": {
+    "instance_name": "Customer_03",
+    "armature_name": "CHR_MALE_B_Armature",
+    "action_name": "root|idle|Animation Base Layer",
+    "action_frame_range": "<Vector (1.0000, 82.0000)>",
+    "selected_frame": 20,
+    "bbox_min": [
+      -0.9669,
+      -0.5544,
+      0.0
+    ],
+    "bbox_max": [
+      0.9668,
+      0.5829,
+      1.7804
+    ],
+    "height": 1.7804,
+    "width": 1.9337,
+    "depth": 1.1373,
+    "lowest_z": 0.0,
+    "highest_z": 1.7804,
+    "body_center_z": 0.4658,
+    "head_center_z": 1.2531,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "icosphere_count": 0,
+    "forward_world_y": 1.0,
+    "face_plus_y": true,
+    "validation_result": "PASSED"
+  },
+  "Customer_04": {
+    "instance_name": "Customer_04",
+    "armature_name": "CHR_FEMALE_B_Armature",
+    "action_name": "root|idle|Animation Base Layer",
+    "action_frame_range": "<Vector (1.0000, 82.0000)>",
+    "selected_frame": 20,
+    "bbox_min": [
+      1.6161,
+      -0.6278,
+      0.0
+    ],
+    "bbox_max": [
+      3.3839,
+      0.4462,
+      1.7269
+    ],
+    "height": 1.7269,
+    "width": 1.7679,
+    "depth": 1.074,
+    "lowest_z": 0.0,
+    "highest_z": 1.7269,
+    "body_center_z": 0.4259,
+    "head_center_z": 1.2635,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "icosphere_count": 0,
+    "forward_world_y": 1.0,
+    "face_plus_y": true,
+    "validation_result": "PASSED"
+  },
+  "Employee_01": {
+    "instance_name": "Employee_01",
+    "armature_name": "CHR_EMPLOYEE_Armature",
+    "action_name": "root|idle|Animation Base Layer",
+    "action_frame_range": "<Vector (1.0000, 82.0000)>",
+    "selected_frame": 20,
+    "bbox_min": [
+      4.0832,
+      -0.6278,
+      0.0
+    ],
+    "bbox_max": [
+      5.9168,
+      0.3897,
+      1.7269
+    ],
+    "height": 1.7269,
+    "width": 1.8335,
+    "depth": 1.0175,
+    "lowest_z": 0.0,
+    "highest_z": 1.7269,
+    "body_center_z": 0.456,
+    "head_center_z": 1.2629,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "icosphere_count": 0,
+    "forward_world_y": 1.0,
+    "face_plus_y": true,
+    "validation_result": "PASSED"
+  },
+  "Employee_02": {
+    "instance_name": "Employee_02",
+    "armature_name": "CHR_EMPLOYEE_Armature.001",
+    "action_name": "root|idle|Animation Base Layer",
+    "action_frame_range": "<Vector (1.0000, 82.0000)>",
+    "selected_frame": 20,
+    "bbox_min": [
+      4.0832,
+      -0.6278,
+      0.0
+    ],
+    "bbox_max": [
+      5.9168,
+      0.3897,
+      1.7269
+    ],
+    "height": 1.7269,
+    "width": 1.8335,
+    "depth": 1.0175,
+    "lowest_z": 0.0,
+    "highest_z": 1.7269,
+    "body_center_z": 0.456,
+    "head_center_z": 1.2629,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "icosphere_count": 0,
+    "forward_world_y": 1.0,
+    "face_plus_y": true,
+    "validation_result": "PASSED"
+  }
+}

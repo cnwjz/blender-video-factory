@@ -1,0 +1,47 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 38 items
+
+protocol_guard/tests/test_project_state.py::TestProjectStateSchema::test_initial_project_state_passes PASSED [  2%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchema::test_invalid_technical_result_fails PASSED [  5%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchema::test_invalid_evidence_status_fails PASSED [  7%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchema::test_missing_required_field_fails PASSED [ 10%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_can_write_runtime_fields PASSED [ 13%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_locked_assets PASSED [ 15%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_scene_phase PASSED [ 18%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_gpt_proposal_cannot_write_directly PASSED [ 21%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_user_approved_can_write_restricted_fields PASSED [ 23%]
+protocol_guard/tests/test_project_state.py::TestApplyPatch::test_apply_claude_runtime_patch_succeeds PASSED [ 26%]
+protocol_guard/tests/test_project_state.py::TestApplyPatch::test_apply_claude_restricted_patch_rejected PASSED [ 28%]
+protocol_guard/tests/test_project_state.py::TestApplyPatch::test_apply_user_approved_restricted_patch_succeeds PASSED [ 31%]
+protocol_guard/tests/test_project_state.py::TestApplyPatch::test_gpt_proposal_with_approval_succeeds PASSED [ 34%]
+protocol_guard/tests/test_project_state.py::TestApplyPatch::test_gpt_proposal_without_approval_rejected PASSED [ 36%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_valid_main_results PASSED [ 39%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_evidence_recovered_not_main_result PASSED [ 42%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_technical_pass_is_valid PASSED [ 44%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_illegal_result_rejected PASSED [ 47%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_evidence_recovered_is_not_a_technical_result PASSED [ 50%]
+protocol_guard/tests/test_result.py::TestEvidenceStatus::test_valid_evidence_statuses PASSED [ 52%]
+protocol_guard/tests/test_result.py::TestEvidenceStatus::test_illegal_evidence_status_rejected PASSED [ 55%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_first_freeze_succeeds PASSED [ 57%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_verify_succeeds_on_unchanged_task PASSED [ 60%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_modified_task_fails_verification PASSED [ 63%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_existing_frozen_rejects_overwrite PASSED [ 65%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_freezing_nonexistent_dir_creates_it PASSED [ 68%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_valid_task_passes PASSED [ 71%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_missing_required_field_fails PASSED [ 73%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_invalid_execution_mode_fails PASSED [ 76%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_primary_variable_not_single_string_fails PASSED [ 78%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_empty_primary_variable_fails PASSED [ 81%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_duplicate_in_dependent_and_fixed_fails PASSED [ 84%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_duplicate_primary_and_dependent_fails PASSED [ 86%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_duplicate_primary_and_fixed_fails PASSED [ 89%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_direct_execute_mode_is_valid PASSED [ 92%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_task_type_modification_is_valid PASSED [ 94%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_visual_intent_allows_natural_language PASSED [ 97%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidation::test_invalid_task_type_fails PASSED [100%]
+
+============================= 38 passed in 0.23s ==============================

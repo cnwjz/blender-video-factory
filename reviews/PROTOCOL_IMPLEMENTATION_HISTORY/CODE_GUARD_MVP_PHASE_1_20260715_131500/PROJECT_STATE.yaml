@@ -1,0 +1,26 @@
+protocol_version: "v1.0"
+project_id: "bvf_asset_test_001_checkout_lane"
+workflow_phase: "code_guard_implementation"
+scene_phase: "camera_finalization_paused"
+phase_approved: false
+project_work_paused: true
+last_task_id: "COLLAB_PROTOCOL_CODE_ARCHITECTURE_AUDIT"
+last_task_card_sha256: ""
+last_technical_result: "TECHNICAL_PASS"
+evidence_status: "VALID"
+evidence_sha256: ""
+output_files: []
+last_execution_time: ""
+locked_assets:
+  - "character_library_v1.blend (all 5 characters)"
+  - "L1_step02_checkout_final.blend (counters + layout)"
+  - "cashier_standardized_v1.blend"
+unlocked_assets: []
+blocked_operations:
+  - "禁止进入 L1-D"
+  - "禁止修改已锁定角色和收银台资产"
+  - "禁止调整 camera 参数（CAMERA_AZIMUTH_65_EXACT_VERIFY 为有效诊断结果但未获最终锁定批准）"
+failed_paths:
+  - "L1-C: ortho camera — round discarded"
+  - "L1-C2: 26% content height — framing infeasible"
+  - "全 azimuth sweep: no config achieves >=70% height + 0 clipping"

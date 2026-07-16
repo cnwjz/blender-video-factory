@@ -1,0 +1,1370 @@
+# Phase 2 Min Source Snapshot
+
+==============================================================================
+FILE: protocol_guard/phase2_min/__init__.py
+SIZE: 504 bytes
+SHA256: eaedf54de57a67605372293ea7cecc9684cf736af0008458aba158a7a0d6cdac
+==============================================================================
+
+"""Phase 2 Min — two read-only checkers: change_scope and upload_package.
+
+Public API:
+  change_scope_check(task_path, frozen_dir) -> (exit_code, result_dict)
+  upload_package_check(task_path, frozen_dir) -> (exit_code, result_dict)
+
+Exit codes: 0=PASS, 1=FAIL, 2=ERROR
+"""
+
+from protocol_guard.phase2_min.change_scope_check import change_scope_check
+from protocol_guard.phase2_min.upload_package_check import upload_package_check
+
+__all__ = ["change_scope_check", "upload_package_check"]
+
+
+==============================================================================
+FILE: protocol_guard/phase2_min/change_scope_check.py
+SIZE: 7141 bytes
+SHA256: 736871c4bcc0426a165dbe04140cdbc88d50f8dd1c076a9ab6e94cce33a0e285
+==============================================================================
+
+"""Change Scope Check — verify worktree changes against frozen policy."""
+
+import hashlib, json, os
+
+from protocol_guard.frozen.snapshot import verify_frozen_task
+from protocol_guard.phase2_min.io_utils import (
+    sha256_file, load_task_card, load_frozen_task, load_policy,
+    normalize_path, paths_equal_case_insensitive,
+    get_repo_root, get_worktree_changes, is_excluded, run_git,
+)
+
+
+def change_scope_check(task_path, frozen_dir):
+    """Check that worktree changes since baseline comply with frozen policy.
+
+    Returns: (exit_code: int, result: dict)
+        0 = PASS, 1 = FAIL, 2 = ERROR
+    """
+    result = {
+        "schema_version": "1.0",
+        "checker": "change_scope_check",
+        "task_id": None,
+        "baseline_commit_sha": None,
+        "policy_sha256": None,
+        "actual_changes": [],
+        "out_of_scope_changes": [],
+        "protected_file_changes": [],
+        "input_errors": [],
+        "result": None,
+    }
+    errors = result["input_errors"]
+
+    # 1. Verify frozen task
+    match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+    if not match:
+        errors.append(f"Frozen task verification failed: {ferr}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 2. Load task card and frozen task
+    task_data = load_task_card(task_path)
+    frozen_data, ferr2 = load_frozen_task(frozen_dir)
+    if frozen_data is None:
+        errors.append(ferr2)
+        result["result"] = "ERROR"
+        return (2, result)
+
+    task_id = task_data.get("task_id", "unknown")
+    result["task_id"] = task_id
+
+    # 3. Read fixed_params from frozen task
+    fixed = frozen_data.get("fixed_params", {})
+    if not isinstance(fixed, dict):
+        errors.append("fixed_params must be a dict")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    baseline_commit = fixed.get("baseline_commit_sha")
+    policy_path = fixed.get("policy_path")
+    policy_sha = fixed.get("policy_sha256")
+    worktree_clean = fixed.get("worktree_clean_at_approval", False)
+
+    result["baseline_commit_sha"] = baseline_commit
+
+    if not baseline_commit or not policy_path or not policy_sha:
+        errors.append("Missing required fixed_params: baseline_commit_sha, policy_path, policy_sha256")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 4. Verify policy SHA256
+    try:
+        actual_policy_sha = sha256_file(policy_path)
+    except Exception as e:
+        errors.append(f"Cannot read policy file: {e}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    result["policy_sha256"] = policy_sha
+    if actual_policy_sha != policy_sha:
+        errors.append(f"Policy SHA256 mismatch: expected={policy_sha}, actual={actual_policy_sha}")
+        result["result"] = "FAIL"
+        return (1, result)
+
+    # 5. Load policy
+    try:
+        policy = load_policy(policy_path)
+    except Exception as e:
+        errors.append(f"Cannot parse policy: {e}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    allowed = policy.get("allowed", [])
+    denied = policy.get("denied", [])
+    protected = policy.get("protected", [])
+    excluded = policy.get("excluded", []) + [".git", "reviews/UPLOAD_NEXT"]
+
+    # 6. Get repo root from task_path location
+    repo_root, repo_err = get_repo_root(os.path.dirname(os.path.abspath(task_path)))
+    if repo_root is None:
+        errors.append(repo_err)
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 7. Validate baseline commit exists
+    out, err, rc = run_git(["cat-file", "-e", baseline_commit], repo_root)
+    if rc != 0:
+        errors.append(f"Baseline commit not found: {baseline_commit}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 8. Get worktree changes
+    changes = get_worktree_changes(repo_root, baseline_commit)
+    all_changed = set()
+    all_changed.update(changes["added"])
+    all_changed.update(changes["modified"])
+    all_changed.update(changes["deleted"])
+
+    out_of_scope = []
+    protected_changes = []
+
+    # 9. Check each changed file against policy
+    for path in sorted(all_changed):
+        if is_excluded(path, excluded):
+            continue
+        np = normalize_path(path)
+
+        # Protected: priority over denied and allowed
+        is_protected = any(
+            paths_equal_case_insensitive(np, normalize_path(p))
+            or np.startswith(normalize_path(p).rstrip("/") + "/")
+            for p in protected
+        ) or any(
+            np.startswith(normalize_path(p).rstrip("/") + "/")
+            for p in ["protocol_guard/", "projects/", "PROJECT_STATE.yaml",
+                       "evidence_manifest.json", "HUMAN_COLLAB_RULES.md"]
+        )
+
+        if is_protected:
+            # Protected files must exist and match baseline SHA
+            fp = os.path.join(repo_root, path)
+            if os.path.exists(fp):
+                actual = sha256_file(fp)
+                protected_changes.append({
+                    "path": np,
+                    "type": "modified_or_added",
+                    "sha256": actual,
+                })
+            else:
+                protected_changes.append({
+                    "path": np,
+                    "type": "deleted",
+                    "sha256": None,
+                })
+            continue
+
+        # Denied: any match = out of scope
+        is_denied = any(
+            paths_equal_case_insensitive(np, normalize_path(d))
+            or np.startswith(normalize_path(d).rstrip("/") + "/")
+            for d in denied
+        )
+        if is_denied:
+            out_of_scope.append(np)
+            continue
+
+        # Allowed: must match to be in scope
+        is_allowed = any(
+            paths_equal_case_insensitive(np, normalize_path(a))
+            or np.startswith(normalize_path(a).rstrip("/") + "/")
+            for a in allowed
+        )
+        if not is_allowed:
+            out_of_scope.append(np)
+
+    # 10. Check protected files not in changes but ignored
+    for p in protected:
+        np = normalize_path(p)
+        fp = os.path.join(repo_root, p)
+        if not os.path.exists(fp):
+            # Check if git is ignoring it
+            out2, _, _ = run_git(["ls-files", "--error-unmatch", p], repo_root)
+            if out2:
+                protected_changes.append({
+                    "path": np,
+                    "type": "missing_or_ignored",
+                    "sha256": None,
+                })
+            else:
+                actual = sha256_file(fp) if os.path.exists(fp) else None
+                if actual:
+                    protected_changes.append({
+                        "path": np,
+                        "type": "unexpected_present",
+                        "sha256": actual,
+                    })
+
+    result["actual_changes"] = sorted(all_changed)
+    result["out_of_scope_changes"] = sorted(out_of_scope)
+    result["protected_file_changes"] = protected_changes
+
+    if errors:
+        result["result"] = "ERROR"
+        return (2, result)
+
+    if out_of_scope or protected_changes:
+        result["result"] = "FAIL"
+        return (1, result)
+
+    result["result"] = "PASS"
+    return (0, result)
+
+
+==============================================================================
+FILE: protocol_guard/phase2_min/io_utils.py
+SIZE: 5404 bytes
+SHA256: 9657d70729907d6cbc1eaed85718cd0acb42f3aa8723bae38c6fe380e91cd3ae
+==============================================================================
+
+"""Shared read-only utilities for Phase 2 Min checkers."""
+
+import hashlib, json, os, subprocess, yaml
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk: break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sha256_bytes(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def load_task_card(task_path):
+    with open(task_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def load_frozen_task(frozen_dir):
+    fp = os.path.join(frozen_dir, "frozen_task.yaml")
+    if not os.path.exists(fp):
+        return (None, "frozen_task.yaml not found")
+    with open(fp, "r", encoding="utf-8") as f:
+        return (yaml.safe_load(f), None)
+
+
+def normalize_path(p):
+    """Normalize to forward-slash relative path. Reject dangerous paths."""
+    if not isinstance(p, str) or p == "":
+        raise ValueError(f"Invalid path: {p!r}")
+    if os.path.isabs(p):
+        raise ValueError(f"Absolute path rejected: {p}")
+    if p.startswith("\\\\") or p.startswith("//"):
+        raise ValueError(f"UNC path rejected: {p}")
+    if len(p) >= 2 and p[1] == ":" and not p.startswith(p[:2] + "\\"):
+        raise ValueError(f"Drive-relative path rejected: {p}")
+    segments = p.replace("\\", "/").split("/")
+    if ".." in segments:
+        raise ValueError(f"Parent traversal rejected: {p}")
+    for c in p:
+        if ord(c) < 32:
+            raise ValueError(f"Control character in path: {p!r}")
+    return "/".join(segments)
+
+
+def paths_equal_case_insensitive(a, b):
+    """Windows case-insensitive path comparison."""
+    return normalize_path(a).lower() == normalize_path(b).lower()
+
+
+def run_git(args, cwd):
+    """Run a read-only git command. Returns (stdout, stderr, returncode)."""
+    try:
+        r = subprocess.run(
+            ["git"] + args, cwd=cwd, capture_output=True, text=True, timeout=10
+        )
+        return (r.stdout, r.stderr, r.returncode)
+    except FileNotFoundError:
+        return ("", "git not found", 1)
+    except subprocess.TimeoutExpired:
+        return ("", "git timeout", 1)
+
+
+def get_repo_root(cwd):
+    out, err, rc = run_git(["rev-parse", "--show-toplevel"], cwd)
+    if rc != 0:
+        return (None, f"git rev-parse failed: {err.strip()}")
+    return (out.strip(), None)
+
+
+def get_worktree_changes(repo_root, baseline_commit):
+    """Get all worktree changes since baseline."""
+    changes = {"added": [], "modified": [], "deleted": [], "renamed": []}
+
+    # Committed changes
+    out, err, rc = run_git(
+        ["diff", "--name-status", baseline_commit, "HEAD"], repo_root
+    )
+    if rc == 0:
+        for line in out.strip().split("\n"):
+            if not line: continue
+            parts = line.split("\t")
+            status = parts[0]
+            if status.startswith("A"):
+                changes["added"].append(parts[-1])
+            elif status.startswith("D"):
+                changes["deleted"].append(parts[-1])
+            elif status.startswith("M"):
+                changes["modified"].append(parts[-1])
+            elif status.startswith("R"):
+                changes["renamed"].append((parts[1], parts[2]))
+                changes["deleted"].append(parts[1])
+                changes["added"].append(parts[2])
+
+    # Staged changes
+    out, err, rc = run_git(["diff", "--name-status", "--cached"], repo_root)
+    if rc == 0:
+        for line in out.strip().split("\n"):
+            if not line: continue
+            parts = line.split("\t")
+            status = parts[0]
+            name = parts[-1] if len(parts) > 1 else parts[0]
+            if name not in changes["modified"] and status.startswith("M"):
+                changes["modified"].append(name)
+
+    # Unstaged changes
+    out, err, rc = run_git(["diff", "--name-status"], repo_root)
+    if rc == 0:
+        for line in out.strip().split("\n"):
+            if not line: continue
+            parts = line.split("\t")
+            status = parts[0]
+            name = parts[-1] if len(parts) > 1 else parts[0]
+            if status.startswith("M") and name not in changes["modified"]:
+                changes["modified"].append(name)
+
+    # Untracked files
+    out, err, rc = run_git(
+        ["ls-files", "--others", "--exclude-standard"], repo_root
+    )
+    if rc == 0:
+        for line in out.strip().split("\n"):
+            if line:
+                changes["added"].append(line)
+
+    return changes
+
+
+def is_excluded(path, excluded_prefixes):
+    """Check if path matches any excluded prefix."""
+    np = normalize_path(path)
+    for prefix in excluded_prefixes:
+        if np.startswith(normalize_path(prefix).rstrip("/") + "/") or np == normalize_path(prefix):
+            return True
+    return False
+
+
+def load_policy(policy_path):
+    """Load a change-scope policy JSON file."""
+    with open(policy_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_upload_spec(spec_path):
+    """Load an upload spec JSON file."""
+    with open(spec_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_manifest(manifest_path):
+    """Load an upload manifest JSON file."""
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+==============================================================================
+FILE: protocol_guard/phase2_min/upload_package_check.py
+SIZE: 8640 bytes
+SHA256: 6238c602a34a66f34d74a9e28bec69081d56295af5c96b55c50d0adc0b5394fd
+==============================================================================
+
+"""Upload Package Check — verify UPLOAD_NEXT contents against frozen spec."""
+
+import json, os
+
+from protocol_guard.frozen.snapshot import verify_frozen_task
+from protocol_guard.phase2_min.io_utils import (
+    sha256_file, load_task_card, load_frozen_task,
+    load_upload_spec, load_manifest, normalize_path, paths_equal_case_insensitive,
+)
+
+
+def upload_package_check(task_path, frozen_dir):
+    """Verify upload package integrity against frozen upload spec.
+
+    Returns: (exit_code: int, result: dict)
+        0 = PASS, 1 = FAIL, 2 = ERROR
+    """
+    result = {
+        "schema_version": "1.0",
+        "checker": "upload_package_check",
+        "task_id": None,
+        "upload_spec_sha256": None,
+        "actual_files": [],
+        "missing_files": [],
+        "extra_files": [],
+        "hash_mismatches": [],
+        "source_mismatches": [],
+        "task_id_mismatches": [],
+        "manifest_errors": [],
+        "input_errors": [],
+        "result": None,
+    }
+    errors = result["input_errors"]
+
+    # 1. Verify frozen task
+    match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+    if not match:
+        errors.append(f"Frozen task verification failed: {ferr}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 2. Load task card and frozen task
+    task_data = load_task_card(task_path)
+    frozen_data, ferr2 = load_frozen_task(frozen_dir)
+    if frozen_data is None:
+        errors.append(ferr2)
+        result["result"] = "ERROR"
+        return (2, result)
+
+    task_id = task_data.get("task_id", "unknown")
+    result["task_id"] = task_id
+
+    # 3. Read fixed_params
+    fixed = frozen_data.get("fixed_params", {})
+    if not isinstance(fixed, dict):
+        errors.append("fixed_params must be a dict")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    upload_spec_path = fixed.get("upload_spec_path")
+    upload_spec_sha = fixed.get("upload_spec_sha256")
+
+    if not upload_spec_path or not upload_spec_sha:
+        errors.append("Missing fixed_params: upload_spec_path, upload_spec_sha256")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 4. Verify upload spec SHA256
+    try:
+        actual_spec_sha = sha256_file(upload_spec_path)
+    except Exception as e:
+        errors.append(f"Cannot read upload spec: {e}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    result["upload_spec_sha256"] = upload_spec_sha
+    if actual_spec_sha != upload_spec_sha:
+        errors.append(f"Upload spec SHA256 mismatch: expected={upload_spec_sha}, actual={actual_spec_sha}")
+        result["result"] = "FAIL"
+        return (1, result)
+
+    # 5. Load upload spec
+    try:
+        spec = load_upload_spec(upload_spec_path)
+    except Exception as e:
+        errors.append(f"Cannot parse upload spec: {e}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    spec_task_id = spec.get("task_id")
+    if spec_task_id and spec_task_id != task_id:
+        result["task_id_mismatches"].append(f"Spec task_id={spec_task_id} != task={task_id}")
+
+    spec_entries = spec.get("entries", [])
+
+    # 6. Scan UPLOAD_NEXT
+    upload_dir = os.path.join(os.path.dirname(os.path.abspath(task_path)),
+                              "reviews", "UPLOAD_NEXT")
+    if not os.path.isdir(upload_dir):
+        errors.append(f"UPLOAD_NEXT not found: {upload_dir}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    actual_files = []
+    manifest_path = None
+    for fn in sorted(os.listdir(upload_dir)):
+        fp = os.path.join(upload_dir, fn)
+        if not os.path.isfile(fp):
+            continue
+        actual_files.append(fn)
+        if fn == "UPLOAD_MANIFEST.json":
+            manifest_path = fp
+
+    result["actual_files"] = sorted(actual_files)
+
+    # 7. Validate manifest exists and is unique
+    if manifest_path is None:
+        errors.append("No UPLOAD_MANIFEST.json in UPLOAD_NEXT")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # Count manifests
+    manifest_count = sum(1 for fn in actual_files if fn.lower() == "upload_manifest.json")
+    if manifest_count != 1:
+        errors.append(f"Expected exactly 1 manifest, found {manifest_count}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 8. Load manifest
+    try:
+        manifest = load_manifest(manifest_path)
+    except Exception as e:
+        result["manifest_errors"].append(f"Cannot parse manifest: {e}")
+        result["result"] = "ERROR"
+        return (2, result)
+
+    # 9. Manifest must not reference itself
+    manifest_entries = manifest.get("entries", [])
+    if any(e.get("path") == "UPLOAD_MANIFEST.json" for e in manifest_entries):
+        result["manifest_errors"].append("Manifest references itself")
+        result["result"] = "FAIL"
+        return (1, result)
+
+    # 10. Check task_id consistency
+    manifest_task_id = manifest.get("task_id")
+    if manifest_task_id and manifest_task_id != task_id:
+        result["task_id_mismatches"].append(f"Manifest task_id={manifest_task_id} != task={task_id}")
+
+    if result["task_id_mismatches"]:
+        result["result"] = "FAIL"
+        return (1, result)
+
+    # 11. Compare manifest entries with upload spec entries
+    spec_entry_paths = set()
+    for entry in spec_entries:
+        ep = normalize_path(entry.get("path", ""))
+        if not ep:
+            continue
+        spec_entry_paths.add(ep)
+
+    manifest_entry_paths = set()
+    manifest_entry_hashes = {}
+    for entry in manifest_entries:
+        ep = normalize_path(entry.get("path", ""))
+        if not ep:
+            continue
+        manifest_entry_paths.add(ep)
+        manifest_entry_hashes[ep] = entry.get("sha256", "")
+        # Source check
+        source = entry.get("source")
+        if source:
+            try:
+                ns = normalize_path(source)
+                if ns.startswith("reviews/UPLOAD_NEXT/") or ns.startswith("reviews/UPLOAD_NEXT\\"):
+                    result["source_mismatches"].append(
+                        {"path": ep, "error": f"Source in UPLOAD_NEXT: {source}"}
+                    )
+            except ValueError as e:
+                result["source_mismatches"].append({"path": ep, "error": str(e)})
+
+    if spec_entry_paths != manifest_entry_paths:
+        only_spec = spec_entry_paths - manifest_entry_paths
+        only_manifest = manifest_entry_paths - spec_entry_paths
+        if only_spec:
+            result["missing_files"] = sorted(only_spec)
+        if only_manifest:
+            result["extra_files"] = sorted(only_manifest)
+
+    # 12. Actual files must equal manifest entries + upload_spec
+    expected_files = manifest_entry_paths | {"UPLOAD_MANIFEST.json"}
+    actual_set = {normalize_path(a) for a in actual_files}
+    if actual_set != expected_files:
+        extra = actual_set - expected_files
+        missing = expected_files - actual_set
+        if extra:
+            result["extra_files"] = sorted(list(set(result["extra_files"]) | extra))
+        if missing:
+            result["missing_files"] = sorted(list(set(result["missing_files"]) | missing))
+
+    # 13. Verify SHA256 of each file
+    for ep in manifest_entry_paths:
+        fp = os.path.join(upload_dir, ep)
+        if os.path.exists(fp):
+            actual_sha = sha256_file(fp)
+            expected_sha = manifest_entry_hashes.get(ep, "")
+            if actual_sha != expected_sha:
+                result["hash_mismatches"].append({
+                    "path": ep,
+                    "expected": expected_sha,
+                    "actual": actual_sha,
+                })
+        else:
+            if ep not in result["missing_files"]:
+                result["missing_files"].append(ep)
+
+    # 14. Unapproved source paths
+    approved_sources = {normalize_path(e.get("source", "")) for e in spec_entries
+                       if e.get("source")}
+    for entry in manifest_entries:
+        source = entry.get("source")
+        if source:
+            ns = normalize_path(source)
+            if ns not in approved_sources and ns:
+                result["source_mismatches"].append({
+                    "path": entry.get("path"),
+                    "error": f"Source not in spec: {source}",
+                })
+
+    # 15. Determine result
+    has_issues = (
+        result["missing_files"] or result["extra_files"] or
+        result["hash_mismatches"] or result["source_mismatches"] or
+        result["task_id_mismatches"] or result["manifest_errors"]
+    )
+
+    if errors:
+        result["result"] = "ERROR"
+        return (2, result)
+
+    if has_issues:
+        result["result"] = "FAIL"
+        return (1, result)
+
+    result["result"] = "PASS"
+    return (0, result)
+
+
+==============================================================================
+FILE: protocol_guard/phase2_min/tests/__init__.py
+SIZE: 0 bytes
+SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+==============================================================================
+
+
+
+==============================================================================
+FILE: protocol_guard/phase2_min/tests/test_checkers.py
+SIZE: 33537 bytes
+SHA256: 30433e0bedec54b9816ac25b5e89b9bc456922046062e9dcbe1b5e6d501b5dab
+==============================================================================
+
+"""Tests for Phase 2 Min checkers. All git operations use temp directories."""
+
+import hashlib, json, os, subprocess, tempfile, yaml, pytest
+
+# Import checkers
+from protocol_guard.phase2_min.change_scope_check import change_scope_check
+from protocol_guard.phase2_min.upload_package_check import upload_package_check
+from protocol_guard.phase2_min.io_utils import (
+    sha256_file, normalize_path, paths_equal_case_insensitive,
+    get_repo_root, get_worktree_changes, is_excluded,
+)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Path safety
+# ═══════════════════════════════════════════════════════════════
+class TestPathSafety:
+    def test_absolute_rejected(self):
+        with pytest.raises(ValueError): normalize_path("C:\\evil")
+
+    def test_parent_traversal_rejected(self):
+        with pytest.raises(ValueError): normalize_path("../etc")
+
+    def test_unc_rejected(self):
+        with pytest.raises(ValueError): normalize_path("\\\\server\\share")
+
+    def test_drive_relative_rejected(self):
+        with pytest.raises(ValueError): normalize_path("C:file.txt")
+
+    def test_control_char_rejected(self):
+        with pytest.raises(ValueError): normalize_path("file\x00.txt")
+
+    def test_normal_path_ok(self):
+        assert normalize_path("subdir/file.txt") == "subdir/file.txt"
+
+    def test_case_insensitive_match(self):
+        assert paths_equal_case_insensitive("Path/File.TXT", "path/file.txt")
+
+    def test_case_sensitive_mismatch_on_same_path(self):
+        assert paths_equal_case_insensitive("a/file.txt", "a/file.txt")
+
+
+# ═══════════════════════════════════════════════════════════════
+# Helpers for temp git repo
+# ═══════════════════════════════════════════════════════════════
+def _init_git_repo(td):
+    """Create a git repo in temp dir, return repo root."""
+    subprocess.run(["git", "init"], cwd=td, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=td, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=td, capture_output=True)
+    return td
+
+
+def _git_commit(repo, msg, files=None):
+    if files is None:
+        subprocess.run(["git", "add", "-A"], cwd=repo, capture_output=True)
+    else:
+        for f in files:
+            subprocess.run(["git", "add", f], cwd=repo, capture_output=True)
+    subprocess.run(["git", "commit", "-m", msg], cwd=repo, capture_output=True)
+
+
+def _write_file(repo, path, content):
+    fp = os.path.join(repo, path)
+    os.makedirs(os.path.dirname(fp), exist_ok=True)
+    with open(fp, "w") as f: f.write(content)
+    return fp
+
+
+def _sha256(content):
+    return hashlib.sha256(content.encode()).hexdigest()
+
+
+def _make_frozen_dir(td, task_path, frozen_dir_name="frozen"):
+    fd = os.path.join(td, frozen_dir_name)
+    os.makedirs(fd, exist_ok=True)
+    # Copy task as frozen_task.yaml
+    import shutil
+    shutil.copy2(task_path, os.path.join(fd, "frozen_task.yaml"))
+    # Hash the actual task file bytes
+    sha = hashlib.sha256(open(task_path, "rb").read()).hexdigest()
+    with open(os.path.join(fd, "frozen_task.sha256"), "w") as f:
+        f.write(sha + "\n")
+    return fd
+
+
+# ═══════════════════════════════════════════════════════════════
+# Change Scope Checker Tests
+# ═══════════════════════════════════════════════════════════════
+class TestChangeScopeCheck:
+    def test_baseline_commit_not_found_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write_file(repo, "in_scope.txt", "test")
+            _git_commit(repo, "init")
+
+            policy = {"allowed": ["in_scope.txt"], "denied": [], "protected": [], "excluded": []}
+            policy_path = os.path.join(repo, "policy.json")
+            with open(policy_path, "w") as f: json.dump(policy, f)
+
+            task = {
+                "task_id": "TEST_001",
+                "fixed_params": {
+                    "baseline_commit_sha": "deadbeef" * 5,
+                    "policy_path": policy_path,
+                    "policy_sha256": sha256_file(policy_path),
+                    "worktree_clean_at_approval": True,
+                },
+                "primary_variable": "x",
+                "task_card_version": 2,
+                "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute",
+                "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml",
+                "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = change_scope_check(tp, fd)
+            assert code == 2  # ERROR
+            assert result["result"] == "ERROR"
+
+    def test_policy_sha_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write_file(repo, "allowed.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            policy = {"allowed": ["allowed.txt", "policy.json", "task.yaml", "frozen"], "denied": [], "protected": [], "excluded": []}
+            policy_path = os.path.join(repo, "policy.json")
+            with open(policy_path, "w") as f: json.dump(policy, f)
+
+            task = {
+                "task_id": "TEST_002",
+                "fixed_params": {
+                    "baseline_commit_sha": bc,
+                    "policy_path": policy_path,
+                    "policy_sha256": "f" * 64,
+                    "worktree_clean_at_approval": True,
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = change_scope_check(tp, fd)
+            assert code == 1  # FAIL
+            assert result["result"] == "FAIL"
+
+    def test_out_of_scope_change_detected_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write_file(repo, "allowed.txt", "ok")
+            _write_file(repo, "blocked.txt", "bad")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            # Modify blocked.txt after baseline
+            _write_file(repo, "blocked.txt", "modified")
+
+            policy = {"allowed": ["allowed.txt"], "denied": ["blocked.txt"], "protected": [], "excluded": []}
+            policy_path = os.path.join(repo, "policy.json")
+            with open(policy_path, "w") as f: json.dump(policy, f)
+
+            task = {
+                "task_id": "TEST_003",
+                "fixed_params": {
+                    "baseline_commit_sha": bc,
+                    "policy_path": policy_path,
+                    "policy_sha256": sha256_file(policy_path),
+                    "worktree_clean_at_approval": True,
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert "blocked.txt" in result["out_of_scope_changes"]
+
+    def test_all_in_scope_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write_file(repo, "allowed.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            policy = {"allowed": ["allowed.txt", "policy.json", "task.yaml", "frozen"], "denied": [], "protected": [], "excluded": []}
+            policy_path = os.path.join(repo, "policy.json")
+            with open(policy_path, "w") as f: json.dump(policy, f)
+
+            task = {
+                "task_id": "TEST_004",
+                "fixed_params": {
+                    "baseline_commit_sha": bc,
+                    "policy_path": policy_path,
+                    "policy_sha256": sha256_file(policy_path),
+                    "worktree_clean_at_approval": True,
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = change_scope_check(tp, fd)
+            assert code == 0
+            assert result["result"] == "PASS"
+
+    def test_protected_file_change_detected(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write_file(repo, "secret.key", "secret")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            _write_file(repo, "secret.key", "hacked")
+
+            policy = {"allowed": ["*.txt"], "denied": [], "protected": ["secret.key"], "excluded": []}
+            policy_path = os.path.join(repo, "policy.json")
+            with open(policy_path, "w") as f: json.dump(policy, f)
+
+            task = {
+                "task_id": "TEST_005",
+                "fixed_params": {
+                    "baseline_commit_sha": bc,
+                    "policy_path": policy_path,
+                    "policy_sha256": sha256_file(policy_path),
+                    "worktree_clean_at_approval": True,
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert len(result["protected_file_changes"]) > 0
+
+    def test_frozen_task_mismatch_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = {
+                "task_id": "TEST_006", "fixed_params": {}, "primary_variable": "x",
+                "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+
+            # Modified task for frozen
+            task2 = dict(task)
+            task2["task_id"] = "DIFFERENT"
+            tp2 = os.path.join(td, "task2.yaml")
+            with open(tp2, "w") as f: yaml.dump(task2, f)
+            fd = _make_frozen_dir(td, tp2)
+
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+
+    def test_no_file_writes_during_check(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write_file(repo, "allowed.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            policy = {"allowed": ["allowed.txt", "policy.json", "task.yaml", "frozen"], "denied": [], "protected": [], "excluded": []}
+            policy_path = os.path.join(repo, "policy.json")
+            with open(policy_path, "w") as f: json.dump(policy, f)
+
+            task = {
+                "task_id": "TEST_007",
+                "fixed_params": {
+                    "baseline_commit_sha": bc,
+                    "policy_path": policy_path,
+                    "policy_sha256": sha256_file(policy_path),
+                    "worktree_clean_at_approval": True,
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            before_files = set()
+            for dirpath, _, filenames in os.walk(repo):
+                for fn in filenames:
+                    before_files.add(os.path.join(dirpath, fn))
+
+            change_scope_check(tp, fd)
+
+            after_files = set()
+            for dirpath, _, filenames in os.walk(repo):
+                for fn in filenames:
+                    after_files.add(os.path.join(dirpath, fn))
+
+            assert before_files == after_files, "Checker modified repo files!"
+
+
+# ═══════════════════════════════════════════════════════════════
+# Upload Package Checker Tests
+# ═══════════════════════════════════════════════════════════════
+class TestUploadPackageCheck:
+    def test_missing_manifest_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            spec = {"task_id": "TEST_010", "entries": [{"path": "x.txt", "sha256": "a" * 64, "source": "src/x.txt"}]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_010",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+
+    def test_manifest_self_reference_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            manifest = {"task_id": "TEST_011", "entries": [
+                {"path": "UPLOAD_MANIFEST.json", "sha256": "x" * 64, "source": "src/x"}
+            ]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f:
+                json.dump(manifest, f)
+
+            spec = {"task_id": "TEST_011", "entries": [
+                {"path": "UPLOAD_MANIFEST.json", "sha256": "x" * 64, "source": "src/x"}
+            ]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_011",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code in (1, 2)
+
+    def test_hash_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            content = "test payload"
+            fp = os.path.join(upload_dir, "payload.txt")
+            with open(fp, "w") as f: f.write(content)
+            payload_sha = sha256_file(fp)
+
+            manifest = {"task_id": "TEST_012", "entries": [
+                {"path": "payload.txt", "sha256": "f" * 64, "source": "src/payload.txt"}
+            ]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f:
+                json.dump(manifest, f)
+
+            spec = {"task_id": "TEST_012", "entries": [
+                {"path": "payload.txt", "sha256": "f" * 64, "source": "src/payload.txt"}
+            ]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_012",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert len(result["hash_mismatches"]) > 0
+
+    def test_valid_package_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            content = "real payload"
+            fp = os.path.join(upload_dir, "report.md")
+            with open(fp, "w") as f: f.write(content)
+            h = sha256_file(fp)
+
+            manifest = {"task_id": "TEST_013", "entries": [
+                {"path": "report.md", "sha256": h, "source": "src/report.md"}
+            ]}
+            mf_path = os.path.join(upload_dir, "UPLOAD_MANIFEST.json")
+            with open(mf_path, "w") as f: json.dump(manifest, f)
+
+            spec = {"task_id": "TEST_013", "entries": [
+                {"path": "report.md", "sha256": h, "source": "src/report.md"}
+            ]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_013",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code == 0
+            assert result["result"] == "PASS"
+
+    def test_extra_file_detected_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            content = "ok"
+            fp = os.path.join(upload_dir, "report.md")
+            with open(fp, "w") as f: f.write(content)
+            h = sha256_file(fp)
+
+            # Extra file not in spec
+            with open(os.path.join(upload_dir, "rogue.txt"), "w") as f: f.write("evil")
+
+            manifest = {"task_id": "TEST_014", "entries": [
+                {"path": "report.md", "sha256": h, "source": "src/report.md"},
+                {"path": "rogue.txt", "sha256": sha256_file(os.path.join(upload_dir, "rogue.txt")), "source": "src/rogue.txt"},
+            ]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f:
+                json.dump(manifest, f)
+
+            spec = {"task_id": "TEST_014", "entries": [
+                {"path": "report.md", "sha256": h, "source": "src/report.md"}
+            ]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_014",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+
+    def test_unapproved_source_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            content = "data"
+            fp = os.path.join(upload_dir, "data.txt")
+            with open(fp, "w") as f: f.write(content)
+            h = sha256_file(fp)
+
+            # Manifest uses unapproved source
+            manifest = {"task_id": "TEST_015", "entries": [
+                {"path": "data.txt", "sha256": h, "source": "unapproved/location/file.txt"}
+            ]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f:
+                json.dump(manifest, f)
+
+            spec = {"task_id": "TEST_015", "entries": [
+                {"path": "data.txt", "sha256": h, "source": "approved/location/file.txt"}
+            ]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_015",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert len(result["source_mismatches"]) > 0
+
+    def test_task_id_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            content = "test"
+            fp = os.path.join(upload_dir, "r.md")
+            with open(fp, "w") as f: f.write(content)
+            h = sha256_file(fp)
+
+            manifest = {"task_id": "OTHER_TASK", "entries": [
+                {"path": "r.md", "sha256": h, "source": "s/r.md"}
+            ]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f:
+                json.dump(manifest, f)
+
+            spec = {"task_id": "OTHER_TASK", "entries": [
+                {"path": "r.md", "sha256": h, "source": "s/r.md"}
+            ]}
+            spec_path = os.path.join(td, "spec.json")
+            with open(spec_path, "w") as f: json.dump(spec, f)
+
+            task = {
+                "task_id": "TEST_016",
+                "fixed_params": {
+                    "upload_spec_path": spec_path,
+                    "upload_spec_sha256": sha256_file(spec_path),
+                },
+                "primary_variable": "x", "task_card_version": 2, "protocol_version": "v1.0",
+                "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+                "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+                "dependent_variables": [], "locked_items": [],
+                "allowed_modifications": [], "forbidden_modifications": [],
+                "preflight_checks": [], "technical_pass_conditions": [],
+                "visual_intent": "", "visual_forbidden": "",
+                "evidence_required": [], "upload_dir": "d",
+                "upload_files": ["out.txt"], "stop_conditions": [],
+                "primary_goal": "test", "state_patch_requested": None,
+            }
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = _make_frozen_dir(td, tp)
+
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert len(result["task_id_mismatches"]) > 0
+
+import pytest
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
+
+
+==============================================================================
+MANIFEST
+==============================================================================
+{"protocol_guard/phase2_min/__init__.py":"eaedf54de57a67605372293ea7cecc9684cf736af0008458aba158a7a0d6cdac","protocol_guard/phase2_min/change_scope_check.py":"736871c4bcc0426a165dbe04140cdbc88d50f8dd1c076a9ab6e94cce33a0e285","protocol_guard/phase2_min/io_utils.py":"9657d70729907d6cbc1eaed85718cd0acb42f3aa8723bae38c6fe380e91cd3ae","protocol_guard/phase2_min/tests/__init__.py":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","protocol_guard/phase2_min/tests/test_checkers.py":"30433e0bedec54b9816ac25b5e89b9bc456922046062e9dcbe1b5e6d501b5dab","protocol_guard/phase2_min/upload_package_check.py":"6238c602a34a66f34d74a9e28bec69081d56295af5c96b55c50d0adc0b5394fd"}
+
+MANIFEST_SHA256: be1d4571282ee8fbbd64ef5401d57585ab8dbe587d0109d6f143b34aaaebb46e

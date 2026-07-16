@@ -1,0 +1,116 @@
+# ============================================================
+# BVF Test 001: Checkout Bottleneck — INPUT.yaml
+# Phase 1: Mechanism & Shot Locking
+# ============================================================
+
+project:
+  id: bvf_test_001_checkout_bottleneck
+  title: "一个收银窗口关闭后，队伍为什么突然变长？"
+  phase: mechanism_and_shot_locking
+  status: planned
+
+output:
+  format: silent_visual_verification
+  rationale: >
+    先证明 Blender 能做出比纯 Remotion 更有空间感和动作感的抖音视觉。
+    无声观看必须理解机制，通过后再进入剪映添加音效、字幕或旁白。
+  target_platform: 抖音
+  resolution: [1080, 1920]
+  fps: 30
+  total_frames: 345
+  duration_seconds: 11.5
+  aspect_ratio: "9:16"
+
+silent_understanding_target:
+  - "第一秒：看清三个收银窗口和三条队伍"
+  - "两秒左右：看清中间窗口关闭"
+  - "六秒前：看清顾客向剩余窗口分流"
+  - "九秒前：看清剩余队伍明显变长"
+  - "最终：理解窗口减少导致队伍拥堵"
+
+visual_style:
+  category: low_poly_miniature
+  description: >
+    低多边形 + 微缩模型 + 简单材质 + 清晰灯光。
+    画面必须像一条抖音短视频，不能像三维作业、软件 Demo 或素材拼装。
+  colors:
+    background: 深色或中性
+    main: 米白或浅暖主体
+    accent: 一种暖色强调
+    characters: 3-5 种低饱和服装色
+    closed_window: 唯一强调色或明显降低亮度
+    rule: 不得出现过多高饱和颜色
+  lighting:
+    type: simplified_three_point_or_studio
+    goals:
+      - 人物和柜台分离
+      - 队伍轮廓清楚
+      - 关闭窗口状态明显
+      - 阴影不过黑
+      - 场景不显得像默认灰盒
+
+characters:
+  type: simplified_geometric_humanoid
+  max_count: 15
+  features: "无五官或极简五官，统一比例，统一材质"
+  clothing: "3 至 5 种服装颜色变化"
+  allowed:
+    - 静止站立
+    - 整体平移
+    - 简单排队移动
+    - 简单转向
+  forbidden:
+    - 面部表情
+    - 口型
+    - 手部动作
+    - 复杂骨骼绑定
+    - 复杂走路循环
+    - 人物对话
+    - 两人接触
+    - 布料和头发模拟
+    - 拿取物品
+    - 写实皮肤
+    - 复杂头发
+
+scene:
+  elements:
+    - 三个收银窗口并排
+    - 简化传送带或柜台
+    - 简化灯牌
+    - 地面分区
+    - 少量货架轮廓作为背景
+  forbidden_in_background:
+    - 大量货架
+    - 复杂装饰
+    - 写实玻璃
+    - 体积雾
+
+camera:
+  default: 斜俯视
+  requirement: "能同时看到三个窗口和三条队伍"
+  forbidden: "不允许镜头过远导致主体太小"
+
+materials:
+  type: principled_bsdf_simple
+  forbidden:
+    - 复杂程序材质
+    - 写实玻璃
+    - 大量反射
+
+render:
+  engine: BLENDER_EEVEE
+  graybox_resolution: [540, 960]
+  final_resolution: [1080, 1920]
+  fps: 30
+  output_format: PNG_sequence
+
+constraints:
+  - "人物不超过 15 个"
+  - "单场景，不切换地点"
+  - "不使用 Cycles"
+  - "不使用复杂模拟"
+  - "不使用第三方复杂插件"
+  - "不下载外部人物模型"
+  - "首片不要求骨骼动画"
+  - "不依赖文字解释机制"
+  - "不自动生成长篇旁白"

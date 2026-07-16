@@ -1,0 +1,684 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 159 items
+
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_initial_project_state_passes PASSED [  0%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_technical_result_fails PASSED [  1%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_evidence_status_fails PASSED [  1%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_missing_required_field_fails PASSED [  2%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_missing_locked_assets_fails PASSED [  3%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_missing_blocked_operations_fails PASSED [  3%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_sha256_empty_string_fails PASSED [  4%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_sha256_null_passes PASSED [  5%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_sha256_64_hex_passes PASSED [  5%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_evidence_sha256_empty_string_fails PASSED [  6%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_evidence_sha256_null_passes PASSED [  6%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_last_execution_time_without_timezone_fails PASSED [  7%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_datetime_month_99_fails PASSED [  8%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_invalid_datetime_hour_25_fails PASSED [  8%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_valid_z_time_passes PASSED [  9%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_valid_offset_time_passes PASSED [ 10%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_disk_project_state_by_schema PASSED [ 10%]
+protocol_guard/tests/test_project_state.py::TestProjectStateSchemaV2::test_change_log_entry_3_actor_is_system_migration PASSED [ 11%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_can_write_runtime_fields PASSED [ 11%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_locked_assets PASSED [ 12%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_project_id PASSED [ 13%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_cannot_write_unknown_field PASSED [ 13%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_claude_writes_valid_runtime_field_passes PASSED [ 14%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_gpt_proposal_cannot_write_directly PASSED [ 15%]
+protocol_guard/tests/test_project_state.py::TestFieldPermissions::test_user_approved_can_write_restricted_fields PASSED [ 15%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_claude_runtime_patch_succeeds PASSED [ 16%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_claude_project_id_rejected PASSED [ 16%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_atomic_failure_no_partial_change PASSED [ 17%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_invalid_enum_atomic_failure PASSED [ 18%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_invalid_evidence_status_atomic_failure PASSED [ 18%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_invalid_sha256_atomic_failure PASSED [ 19%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_does_not_modify_original_state PASSED [ 20%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_does_not_modify_original_patch PASSED [ 20%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_change_log_in_fields_rejected PASSED [ 21%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_auto_change_log_appended_on_success PASSED [ 22%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_no_change_log_appended_on_failure PASSED [ 22%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_gpt_proposal_without_approval_rejected PASSED [ 23%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_gpt_proposal_with_approval_succeeds PASSED [ 23%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_user_approved_writes_restricted_succeeds PASSED [ 24%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_candidate_state_passes_schema_after_apply PASSED [ 25%]
+protocol_guard/tests/test_project_state.py::TestApplyPatchDocument::test_legacy_apply_patch_compatibility PASSED [ 25%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_reason_required PASSED [ 26%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_unknown_state_field_fails PASSED [ 27%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_valid_field_passes PASSED [ 27%]
+protocol_guard/tests/test_project_state.py::TestStatePatchSchemaV2::test_patch_task_id_required PASSED [ 28%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_save_valid_state_succeeds PASSED [ 28%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_save_invalid_state_fails PASSED [ 29%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_invalid_state_does_not_create_file PASSED [ 30%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_invalid_write_does_not_corrupt_existing_file PASSED [ 30%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_save_state_does_not_modify_input PASSED [ 31%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_saved_state_revalidates_on_reload PASSED [ 32%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_reread_validation_failure_cleans_temp_file PASSED [ 32%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_reread_failure_preserves_existing_file PASSED [ 33%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_read_exception_cleans_temp_file PASSED [ 33%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_successful_save_leaves_no_temp_file PASSED [ 34%]
+protocol_guard/tests/test_project_state.py::TestSaveState::test_replace_exception_cleans_temp_file PASSED [ 35%]
+protocol_guard/tests/test_project_state.py::TestGptProposalLogging::test_gpt_proposal_log_reason_has_source_prefix PASSED [ 35%]
+protocol_guard/tests/test_project_state.py::TestGptProposalLogging::test_direct_user_approved_no_gpt_prefix PASSED [ 36%]
+protocol_guard/tests/test_project_state.py::TestGptProposalLogging::test_gpt_proposal_log_actor_is_user_approved PASSED [ 37%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_last_task_id_matches_pending_review PASSED [ 37%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_output_files_belong_to_phase PASSED [ 38%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_output_files_exact_phase_1_4_set PASSED [ 38%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_change_log_has_phase_1_2_record PASSED [ 39%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_change_log_has_phase_1_3_record PASSED [ 40%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_change_log_has_phase_1_4_record PASSED [ 40%]
+protocol_guard/tests/test_project_state.py::TestProjectStateCoherence::test_current_project_state_passes_schema PASSED [ 41%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_manifest_no_self_reference PASSED [ 42%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_report_modification_detected PASSED [ 42%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_pytest_modification_detected PASSED [ 43%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_state_non_sha_field_change_detected PASSED [ 44%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_evidence_sha_writeback_passes PASSED [ 44%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_sha_mismatch_detected PASSED [ 45%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_task_id_mismatch_detected PASSED [ 45%]
+protocol_guard/tests/test_project_state.py::TestEvidenceManifest::test_full_package_verifies PASSED [ 46%]
+protocol_guard/tests/test_project_state.py::TestEnumsRegression::test_five_main_results_unchanged PASSED [ 47%]
+protocol_guard/tests/test_project_state.py::TestEnumsRegression::test_three_evidence_statuses_unchanged PASSED [ 47%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_valid_main_results PASSED [ 48%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_evidence_recovered_not_main_result PASSED [ 49%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_technical_pass_is_valid PASSED [ 49%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_illegal_result_rejected PASSED [ 50%]
+protocol_guard/tests/test_result.py::TestTechnicalResult::test_evidence_recovered_is_not_a_technical_result PASSED [ 50%]
+protocol_guard/tests/test_result.py::TestEvidenceStatus::test_valid_evidence_statuses PASSED [ 51%]
+protocol_guard/tests/test_result.py::TestEvidenceStatus::test_illegal_evidence_status_rejected PASSED [ 52%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_first_freeze_succeeds PASSED [ 52%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_verify_succeeds_on_unchanged_task PASSED [ 53%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_modified_task_fails_verification PASSED [ 54%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_existing_frozen_rejects_overwrite PASSED [ 54%]
+protocol_guard/tests/test_snapshot.py::TestFreezeTask::test_freezing_nonexistent_dir_creates_it PASSED [ 55%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_valid_task_passes PASSED [ 55%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_missing_required_field_fails PASSED [ 56%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_invalid_execution_mode_fails PASSED [ 57%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_primary_variable_not_single_string_fails PASSED [ 57%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_empty_primary_variable_fails PASSED [ 58%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_fixed_params_as_object_passes PASSED [ 59%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_fixed_params_as_array_fails PASSED [ 59%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_dependent_variable_missing_name_fails PASSED [ 60%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_dependent_variable_duplicate_name_fails PASSED [ 61%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_primary_overlaps_fixed_param_key_fails PASSED [ 61%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_primary_overlaps_dependent_variable_name_fails PASSED [ 62%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_dependent_and_fixed_overlap_fails PASSED [ 62%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_condition_missing_operator_fails PASSED [ 63%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_between_expected_not_two_numbers_fails PASSED [ 64%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_between_expected_non_numeric_fails PASSED [ 64%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_condition_id_duplicate_fails PASSED [ 65%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_in_operator_non_empty_array_passes PASSED [ 66%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_locked_items_as_strings_fails PASSED [ 66%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_locked_items_structured_passes PASSED [ 67%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_null_passes PASSED [ 67%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_empty_object_fails PASSED [ 68%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_unknown_field_fails PASSED [ 69%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_requested_missing_reason_fails PASSED [ 69%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_unknown_ps_field_fails PASSED [ 70%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_state_patch_known_ps_field_passes PASSED [ 71%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_output_files_empty_fails PASSED [ 71%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_upload_files_duplicate_fails PASSED [ 72%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_input_files_duplicate_fails PASSED [ 72%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_allowed_forbidden_same_target_same_field_fails PASSED [ 73%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_allowed_forbidden_same_target_no_overlap_passes PASSED [ 74%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_allowed_forbidden_different_target_passes PASSED [ 74%]
+protocol_guard/tests/test_task_schema.py::TestTaskCardValidationV2::test_invalid_task_type_fails PASSED [ 75%]
+protocol_guard/tests/test_task_schema.py::TestVisualIntentNaturalLanguage::test_visual_intent_allows_natural_language PASSED [ 76%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_abs_rejected PASSED [ 76%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_parent_rejected PASSED [ 77%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_unc_rejected PASSED [ 77%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_drive_rel_rejected PASSED [ 78%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestPathSafety::test_normal_ok PASSED [ 79%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_clean_worktree_pass FAILED [ 79%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_structured_policy_ok FAILED [ 80%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_out_of_scope_committed_fail FAILED [ 81%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_staged_denied_delete_fail FAILED [ 81%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_unstaged_delete_fail FAILED [ 82%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_staged_out_of_scope_add_fail FAILED [ 83%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_protected_sha_mismatch_fail FAILED [ 83%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_worktree_clean_false_error PASSED [ 84%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_policy_sha_changed_error PASSED [ 84%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_baseline_not_found_error PASSED [ 85%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_no_file_writes PASSED [ 86%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_valid_package_pass FAILED [ 86%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_structured_spec_ok FAILED [ 87%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_hash_mismatch_fail FAILED [ 88%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_manifest_self_reference_fail FAILED [ 88%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_missing_fail FAILED [ 89%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_content_mismatch_fail FAILED [ 89%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_extra_file_fail FAILED [ 90%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_spec_sha_changed_error PASSED [ 91%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_dup_package_path_error PASSED [ 91%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_no_file_writes PASSED [ 92%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_oos_add_returns_fail FAILED [ 93%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_denied_delete_returns_fail FAILED [ 93%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_unstaged_delete_returns_fail FAILED [ 94%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_committed_oos_returns_fail FAILED [ 94%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_protected_sha_wrong_returns_fail FAILED [ 95%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_worktree_clean_false_returns_error PASSED [ 96%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_policy_sha_wrong_returns_error PASSED [ 96%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_upload_spec_sha_wrong_returns_error PASSED [ 97%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_source_swapped_returns_fail FAILED [ 98%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_dup_package_path_returns_error PASSED [ 98%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_stdout_is_single_json PASSED [ 99%]
+protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_no_file_writes_either_checker FAILED [100%]
+
+================================== FAILURES ===================================
+________________ TestChangeScopeCheck.test_clean_worktree_pass ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEB5BA210>
+
+    def test_clean_worktree_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = self._make_policy(repo, allowed=[{"path": "ok.txt", "path_type": "file"}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 0, f"Got {code}: {result}"
+E           AssertionError: Got 2: {'schema_version': '1', 'checker': 'change_scope_check', 'task_id': 'TASK_CS', 'baseline_commit_sha': '580d927d82810144180604b099f62ceeaf075b89', 'policy_sha256': None, 'protected_file_results': [], 'out_of_scope_changes': [], 'input_errors': ["Cannot read policy file: [Errno 2] No such file or directory: 'policy.json'"], 'result': 'ERROR'}
+E           assert 2 == 0
+
+protocol_guard\phase2_min\tests\test_checkers.py:115: AssertionError
+_______________ TestChangeScopeCheck.test_structured_policy_ok ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEB5BAC10>
+
+    def test_structured_policy_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = self._make_policy(repo, allowed=[{"path": "ok.txt", "path_type": "file"}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 0
+E           assert 2 == 0
+
+protocol_guard\phase2_min\tests\test_checkers.py:128: AssertionError
+____________ TestChangeScopeCheck.test_out_of_scope_committed_fail ____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEB5B22C0>
+
+    def test_out_of_scope_committed_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            _write(repo, "bad.txt", "bad")
+            _git_commit(repo, "bad")
+            bc = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            pp = self._make_policy(repo, allowed=[{"path": "ok.txt", "path_type": "file"}],
+                                  denied=[{"path": "bad.txt", "path_type": "file"}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:144: AssertionError
+_____________ TestChangeScopeCheck.test_staged_denied_delete_fail _____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEB5B23F0>
+
+    def test_staged_denied_delete_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _write(repo, "denied.txt", "x")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            os.remove(os.path.join(repo, "denied.txt"))
+            _git_add(repo, "denied.txt")
+            pp = self._make_policy(repo, allowed=[{"path": "ok.txt", "path_type": "file"}],
+                                  denied=[{"path": "denied.txt", "path_type": "file"}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:161: AssertionError
+_______________ TestChangeScopeCheck.test_unstaged_delete_fail ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEA462210>
+
+    def test_unstaged_delete_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _write(repo, "other.txt", "x")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            os.remove(os.path.join(repo, "other.txt"))
+            pp = self._make_policy(repo, allowed=[{"path": "ok.txt", "path_type": "file"}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:175: AssertionError
+___________ TestChangeScopeCheck.test_staged_out_of_scope_add_fail ____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEB530050>
+
+    def test_staged_out_of_scope_add_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            _write(repo, "rogue.txt", "bad")
+            _git_add(repo, "rogue.txt")
+            pp = self._make_policy(repo, allowed=[{"path": "ok.txt", "path_type": "file"}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:189: AssertionError
+____________ TestChangeScopeCheck.test_protected_sha_mismatch_fail ____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestChangeScopeCheck object at 0x000001BAEB5305A0>
+
+    def test_protected_sha_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "secret.key", "original")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            _write(repo, "secret.key", "tampered")
+            pp = self._make_policy(repo, allowed=[{"path": "allowed.txt", "path_type": "file"}],
+                                  protected=[{"path": "secret.key", "sha256": hashlib.sha256(b"original").hexdigest()}])
+            tp = self._make_task(repo, bc, pp)
+            fd = _frozen_dir(td, tp)
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:203: AssertionError
+_______________ TestUploadPackageCheck.test_valid_package_pass ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEB5BAD50>
+
+    def test_valid_package_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _, _ = self._setup_valid(td)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 0
+E           assert 2 == 0
+
+protocol_guard\phase2_min\tests\test_checkers.py:320: AssertionError
+_______________ TestUploadPackageCheck.test_structured_spec_ok ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEB5BAE90>
+
+    def test_structured_spec_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _, _ = self._setup_valid(td)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 0
+E           assert 2 == 0
+
+protocol_guard\phase2_min\tests\test_checkers.py:327: AssertionError
+_______________ TestUploadPackageCheck.test_hash_mismatch_fail ________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEB5B2520>
+
+    def test_hash_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            src_dir = os.path.join(td, "reports")
+            os.makedirs(src_dir, exist_ok=True)
+            with open(os.path.join(src_dir, "r.md"), "w") as f: f.write("a")
+            with open(os.path.join(upload_dir, "r.md"), "w") as f: f.write("a")
+            h = sha256_file(os.path.join(upload_dir, "r.md"))
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "r.md", "source_path": "reports/r.md", "sha256": "f" * 64}]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f: json.dump(manifest, f)
+            sp = self._make_spec(td, [{"package_path": "r.md", "source_path": "reports/r.md"}])
+            task = _task_dict("TASK_UP", {
+                "upload_spec_path": os.path.relpath(sp, td).replace("\\", "/"),
+                "upload_spec_sha256": sha256_file(sp),
+            })
+            tp = _save_task(td, task)
+            fd = _frozen_dir(td, tp)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:350: AssertionError
+__________ TestUploadPackageCheck.test_manifest_self_reference_fail ___________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEB5B2650>
+
+    def test_manifest_self_reference_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "UPLOAD_MANIFEST.json", "source_path": "x/y", "sha256": "a" * 64}]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f: json.dump(manifest, f)
+            sp = self._make_spec(td, [{"package_path": "UPLOAD_MANIFEST.json", "source_path": "x/y"}])
+            task = _task_dict("TASK_UP", {
+                "upload_spec_path": os.path.relpath(sp, td).replace("\\", "/"),
+                "upload_spec_sha256": sha256_file(sp),
+            })
+            tp = _save_task(td, task)
+            fd = _frozen_dir(td, tp)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:368: AssertionError
+_______________ TestUploadPackageCheck.test_source_missing_fail _______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEA462330>
+
+    def test_source_missing_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            pkg = os.path.join(upload_dir, "r.md")
+            with open(pkg, "w") as f: f.write("x")
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "r.md", "source_path": "missing/s.txt", "sha256": sha256_file(pkg)}]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f: json.dump(manifest, f)
+            sp = self._make_spec(td, [{"package_path": "r.md", "source_path": "missing/s.txt"}])
+            task = _task_dict("TASK_UP", {
+                "upload_spec_path": os.path.relpath(sp, td).replace("\\", "/"),
+                "upload_spec_sha256": sha256_file(sp),
+            })
+            tp = _save_task(td, task)
+            fd = _frozen_dir(td, tp)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:387: AssertionError
+__________ TestUploadPackageCheck.test_source_content_mismatch_fail ___________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEB530D10>
+
+    def test_source_content_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            src_dir = os.path.join(td, "reports")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(src_dir, exist_ok=True)
+            with open(os.path.join(src_dir, "r.md"), "w") as f: f.write("different")
+            with open(os.path.join(upload_dir, "r.md"), "w") as f: f.write("package")
+            h = sha256_file(os.path.join(upload_dir, "r.md"))
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "r.md", "source_path": "reports/r.md", "sha256": h}]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f: json.dump(manifest, f)
+            sp = self._make_spec(td, [{"package_path": "r.md", "source_path": "reports/r.md"}])
+            task = _task_dict("TASK_UP", {
+                "upload_spec_path": os.path.relpath(sp, td).replace("\\", "/"),
+                "upload_spec_sha256": sha256_file(sp),
+            })
+            tp = _save_task(td, task)
+            fd = _frozen_dir(td, tp)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:410: AssertionError
+_________________ TestUploadPackageCheck.test_extra_file_fail _________________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestUploadPackageCheck object at 0x000001BAEB530E20>
+
+    def test_extra_file_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, upload_dir, _ = self._setup_valid(td)
+            with open(os.path.join(upload_dir, "rogue.txt"), "w") as f: f.write("evil")
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:417: AssertionError
+______________ TestAdversarial.test_staged_oos_add_returns_fail _______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEB5BAFD0>
+
+    def test_staged_oos_add_returns_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._make_repo_policy_task(td, [{"path": "ok.txt", "path_type": "file"}],
+                                                        extra_files={"rogue.txt": "bad"})
+            _git_add(repo, "rogue.txt")
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:500: AssertionError
+___________ TestAdversarial.test_staged_denied_delete_returns_fail ____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEB5BB110>
+
+    def test_staged_denied_delete_returns_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._make_repo_policy_task(td, [{"path": "ok.txt", "path_type": "file"}],
+                                                        denied=[{"path": "denied.txt", "path_type": "file"}],
+                                                        extra_files={"denied.txt": "x"})
+            _git_add(repo, "denied.txt")
+            _git_commit(repo, "add denied")
+            bc2 = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            os.remove(os.path.join(repo, "denied.txt"))
+            _git_add(repo, "denied.txt")
+            # Re-create task with correct baseline
+            p = {"schema_version": "1", "task_id": "TASK_ADV",
+                 "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                 "denied_paths": [{"path": "denied.txt", "path_type": "file"}],
+                 "protected_files": []}
+            pp = os.path.join(repo, "policy.json")
+            with open(pp, "w") as f: json.dump(p, f)
+            task = _task_dict("TASK_ADV", {
+                "baseline_commit_sha": bc2,
+                "policy_path": pp.replace("\\", "/"),
+                "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True,
+            })
+            tp = _save_task(repo, task, "task2.yaml")
+            fd = _frozen_dir(td, tp, "frozen2")
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:529: AssertionError
+______________ TestAdversarial.test_unstaged_delete_returns_fail ______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEB5B2780>
+
+    def test_unstaged_delete_returns_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._make_repo_policy_task(td, [{"path": "ok.txt", "path_type": "file"}],
+                                                        extra_files={"other.txt": "x"})
+            _git_add(repo, "other.txt")
+            _git_commit(repo, "add other")
+            bc2 = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            os.remove(os.path.join(repo, "other.txt"))
+            p = {"schema_version": "1", "task_id": "TASK_ADV",
+                 "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                 "denied_paths": [], "protected_files": []}
+            pp = os.path.join(repo, "policy.json")
+            with open(pp, "w") as f: json.dump(p, f)
+            task = _task_dict("TASK_ADV", {
+                "baseline_commit_sha": bc2,
+                "policy_path": pp.replace("\\", "/"),
+                "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True,
+            })
+            tp = _save_task(repo, task, "task3.yaml")
+            fd = _frozen_dir(td, tp, "frozen3")
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:554: AssertionError
+_______________ TestAdversarial.test_committed_oos_returns_fail _______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEB5B28B0>
+
+    def test_committed_oos_returns_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._make_repo_policy_task(td, [{"path": "ok.txt", "path_type": "file"}],
+                                                        extra_files={"bad.txt": "bad"})
+            _git_commit(repo, "bad commit")
+            bc2 = subprocess.run(["git", "rev-parse", "HEAD~1"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            p = {"schema_version": "1", "task_id": "TASK_ADV",
+                 "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                 "denied_paths": [], "protected_files": []}
+            pp = os.path.join(repo, "policy.json")
+            with open(pp, "w") as f: json.dump(p, f)
+            task = _task_dict("TASK_ADV", {
+                "baseline_commit_sha": bc2,
+                "policy_path": pp.replace("\\", "/"),
+                "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True,
+            })
+            tp = _save_task(repo, task, "task4.yaml")
+            fd = _frozen_dir(td, tp, "frozen4")
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:577: AssertionError
+____________ TestAdversarial.test_protected_sha_wrong_returns_fail ____________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEA462450>
+
+    def test_protected_sha_wrong_returns_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._make_repo_policy_task(td, [{"path": "ok.txt", "path_type": "file"}],
+                protected=[{"path": "ok.txt", "sha256": "f" * 64}])
+            code, result = change_scope_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:585: AssertionError
+______________ TestAdversarial.test_source_swapped_returns_fail _______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEB51D650>
+
+    def test_source_swapped_returns_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            src_dir = os.path.join(td, "reports")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(src_dir, exist_ok=True)
+            with open(os.path.join(src_dir, "a.md"), "w") as f: f.write("aaa")
+            with open(os.path.join(src_dir, "b.md"), "w") as f: f.write("bbb")
+            with open(os.path.join(upload_dir, "a.md"), "w") as f: f.write("aaa")
+            with open(os.path.join(upload_dir, "b.md"), "w") as f: f.write("bbb")
+            h_a = sha256_file(os.path.join(upload_dir, "a.md"))
+            h_b = sha256_file(os.path.join(upload_dir, "b.md"))
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "a.md", "source_path": "reports/b.md", "sha256": h_a},
+                {"package_path": "b.md", "source_path": "reports/a.md", "sha256": h_b},
+            ]}
+            with open(os.path.join(upload_dir, "UPLOAD_MANIFEST.json"), "w") as f: json.dump(manifest, f)
+            sp = os.path.join(td, "spec.json")
+            with open(sp, "w") as f: json.dump({"schema_version": "1", "task_id": "TASK_UP",
+                "manifest_filename": "UPLOAD_MANIFEST.json", "entries": [
+                    {"package_path": "a.md", "source_path": "reports/a.md"},
+                    {"package_path": "b.md", "source_path": "reports/b.md"},
+                ]}, f)
+            task = _task_dict("TASK_UP", {
+                "upload_spec_path": os.path.relpath(sp, td).replace("\\", "/"),
+                "upload_spec_sha256": sha256_file(sp),
+            })
+            tp = _save_task(td, task)
+            fd = _frozen_dir(td, tp)
+            code, result = upload_package_check(tp, fd)
+>           assert code == 1
+E           assert 2 == 1
+
+protocol_guard\phase2_min\tests\test_checkers.py:665: AssertionError
+_____________ TestAdversarial.test_no_file_writes_either_checker ______________
+
+self = <protocol_guard.phase2_min.tests.test_checkers.TestAdversarial object at 0x000001BAEB54B850>
+
+    def test_no_file_writes_either_checker(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _init_git_repo(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            p = {"schema_version": "1", "task_id": "TASK_ADV", "allowed_paths": [{"path": "ok.txt", "path_type": "file"}],
+                 "denied_paths": [], "protected_files": []}
+            pp = os.path.join(repo, "policy.json")
+            with open(pp, "w") as f: json.dump(p, f)
+            task = _task_dict("TASK_ADV", {
+                "baseline_commit_sha": bc,
+                "policy_path": pp.replace("\\", "/"),
+                "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True,
+            })
+            tp = _save_task(repo, task)
+            fd = _frozen_dir(td, tp)
+            before_files = set()
+            for dp, _, fns in os.walk(td):
+                for fn in fns: before_files.add(os.path.join(dp, fn))
+            change_scope_check(tp, fd)
+            mid_files = set()
+            for dp, _, fns in os.walk(td):
+                for fn in fns: mid_files.add(os.path.join(dp, fn))
+            upload_dir = os.path.join(td, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            sp = self._make_spec(td, [])
+            utask = _task_dict("TASK_UP", {
+                "upload_spec_path": os.path.relpath(sp, td).replace("\\", "/"),
+                "upload_spec_sha256": sha256_file(sp),
+            })
+            utp = _save_task(td, utask, "utask.yaml")
+            ufd = _frozen_dir(td, utp, "ufrozen")
+            upload_package_check(utp, ufd)
+            after_files = set()
+            for dp, _, fns in os.walk(td):
+                for fn in fns: after_files.add(os.path.join(dp, fn))
+>           assert before_files == mid_files == after_files
+E           AssertionError: assert {'C:\\Users\\....sample', ...} == {'C:\\Users\\....sample', ...}
+E             Extra items in the right set:
+E             'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbf6fpjgy\\ufrozen\\frozen_task.yaml'
+E             'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbf6fpjgy\\utask.yaml'
+E             'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbf6fpjgy\\spec.json'
+E             'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbf6fpjgy\\ufrozen\\frozen_task.sha256'
+E             Full diff:
+E               {...
+E             
+E             ...Full output truncated (36 lines hidden), use '-vv' to show
+
+protocol_guard\phase2_min\tests\test_checkers.py:748: AssertionError
+=========================== short test summary info ===========================
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_clean_worktree_pass
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_structured_policy_ok
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_out_of_scope_committed_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_staged_denied_delete_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_unstaged_delete_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_staged_out_of_scope_add_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_protected_sha_mismatch_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_valid_package_pass
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_structured_spec_ok
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_hash_mismatch_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_manifest_self_reference_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_missing_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_content_mismatch_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_extra_file_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_oos_add_returns_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_denied_delete_returns_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_unstaged_delete_returns_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_committed_oos_returns_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_protected_sha_wrong_returns_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_source_swapped_returns_fail
+FAILED protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_no_file_writes_either_checker
+======================= 21 failed, 138 passed in 4.84s ========================

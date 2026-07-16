@@ -1,0 +1,58 @@
+{
+  "project_id": "bvf_test_001_checkout_bottleneck",
+  "phase": "mechanism_and_shot_locking",
+  "title": "一个收银窗口关闭后，队伍为什么突然变长？",
+  "visual_direction": {
+    "overview": "竖屏微缩超市收银区。三个收银窗口并排，低多边形简化风格。通过窗口从三个减少为两个的行为，用空间和人物移动直观展示排队拥堵机制。",
+    "first_frame_requirement": "第一秒必须同时看到三个窗口、三条队伍和排队顾客，主体占画面中部大部分区域。画面不能像三维作业、软件 Demo 或素材拼装。",
+    "spatial_layout": {
+      "orientation": "三个收银窗口横向并排",
+      "viewpoint": "斜俯视（能同时看到窗口、队伍和地面分区）",
+      "camera_distance": "中等距离，确保主体足够大但不裁切",
+      "ground": "清晰地面分区，区分窗口区域和排队区域"
+    },
+    "camera_rules": {
+      "default_angle": "斜俯视 30-45 度",
+      "shot_1": "固定，斜俯视，展示全貌",
+      "shot_2": "可在窗口关闭时轻微推近中间窗口",
+      "shot_3": "可轻微推近或过渡到更高俯视以看清分流",
+      "shot_4": "更高俯视或轻微拉远，同时看到关闭窗口和两条长队",
+      "forbidden": "不允许快速摇镜、快速变焦、旋转或眩晕镜头"
+    },
+    "color_principles": {
+      "background": "深色或中性色（深灰、深蓝灰）",
+      "floor": "中灰或微暖灰，与人物形成对比",
+      "counter": "米白或浅暖色",
+      "active_window": "暖色灯牌（例如暖黄或橙）",
+      "closed_window": "灯牌熄灭、柜台变暗、挡板落下后的冷暗色",
+      "characters": "3-5 种低饱和颜色（如灰蓝、灰绿、暗红、米色、深棕），避免纯白和纯黑",
+      "accent": "一种暖色用于灯牌和关键视觉引导",
+      "rule": "关闭窗口是画面中唯一显著的颜色变化事件"
+    },
+    "action_design_principles": {
+      "movement": "顾客整体平移，沿地面分区线移动",
+      "spacing": "顾客之间保持可见间距，避免粘连",
+      "timing": "每 1-2 秒出现一次有意义变化",
+      "direction_clarity": "分流方向必须清楚——左队向左、右队向右",
+      "no_teleport": "顾客移动必须通过连续位置变化实现",
+      "no_overlap": "队列路径不交叉，人物不穿模"
+    },
+    "closure_expression": {
+      "method": "灯牌熄灭 + 挡板落下 + 柜台颜色变暗 + 收银员退后或消失",
+      "requirement": "无声观看必须立刻理解'这个窗口不能再用了'",
+      "forbidden": "不能只靠小字或图标说明关闭"
+    },
+    "causal_closure": {
+      "requirement": "画面在静音状态下必须完成因果闭环：窗口关闭 → 顾客分流 → 新顾客持续进入 → 剩余队伍变长 → 拥堵结果",
+      "final_hold": "最终结果至少停留 0.8 秒"
+    }
+  },
+  "revision_priority": [
+    "1. 机制是否看懂",
+    "2. 主体尺度",
+    "3. 移动方向",
+    "4. 摄像机构图",
+    "5. 灯光和颜色",
+    "6. 材质细节"
+  ]
+}

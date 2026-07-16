@@ -1,0 +1,2 @@
+Not a git repository.
+REAL_PROJECT_GIT_VALIDATION = NOT_RUN

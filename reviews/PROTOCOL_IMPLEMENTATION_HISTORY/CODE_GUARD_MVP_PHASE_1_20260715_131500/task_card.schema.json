@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/task_card.schema.json",
+  "title": "BVF Task Card",
+  "description": "Schema for a single task card in the BVF collaboration protocol.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_card_version",
+    "protocol_version",
+    "execution_mode",
+    "task_type",
+    "project_state_file",
+    "input_files",
+    "output_files",
+    "primary_goal",
+    "primary_variable",
+    "dependent_variables",
+    "fixed_params",
+    "locked_items",
+    "allowed_modifications",
+    "forbidden_modifications",
+    "preflight_checks",
+    "technical_pass_conditions",
+    "visual_intent",
+    "visual_forbidden",
+    "evidence_required",
+    "upload_dir",
+    "upload_files",
+    "stop_conditions",
+    "state_patch_requested"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_card_version": { "type": "integer", "minimum": 1 },
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "execution_mode": { "enum": ["confirm_then_execute", "direct_execute"] },
+    "task_type": {
+      "enum": ["AUDIT", "MODIFICATION", "ROOT_CAUSE_AUDIT", "CALIBRATION", "PROTOCOL_MAINTENANCE"]
+    },
+    "project_state_file": { "type": "string" },
+    "input_files": { "type": "array", "items": { "type": "string" } },
+    "output_files": { "type": "array", "items": { "type": "string" } },
+    "primary_goal": { "type": "string" },
+    "primary_variable": { "type": "string" },
+    "dependent_variables": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "fixed_params": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "locked_items": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "allowed_modifications": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "forbidden_modifications": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "preflight_checks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "technical_pass_conditions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "visual_intent": { "type": "string" },
+    "visual_forbidden": { "type": "string" },
+    "evidence_required": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "upload_dir": { "type": "string" },
+    "upload_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "stop_conditions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "state_patch_requested": {
+      "type": "object",
+      "properties": {
+        "field": { "type": "string" },
+        "value": {},
+        "reason": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

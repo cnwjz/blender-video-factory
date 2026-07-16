@@ -1,0 +1,12 @@
+{
+  "characters": 6,
+  "counters": 2,
+  "registers": 2,
+  "overlap_count": 0,
+  "spacing_fails": 0,
+  "facing_fails": 0,
+  "ground_fails": 0,
+  "all_pass": true,
+  "reopen_ok": true,
+  "issues": []
+}

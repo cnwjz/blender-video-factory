@@ -1,0 +1,29 @@
+{
+  "task_id": "CODE_GUARD_PHASE_2_MIN_IMPL_001",
+  "entries": [
+    {
+      "path": "PHASE2_MIN_IMPLEMENTATION_REPORT.md",
+      "sha256": "edcdb7b6960edaab8efd3b8ebb204d53757340b3ebcc0b2bd70e6527ba21221f"
+    },
+    {
+      "path": "PHASE2_MIN_SOURCE_SNAPSHOT.txt",
+      "sha256": "aceec4ae667cb872794aae413596a16ff55a0d98c95f18f2b99aff3b5b6f4991"
+    },
+    {
+      "path": "pytest_output_phase2_min.txt",
+      "sha256": "b3233ed4e2f41513a88bcc7c223aedc2d572b6250f73151744a9855056f971fb"
+    },
+    {
+      "path": "adversarial_output_phase2_min.txt",
+      "sha256": "8834c625bd94b87d148ecb1a029598fd4e7dfdbf67d427f2e881d404f4ced32b"
+    },
+    {
+      "path": "protected_files_integrity_phase2_min.json",
+      "sha256": "f689f68c065c42274dbe11ce82afe4a6dfaa1470bd49dda2a3099a90db5f4d73"
+    },
+    {
+      "path": "git_status_phase2_min.txt",
+      "sha256": "fe648b0b322f41099899c7b3eae8d6dd12ac32b54866d9cf80e14fa2bcc490ee"
+    }
+  ]
+}

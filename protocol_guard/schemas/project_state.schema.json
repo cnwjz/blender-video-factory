@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/project_state.schema.json",
+  "title": "BVF Project State v2",
+  "description": "Schema for PROJECT_STATE.yaml. v2: structured locks, diagnostics, change_log, pending_review.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "project_id",
+    "workflow_phase",
+    "scene_phase",
+    "phase_approved",
+    "project_work_paused",
+    "last_task_id",
+    "last_task_card_sha256",
+    "last_technical_result",
+    "evidence_status",
+    "evidence_sha256",
+    "output_files",
+    "last_execution_time",
+    "locked_assets",
+    "unlocked_assets",
+    "diagnostic_only_outputs",
+    "pending_review",
+    "blocked_operations",
+    "failed_paths",
+    "change_log"
+  ],
+  "properties": {
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "workflow_phase": { "type": "string" },
+    "scene_phase": { "type": "string" },
+    "phase_approved": { "type": "boolean" },
+    "project_work_paused": { "type": "boolean" },
+
+    "last_task_id": { "type": "string" },
+    "last_task_card_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "last_technical_result": {
+      "enum": ["TECHNICAL_PASS", "TECHNICAL_FAIL", "CONSTRAINT_CONFLICT",
+               "EVIDENCE_INVALID", "SPEC_INVALID"]
+    },
+    "evidence_status": {
+      "enum": ["VALID", "RECOVERED", "INVALID"]
+    },
+    "evidence_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "last_execution_time": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "format": "date-time" }
+      ]
+    },
+
+    "locked_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "path", "lock_scope", "status", "approved_by"],
+        "properties": {
+          "asset_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "lock_scope": {
+            "enum": ["whole_file", "selected_objects", "selected_collections",
+                     "transforms_only", "hierarchy_only", "asset_structure"]
+          },
+          "status": {
+            "enum": ["locked", "temporarily_unlocked"]
+          },
+          "approved_by": { "type": "string" },
+          "selectors": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "protected_fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "approved_at": {
+            "oneOf": [
+              { "type": "null" },
+              { "type": "string", "format": "date-time" }
+            ]
+          },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "unlocked_assets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "diagnostic_only_outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["output_id", "path", "status"],
+        "properties": {
+          "output_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "status": {
+            "enum": ["diagnostic_only", "superseded", "invalid"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "pending_review": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["task_id", "reviewer", "status"],
+          "properties": {
+            "task_id": { "type": "string", "minLength": 1 },
+            "reviewer": {
+              "enum": ["GPT", "USER", "GPT_AND_USER"]
+            },
+            "status": {
+              "enum": ["awaiting_gpt_review", "awaiting_user_review", "approved", "rejected"]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "blocked_operations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "failed_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "change_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "actor", "task_id", "fields_changed", "reason"],
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "actor": {
+            "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED", "SYSTEM_MIGRATION"]
+          },
+          "task_id": { "type": "string", "minLength": 1 },
+          "fields_changed": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

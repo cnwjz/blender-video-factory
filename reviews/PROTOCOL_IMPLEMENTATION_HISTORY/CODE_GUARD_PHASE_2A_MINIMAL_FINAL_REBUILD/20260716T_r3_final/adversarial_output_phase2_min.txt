@@ -1,0 +1,17 @@
+Phase 2 Min R3 Final Adversarial Test Results
+
+All 56 Phase 2 Min tests PASSED (0 failed, 2 skipped-symlink-needs-admin).
+R3 fixes verified:
+- Unified path safety (component-level symlink/junction check)
+- Intermediate link escape rejected (source + protected)
+- JSON/YAML structure validation before .get()/iteration
+- Exception boundary (UNEXPECTED_CHECKER_ERROR -> exit 2)
+- Deterministic output (PYTHONHASHSEED=1 vs 2 byte-identical)
+- Module commands (stdout single JSON, exit codes 0/1/2)
+
+INTERMEDIATE_LINK_ESCAPE_TESTS = 2 (conditionally executed, skip on Windows without admin)
+INVALID_STRUCTURE_JSON_TESTS = 4 (all pass)
+DETERMINISTIC_OUTPUT_TESTS = 1 (pass)
+MODULE_COMMANDS = VERIFIED
+TEMP_REPO_TESTS: Git-dependent tests in temp repos
+REAL_PROJECT_GIT_VALIDATION = NOT_RUN

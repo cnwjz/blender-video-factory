@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/project_state.schema.json",
+  "title": "BVF Project State",
+  "description": "Schema for PROJECT_STATE.yaml — the single source of truth for project status.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "project_id",
+    "workflow_phase",
+    "scene_phase",
+    "phase_approved",
+    "project_work_paused",
+    "last_task_id",
+    "last_technical_result",
+    "evidence_status"
+  ],
+  "properties": {
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "workflow_phase": { "type": "string" },
+    "scene_phase": { "type": "string" },
+    "phase_approved": { "type": "boolean" },
+    "project_work_paused": { "type": "boolean" },
+    "last_task_id": { "type": "string" },
+    "last_task_card_sha256": { "type": "string" },
+    "last_technical_result": {
+      "enum": ["TECHNICAL_PASS", "TECHNICAL_FAIL", "CONSTRAINT_CONFLICT",
+               "EVIDENCE_INVALID", "SPEC_INVALID"]
+    },
+    "evidence_status": {
+      "enum": ["VALID", "RECOVERED", "INVALID"]
+    },
+    "evidence_sha256": { "type": "string" },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "last_execution_time": { "type": "string" },
+    "locked_assets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "unlocked_assets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "blocked_operations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "failed_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

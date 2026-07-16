@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/state_patch.schema.json",
+  "title": "BVF State Patch",
+  "description": "Schema for a field-level patch to PROJECT_STATE.yaml.",
+  "type": "object",
+  "required": ["actor", "fields"],
+  "properties": {
+    "actor": {
+      "enum": ["CLAUDE", "GPT_PROPOSAL", "USER_APPROVED"]
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "reason": { "type": "string" }
+  },
+  "additionalProperties": false
+}

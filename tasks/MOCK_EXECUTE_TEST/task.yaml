@@ -1,0 +1,32 @@
+task_id: "MOCK_EXECUTE_TEST"
+task_card_version: 2
+protocol_version: "v1.0"
+execution_mode: "confirm_then_execute"
+task_type: "PROTOCOL_MAINTENANCE"
+
+project_state_file: "state.yaml"
+input_files:
+  - "mock_input.txt"
+output_files:
+  - "mock_output.txt"
+
+primary_goal: "Mock integration test for Phase 2A gate pipeline"
+primary_variable: "gate_pipeline_integrity"
+
+dependent_variables: []
+fixed_params: {}
+
+locked_items: []
+allowed_modifications: []
+forbidden_modifications: []
+
+preflight_checks: []
+technical_pass_conditions: []
+visual_intent: "N/A"
+visual_forbidden: "N/A"
+evidence_required: []
+upload_dir: "output"
+upload_files:
+  - "mock_output.txt"
+stop_conditions: []
+state_patch_requested: null

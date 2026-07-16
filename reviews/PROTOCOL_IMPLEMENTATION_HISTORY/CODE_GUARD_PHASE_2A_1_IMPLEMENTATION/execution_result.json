@@ -1,0 +1,30 @@
+{
+  "attempt_id": "evidence_generation_20260715",
+  "blender_executed": false,
+  "cli_created": false,
+  "errors": [],
+  "evidence_files": [
+    "CODE_GUARD_PHASE_2A_1_REPORT.md",
+    "CODE_GUARD_PHASE_2A_1_SOURCE_SNAPSHOT.txt",
+    "CODE_GUARD_PHASE_2A_1_PROTECTED_FILES_INTEGRITY.json",
+    "pytest_output.txt",
+    "adversarial_test_output.txt",
+    "execution_result.json",
+    "evidence_manifest.json"
+  ],
+  "integration_passed": true,
+  "phase_1_collected": 121,
+  "phase_1_failed": 0,
+  "phase_1_files_unchanged": true,
+  "phase_1_passed": 121,
+  "phase_2a_adversarial_collected": 17,
+  "phase_2a_adversarial_passed": 17,
+  "phase_2a_non_adversarial_collected": 60,
+  "phase_2a_non_adversarial_passed": 60,
+  "real_project_state_sha256_after": "1d9b24ecbea869b1a184d7271b9e32f83b571acaf583df507f69850534f6413f",
+  "real_project_state_sha256_before": "1d9b24ecbea869b1a184d7271b9e32f83b571acaf583df507f69850534f6413f",
+  "real_ps_unchanged": true,
+  "task_id": "CODE_GUARD_PHASE_2A_1_IMPLEMENTATION",
+  "technical_result": "TECHNICAL_PASS",
+  "undeclared_modifications": 0
+}

@@ -1,0 +1,416 @@
+{
+  "Customer_01": {
+    "root_name": "Customer_01_Root",
+    "armature_name": "CHR_MALE_A_Armature",
+    "body_name": "CHR_MALE_A_Body",
+    "head_name": "CHR_MALE_A_Head",
+    "local_+X_world": [
+      -0.026068,
+      -0.0,
+      0.0
+    ],
+    "local_-X_world": [
+      0.026068,
+      0.0,
+      0.0
+    ],
+    "local_+Y_world": [
+      -0.0,
+      0.0,
+      0.026068
+    ],
+    "local_-Y_world": [
+      0.0,
+      -0.0,
+      -0.026068
+    ],
+    "local_+Z_world": [
+      -0.0,
+      0.026068,
+      -0.0
+    ],
+    "local_-Z_world": [
+      0.0,
+      -0.026068,
+      0.0
+    ],
+    "model_forward_local_axis": "+Z",
+    "model_forward_world_vector": [
+      -0.0,
+      1.0,
+      -0.0
+    ],
+    "model_forward_world_y": 1.0,
+    "face_plus_y_pass": true,
+    "model_up_local_axis": "+Y",
+    "model_up_world_vector": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "vertical_alignment": 1.0,
+    "vertical_alignment_pass": true,
+    "world_bbox_height": 1.75,
+    "world_bbox_width": 1.9998,
+    "world_bbox_depth": 0.8863,
+    "lowest_z": 0.0,
+    "highest_z": 1.75,
+    "body_center_z": 0.48,
+    "body_bbox_height": 0.9599,
+    "body_bbox_width": 1.9998,
+    "body_bbox_depth": 0.7034,
+    "body_hw_ratio": 0.48,
+    "head_center_z": 1.3224,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "standing_pass": true,
+    "overall_hw_ratio": 0.8751,
+    "hw_less_than_1_explanation": "Overall H:W=0.8751. Body-only H:W=0.48. Kenney Mini characters have arms extending laterally in idle pose, making the full AABB width (2.000) approach or exceed height (1.750). The body torso alone (without arms) has H:W ratio of 0.48. Head is above body center. Character IS standing \u2014 the low H:W is an artifact of arm extension, not lying down."
+  },
+  "Customer_02": {
+    "root_name": "Customer_02_Root",
+    "armature_name": "CHR_FEMALE_A_Armature",
+    "body_name": "CHR_FEMALE_A_Body",
+    "head_name": "CHR_FEMALE_A_Head",
+    "local_+X_world": [
+      -0.021143,
+      -0.0,
+      0.0
+    ],
+    "local_-X_world": [
+      0.021143,
+      0.0,
+      0.0
+    ],
+    "local_+Y_world": [
+      -0.0,
+      0.0,
+      0.021143
+    ],
+    "local_-Y_world": [
+      0.0,
+      -0.0,
+      -0.021143
+    ],
+    "local_+Z_world": [
+      -0.0,
+      0.021143,
+      -0.0
+    ],
+    "local_-Z_world": [
+      0.0,
+      -0.021143,
+      0.0
+    ],
+    "model_forward_local_axis": "+Z",
+    "model_forward_world_vector": [
+      -0.0,
+      1.0,
+      -0.0
+    ],
+    "model_forward_world_y": 1.0,
+    "face_plus_y_pass": true,
+    "model_up_local_axis": "+Y",
+    "model_up_world_vector": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "vertical_alignment": 1.0,
+    "vertical_alignment_pass": true,
+    "world_bbox_height": 1.75,
+    "world_bbox_width": 1.8598,
+    "world_bbox_depth": 1.0562,
+    "lowest_z": -0.0,
+    "highest_z": 1.75,
+    "body_center_z": 0.418,
+    "body_bbox_height": 0.836,
+    "body_bbox_width": 1.8598,
+    "body_bbox_depth": 0.6349,
+    "body_hw_ratio": 0.4495,
+    "head_center_z": 1.293,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "standing_pass": true,
+    "overall_hw_ratio": 0.941,
+    "hw_less_than_1_explanation": "Overall H:W=0.941. Body-only H:W=0.4495. Kenney Mini characters have arms extending laterally in idle pose, making the full AABB width (1.860) approach or exceed height (1.750). The body torso alone (without arms) has H:W ratio of 0.4495. Head is above body center. Character IS standing \u2014 the low H:W is an artifact of arm extension, not lying down."
+  },
+  "Customer_03": {
+    "root_name": "Customer_03_Root",
+    "armature_name": "CHR_MALE_B_Armature",
+    "body_name": "CHR_MALE_B_Body",
+    "head_name": "CHR_MALE_B_Head",
+    "local_+X_world": [
+      -0.026462,
+      -0.0,
+      0.0
+    ],
+    "local_-X_world": [
+      0.026462,
+      0.0,
+      0.0
+    ],
+    "local_+Y_world": [
+      -0.0,
+      0.0,
+      0.026462
+    ],
+    "local_-Y_world": [
+      0.0,
+      -0.0,
+      -0.026462
+    ],
+    "local_+Z_world": [
+      -0.0,
+      0.026462,
+      -0.0
+    ],
+    "local_-Z_world": [
+      0.0,
+      -0.026462,
+      0.0
+    ],
+    "model_forward_local_axis": "+Z",
+    "model_forward_world_vector": [
+      -0.0,
+      1.0,
+      -0.0
+    ],
+    "model_forward_world_y": 1.0,
+    "face_plus_y_pass": true,
+    "model_up_local_axis": "+Y",
+    "model_up_world_vector": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "vertical_alignment": 1.0,
+    "vertical_alignment_pass": true,
+    "world_bbox_height": 1.75,
+    "world_bbox_width": 2.0301,
+    "world_bbox_depth": 1.0306,
+    "lowest_z": 0.0,
+    "highest_z": 1.75,
+    "body_center_z": 0.4872,
+    "body_bbox_height": 0.9745,
+    "body_bbox_width": 2.0301,
+    "body_bbox_depth": 0.7141,
+    "body_hw_ratio": 0.48,
+    "head_center_z": 1.2233,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "standing_pass": true,
+    "overall_hw_ratio": 0.862,
+    "hw_less_than_1_explanation": "Overall H:W=0.862. Body-only H:W=0.48. Kenney Mini characters have arms extending laterally in idle pose, making the full AABB width (2.030) approach or exceed height (1.750). The body torso alone (without arms) has H:W ratio of 0.48. Head is above body center. Character IS standing \u2014 the low H:W is an artifact of arm extension, not lying down."
+  },
+  "Customer_04": {
+    "root_name": "Customer_04_Root",
+    "armature_name": "CHR_FEMALE_B_Armature",
+    "body_name": "CHR_FEMALE_B_Body",
+    "head_name": "CHR_FEMALE_B_Head",
+    "local_+X_world": [
+      -0.024193,
+      -0.0,
+      0.0
+    ],
+    "local_-X_world": [
+      0.024193,
+      0.0,
+      0.0
+    ],
+    "local_+Y_world": [
+      -0.0,
+      0.0,
+      0.024193
+    ],
+    "local_-Y_world": [
+      0.0,
+      -0.0,
+      -0.024193
+    ],
+    "local_+Z_world": [
+      -0.0,
+      0.024193,
+      -0.0
+    ],
+    "local_-Z_world": [
+      0.0,
+      -0.024193,
+      0.0
+    ],
+    "model_forward_local_axis": "+Z",
+    "model_forward_world_vector": [
+      -0.0,
+      1.0,
+      -0.0
+    ],
+    "model_forward_world_y": 1.0,
+    "face_plus_y_pass": true,
+    "model_up_local_axis": "+Y",
+    "model_up_world_vector": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "vertical_alignment": 1.0,
+    "vertical_alignment_pass": true,
+    "world_bbox_height": 1.75,
+    "world_bbox_width": 1.856,
+    "world_bbox_depth": 1.0125,
+    "lowest_z": 0.0,
+    "highest_z": 1.75,
+    "body_center_z": 0.4455,
+    "body_bbox_height": 0.8909,
+    "body_bbox_width": 1.856,
+    "body_bbox_depth": 0.6301,
+    "body_hw_ratio": 0.48,
+    "head_center_z": 1.2902,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "standing_pass": true,
+    "overall_hw_ratio": 0.9429,
+    "hw_less_than_1_explanation": "Overall H:W=0.9429. Body-only H:W=0.48. Kenney Mini characters have arms extending laterally in idle pose, making the full AABB width (1.856) approach or exceed height (1.750). The body torso alone (without arms) has H:W ratio of 0.48. Head is above body center. Character IS standing \u2014 the low H:W is an artifact of arm extension, not lying down."
+  },
+  "Employee_01": {
+    "root_name": "Employee_01_Root",
+    "armature_name": "CHR_EMPLOYEE_Armature",
+    "body_name": "CHR_EMPLOYEE_Body",
+    "head_name": "CHR_EMPLOYEE_Head",
+    "local_+X_world": [
+      -0.024193,
+      -0.0,
+      0.0
+    ],
+    "local_-X_world": [
+      0.024193,
+      0.0,
+      0.0
+    ],
+    "local_+Y_world": [
+      -0.0,
+      0.0,
+      0.024193
+    ],
+    "local_-Y_world": [
+      0.0,
+      -0.0,
+      -0.024193
+    ],
+    "local_+Z_world": [
+      -0.0,
+      0.024193,
+      -0.0
+    ],
+    "local_-Z_world": [
+      0.0,
+      -0.024193,
+      0.0
+    ],
+    "model_forward_local_axis": "+Z",
+    "model_forward_world_vector": [
+      -0.0,
+      1.0,
+      -0.0
+    ],
+    "model_forward_world_y": 1.0,
+    "face_plus_y_pass": true,
+    "model_up_local_axis": "+Y",
+    "model_up_world_vector": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "vertical_alignment": 1.0,
+    "vertical_alignment_pass": true,
+    "world_bbox_height": 1.75,
+    "world_bbox_width": 1.8884,
+    "world_bbox_depth": 0.971,
+    "lowest_z": 0.0,
+    "highest_z": 1.75,
+    "body_center_z": 0.4455,
+    "body_bbox_height": 0.8909,
+    "body_bbox_width": 1.8884,
+    "body_bbox_depth": 0.6681,
+    "body_hw_ratio": 0.4718,
+    "head_center_z": 1.2902,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "standing_pass": true,
+    "overall_hw_ratio": 0.9267,
+    "hw_less_than_1_explanation": "Overall H:W=0.9267. Body-only H:W=0.4718. Kenney Mini characters have arms extending laterally in idle pose, making the full AABB width (1.888) approach or exceed height (1.750). The body torso alone (without arms) has H:W ratio of 0.4718. Head is above body center. Character IS standing \u2014 the low H:W is an artifact of arm extension, not lying down."
+  },
+  "Employee_02": {
+    "root_name": "Employee_02_Root",
+    "armature_name": "CHR_EMPLOYEE_Armature.001",
+    "body_name": "CHR_EMPLOYEE_Body.001",
+    "head_name": "CHR_EMPLOYEE_Head.001",
+    "local_+X_world": [
+      -0.024193,
+      -0.0,
+      0.0
+    ],
+    "local_-X_world": [
+      0.024193,
+      0.0,
+      0.0
+    ],
+    "local_+Y_world": [
+      -0.0,
+      0.0,
+      0.024193
+    ],
+    "local_-Y_world": [
+      0.0,
+      -0.0,
+      -0.024193
+    ],
+    "local_+Z_world": [
+      -0.0,
+      0.024193,
+      -0.0
+    ],
+    "local_-Z_world": [
+      0.0,
+      -0.024193,
+      0.0
+    ],
+    "model_forward_local_axis": "+Z",
+    "model_forward_world_vector": [
+      -0.0,
+      1.0,
+      -0.0
+    ],
+    "model_forward_world_y": 1.0,
+    "face_plus_y_pass": true,
+    "model_up_local_axis": "+Y",
+    "model_up_world_vector": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "vertical_alignment": 1.0,
+    "vertical_alignment_pass": true,
+    "world_bbox_height": 1.75,
+    "world_bbox_width": 1.8884,
+    "world_bbox_depth": 0.971,
+    "lowest_z": 0.0,
+    "highest_z": 1.75,
+    "body_center_z": 0.4455,
+    "body_bbox_height": 0.8909,
+    "body_bbox_width": 1.8884,
+    "body_bbox_depth": 0.6681,
+    "body_hw_ratio": 0.4718,
+    "head_center_z": 1.2902,
+    "head_above_body": true,
+    "height_near_target": true,
+    "feet_at_ground": true,
+    "standing_pass": true,
+    "overall_hw_ratio": 0.9267,
+    "hw_less_than_1_explanation": "Overall H:W=0.9267. Body-only H:W=0.4718. Kenney Mini characters have arms extending laterally in idle pose, making the full AABB width (1.888) approach or exceed height (1.750). The body torso alone (without arms) has H:W ratio of 0.4718. Head is above body center. Character IS standing \u2014 the low H:W is an artifact of arm extension, not lying down."
+  }
+}

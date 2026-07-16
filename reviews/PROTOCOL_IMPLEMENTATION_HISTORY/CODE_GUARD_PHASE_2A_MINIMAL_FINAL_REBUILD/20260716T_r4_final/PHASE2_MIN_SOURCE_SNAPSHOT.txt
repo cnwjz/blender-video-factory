@@ -1,0 +1,2387 @@
+# Phase 2 Min R4 Source Snapshot
+
+==============================================================================
+FILE: protocol_guard\phase2_min\__init__.py
+SIZE: 504 bytes
+SHA256: eaedf54de57a67605372293ea7cecc9684cf736af0008458aba158a7a0d6cdac
+==============================================================================
+
+"""Phase 2 Min — two read-only checkers: change_scope and upload_package.
+
+Public API:
+  change_scope_check(task_path, frozen_dir) -> (exit_code, result_dict)
+  upload_package_check(task_path, frozen_dir) -> (exit_code, result_dict)
+
+Exit codes: 0=PASS, 1=FAIL, 2=ERROR
+"""
+
+from protocol_guard.phase2_min.change_scope_check import change_scope_check
+from protocol_guard.phase2_min.upload_package_check import upload_package_check
+
+__all__ = ["change_scope_check", "upload_package_check"]
+
+
+==============================================================================
+FILE: protocol_guard\phase2_min\change_scope_check.py
+SIZE: 14249 bytes
+SHA256: dd89cf846a37428db20b425645bd528daf764a297c53973fe6ba76a0697c2853
+==============================================================================
+
+"""Change Scope Check — verify worktree changes against frozen policy."""
+
+import json, os, re, sys
+
+from protocol_guard.frozen.snapshot import verify_frozen_task
+from protocol_guard.phase2_min.io_utils import (
+    sha256_file, load_task_card, load_frozen_task, load_policy,
+    normalize_path, resolve_repo_root, validate_path_in_repo, run_git,
+    validate_policy_structure, validate_safe_path, sort_result,
+)
+
+EXCLUDED_BUILTIN = {".git", "reviews/UPLOAD_NEXT"}
+SHA256_RE = re.compile(r'^[a-f0-9]{64}$')
+
+
+def _match_policy(path, entry):
+    np = normalize_path(path).lower()
+    ep = normalize_path(entry["path"]).lower()
+    pt = entry.get("path_type", "")
+    if pt == "file":
+        return np == ep
+    elif pt == "directory":
+        return np == ep or np.startswith(ep.rstrip("/") + "/") or np.startswith(ep + "/")
+    return False
+
+
+def _is_excluded(path):
+    np = normalize_path(path).lower()
+    for ex in EXCLUDED_BUILTIN:
+        en = normalize_path(ex).lower()
+        if np == en or np.startswith(en.rstrip("/") + "/"):
+            return True
+    return False
+
+
+def change_scope_check(task_path, frozen_dir):
+    """Check worktree changes since baseline comply with frozen policy.
+
+    Returns: (exit_code: int, result: dict)
+        0 = PASS, 1 = FAIL, 2 = ERROR
+    """
+    result = {
+        "schema_version": "1",
+        "checker": "change_scope_check",
+        "task_id": None,
+        "baseline_commit_sha": None,
+        "policy_sha256": None,
+        "actual_changes": [],
+        "out_of_scope_changes": [],
+        "protected_file_changes": [],
+        "input_errors": [],
+        "result": None,
+    }
+    errors = result["input_errors"]
+
+    try:
+        return _change_scope_check_impl(task_path, frozen_dir, result, errors)
+    except Exception as e:
+        errors.append(f"UNEXPECTED_CHECKER_ERROR: {type(e).__name__}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+
+def _change_scope_check_impl(task_path, frozen_dir, result, errors):
+    # 1. Verify frozen task
+    match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+    if not match:
+        errors.append(f"Frozen task verification failed: {ferr}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 2. Load task card and frozen task
+    frozen_data, ferr2 = load_frozen_task(frozen_dir)
+    if frozen_data is None or not isinstance(frozen_data, dict):
+        errors.append(ferr2 or "INVALID_STRUCTURE: frozen task is not a dict")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    task_data = load_task_card(task_path)
+    if not isinstance(task_data, dict):
+        errors.append("INVALID_STRUCTURE: task card is not a dict")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    task_id = task_data.get("task_id", "unknown")
+    result["task_id"] = task_id
+
+    # 3. Read fixed_params
+    fixed = frozen_data.get("fixed_params", {})
+    if not isinstance(fixed, dict):
+        errors.append("INVALID_STRUCTURE: fixed_params is not a dict")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    baseline_commit = fixed.get("baseline_commit_sha")
+    policy_path = fixed.get("policy_path")
+    policy_sha = fixed.get("policy_sha256")
+    worktree_clean = fixed.get("worktree_clean_at_approval")
+    result["baseline_commit_sha"] = baseline_commit
+
+    if worktree_clean is not True:
+        errors.append(f"worktree_clean_at_approval must be true, got: {worktree_clean!r}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if not baseline_commit or not policy_path or not policy_sha:
+        errors.append("Missing required fixed_params")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 4. Resolve repo root
+    repo_root, repo_err = resolve_repo_root(task_path)
+    if repo_root is None:
+        errors.append(repo_err)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 5. Validate task and frozen in repo
+    for label, p in [("task_path", task_path), ("frozen_dir", frozen_dir)]:
+        _, err = validate_safe_path(repo_root, os.path.relpath(os.path.realpath(p), repo_root))
+        if err and "REPOSITORY" not in err:
+            _, err2 = validate_safe_path(repo_root, os.path.relpath(os.path.realpath(p), repo_root))
+        # Direct check: realpath must be within repo
+        rp = os.path.realpath(p)
+        try:
+            if os.path.commonpath([rp, repo_root]) != repo_root:
+                errors.append(f"{label} is outside repo")
+                result["result"] = "ERROR"
+                return (2, sort_result(result))
+        except ValueError:
+            errors.append(f"{label} is outside repo")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+
+    # 6. Validate policy_path
+    policy_abs, pol_err = validate_safe_path(repo_root, policy_path, require_type="file")
+    if pol_err:
+        errors.append(f"policy_path: {pol_err}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 7. Verify policy SHA256
+    actual_policy_sha = sha256_file(policy_abs)
+    result["policy_sha256"] = policy_sha
+    if actual_policy_sha != policy_sha:
+        errors.append("Policy SHA256 mismatch")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 8. Load and validate policy structure
+    try:
+        policy = load_policy(policy_abs)
+    except Exception as e:
+        errors.append(f"Cannot parse policy: {e}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    struct_errs = validate_policy_structure(policy)
+    if struct_errs:
+        errors.extend(struct_errs)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    if policy.get("schema_version") != "1":
+        errors.append("Policy schema_version must be '1'")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if policy.get("task_id") != task_id:
+        errors.append("Policy task_id mismatch")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    allowed_paths = policy.get("allowed_paths", [])
+    denied_paths = policy.get("denied_paths", [])
+    protected_files = policy.get("protected_files", [])
+
+    # 9. Validate policy entries
+    for label, entries in [("allowed_paths", allowed_paths), ("denied_paths", denied_paths)]:
+        seen = set()
+        for entry in entries:
+            pt = entry.get("path_type", "")
+            p = entry.get("path", "")
+            if pt not in ("file", "directory"):
+                errors.append(f"{label} entry has invalid path_type: {entry}")
+                result["result"] = "ERROR"
+                return (2, sort_result(result))
+            if not p:
+                errors.append(f"{label} entry missing path")
+                result["result"] = "ERROR"
+                return (2, sort_result(result))
+            try:
+                np = normalize_path(p)
+            except ValueError as e:
+                errors.append(f"{label} entry path rejected ({p}): {e}")
+                result["result"] = "ERROR"
+                return (2, sort_result(result))
+            if np.lower() in seen:
+                errors.append(f"{label} duplicate path: {p}")
+                result["result"] = "ERROR"
+                return (2, sort_result(result))
+            seen.add(np.lower())
+
+    seen_protected = set()
+    for entry in protected_files:
+        p = entry.get("path", "")
+        s = entry.get("sha256", "")
+        if not p:
+            errors.append("protected_files entry missing path")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+        try:
+            np = normalize_path(p)
+        except ValueError as e:
+            errors.append(f"protected_files path rejected ({p}): {e}")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+        if np.lower() in seen_protected:
+            errors.append(f"protected_files duplicate path: {p}")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+        seen_protected.add(np.lower())
+        if not SHA256_RE.match(s):
+            errors.append(f"protected_files invalid sha256 for {p}: {s}")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+
+    # 10. Validate baseline commit SHA format
+    if not isinstance(baseline_commit, str):
+        errors.append("BASELINE_NOT_FULL_COMMIT_SHA: baseline_commit_sha is not a string")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if not re.fullmatch(r'^[0-9a-f]{40}$', baseline_commit):
+        errors.append("BASELINE_NOT_FULL_COMMIT_SHA: must be exactly 40 hex characters")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    out, err, rc = run_git(["cat-file", "-t", baseline_commit], repo_root)
+    if rc != 0:
+        errors.append("BASELINE_OBJECT_NOT_FOUND: git cat-file -t failed")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if out.strip() != "commit":
+        errors.append(f"BASELINE_OBJECT_NOT_COMMIT: object type is '{out.strip()}', expected 'commit'")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 11. Get worktree changes
+    git_changes, git_err = _get_changes_or_error(repo_root, baseline_commit)
+    if git_err:
+        errors.append(git_err)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    all_changed = set()
+    for change_type, paths in git_changes.items():
+        for p in paths:
+            all_changed.add((p, change_type))
+
+    out_of_scope = []
+    protected_changes = []
+
+    # 12. Check protected files
+    for pf_entry in protected_files:
+        pf_path = normalize_path(pf_entry["path"])
+        pf_expected_sha = pf_entry.get("sha256", "")
+        pf_abs, pf_err = validate_safe_path(repo_root, pf_path, require_type="file")
+        if pf_err:
+            protected_changes.append({
+                "path": pf_path, "reason": pf_err,
+                "expected_sha256": pf_expected_sha, "actual_sha256": None,
+            })
+            continue
+
+        actual_sha = sha256_file(pf_abs)
+        if actual_sha != pf_expected_sha:
+            protected_changes.append({
+                "path": pf_path, "reason": "SHA256 mismatch",
+                "expected_sha256": pf_expected_sha, "actual_sha256": actual_sha,
+            })
+
+    result["protected_file_changes"] = protected_changes
+
+    # 13. Check changed files against policy
+    for path, change_type in sorted(all_changed):
+        np = normalize_path(path)
+        if _is_excluded(np):
+            continue
+        is_protected = any(normalize_path(pf["path"]).lower() == np.lower()
+                          for pf in protected_files)
+        if is_protected:
+            continue
+
+        result["actual_changes"].append({"path": np, "change_type": change_type})
+
+        if any(_match_policy(path, d) for d in denied_paths):
+            out_of_scope.append({"path": np, "change_type": change_type, "reason": "denied_paths match"})
+            continue
+        if not any(_match_policy(path, a) for a in allowed_paths):
+            out_of_scope.append({"path": np, "change_type": change_type, "reason": "not in allowed_paths"})
+
+    result["out_of_scope_changes"] = out_of_scope
+
+    if errors:
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if out_of_scope or protected_changes:
+        result["result"] = "FAIL"
+        return (1, sort_result(result))
+    result["result"] = "PASS"
+    return (0, sort_result(result))
+
+
+def _get_changes_or_error(repo_root, baseline_commit):
+    from protocol_guard.phase2_min.io_utils import get_worktree_changes as gwc
+    changes = {
+        "added": [], "modified": [], "deleted": [], "type_changed": [],
+        "staged_added": [], "staged_modified": [], "staged_deleted": [],
+        "unstaged_modified": [], "unstaged_deleted": [], "untracked": [],
+    }
+    for cmd_args, target_keys in [
+        (["diff", "--name-status", baseline_commit, "HEAD"],
+         {"A": "added", "M": "modified", "D": "deleted", "T": "type_changed"}),
+        (["diff", "--name-status", "--cached"],
+         {"A": "staged_added", "M": "staged_modified", "D": "staged_deleted", "T": "type_changed"}),
+        (["diff", "--name-status"],
+         {"M": "unstaged_modified", "D": "unstaged_deleted", "T": "type_changed"}),
+    ]:
+        out, err, rc = run_git(cmd_args, repo_root)
+        if rc != 0:
+            return (None, f"git {' '.join(cmd_args)} failed: {err.strip()}")
+        for line in out.strip().split("\n"):
+            if not line: continue
+            parts = line.split("\t")
+            status = parts[0]; name = parts[-1] if len(parts) > 1 else ""
+            if not name: continue
+            if status.startswith("R") and len(parts) >= 3:
+                changes["deleted"].append(parts[1]); changes["added"].append(parts[2])
+            for st_prefix, target in target_keys.items():
+                if status.startswith(st_prefix) and name not in changes[target]:
+                    changes[target].append(name)
+    out, err, rc = run_git(["ls-files", "--others", "--exclude-standard"], repo_root)
+    if rc != 0:
+        return (None, f"git ls-files failed: {err.strip()}")
+    for line in out.strip().split("\n"):
+        if line: changes["untracked"].append(line)
+    return (changes, None)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        result = {"result": "ERROR", "input_errors": ["Usage: python -m protocol_guard.phase2_min.change_scope_check <task_path> <frozen_dir>"]}
+        json.dump(sort_result(result), sys.stdout, ensure_ascii=False, sort_keys=True)
+        sys.exit(2)
+    try:
+        code, result = change_scope_check(sys.argv[1], sys.argv[2])
+        json.dump(result, sys.stdout, ensure_ascii=False, sort_keys=True)
+        sys.exit(code)
+    except Exception as e:
+        result = {"result": "ERROR", "input_errors": [f"UNEXPECTED_CHECKER_ERROR: {type(e).__name__}"]}
+        json.dump(sort_result(result), sys.stdout, ensure_ascii=False, sort_keys=True)
+        sys.exit(2)
+
+
+==============================================================================
+FILE: protocol_guard\phase2_min\io_utils.py
+SIZE: 10453 bytes
+SHA256: 24086bb835820701126749ac1349e2c9d81fd86a0e8af6d6f3f2b892df4a4e52
+==============================================================================
+
+"""Shared read-only utilities for Phase 2 Min checkers."""
+
+import hashlib, json, os, re, subprocess, yaml
+
+SHA256_RE = re.compile(r'^[a-f0-9]{64}$')
+_isjunction = getattr(os.path, "isjunction", lambda p: False)
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(8192)
+            if not chunk: break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sha256_bytes(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def load_task_card(task_path):
+    with open(task_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def load_frozen_task(frozen_dir):
+    fp = os.path.join(frozen_dir, "frozen_task.yaml")
+    if not os.path.exists(fp):
+        return (None, "frozen_task.yaml not found")
+    with open(fp, "r", encoding="utf-8") as f:
+        return (yaml.safe_load(f), None)
+
+
+def normalize_path(p):
+    """Normalize to forward-slash relative path. Reject dangerous paths."""
+    if not isinstance(p, str) or p == "":
+        raise ValueError(f"Invalid path: {p!r}")
+    if os.path.isabs(p):
+        raise ValueError(f"Absolute path rejected: {p}")
+    if p.startswith("\\\\") or p.startswith("//"):
+        raise ValueError(f"UNC path rejected: {p}")
+    if len(p) >= 2 and p[1] == ":" and not p.startswith(p[:2] + "\\"):
+        raise ValueError(f"Drive-relative path rejected: {p}")
+    segments = p.replace("\\", "/").split("/")
+    if ".." in segments:
+        raise ValueError(f"Parent traversal rejected: {p}")
+    for c in p:
+        if ord(c) < 32:
+            raise ValueError(f"Control character in path: {p!r}")
+    return "/".join(segments)
+
+
+def paths_equal_ci(a, b):
+    return normalize_path(a).lower() == normalize_path(b).lower()
+
+
+def run_git(args, cwd):
+    try:
+        r = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, timeout=10)
+        return (r.stdout, r.stderr, r.returncode)
+    except FileNotFoundError:
+        return ("", "git not found", 1)
+    except subprocess.TimeoutExpired:
+        return ("", "git timeout", 1)
+
+
+def resolve_repo_root(task_path):
+    task_dir = os.path.dirname(os.path.abspath(task_path))
+    out, err, rc = run_git(["rev-parse", "--show-toplevel"], task_dir)
+    if rc != 0:
+        return (None, f"git rev-parse failed: {err.strip()}")
+    return (os.path.realpath(out.strip()), None)
+
+
+# ════════════════════ Unified safe path validation ════════════════════
+
+def validate_safe_path(root, rel_path, require_type=None):
+    """Unified safe path validation with component-level link checking.
+
+    Args:
+        root: Absolute canonical root directory (os.path.realpath result)
+        rel_path: Relative path within root
+        require_type: None, 'file', or 'dir'
+
+    Returns (abs_path: str|None, error: str|None)
+    """
+    if not isinstance(rel_path, str) or rel_path == "":
+        return (None, "PATH_EMPTY_OR_NOT_STRING")
+    try:
+        np = normalize_path(rel_path)
+    except ValueError as e:
+        return (None, f"PATH_REJECTED: {e}")
+
+    # Build and check every component
+    root = os.path.realpath(root)
+    segments = np.split("/")
+    current = root
+
+    for i, seg in enumerate(segments):
+        if seg in ("", ".", ".."):
+            return (None, "PATH_ESCAPES_REPOSITORY")
+        current = os.path.join(current, seg)
+        if os.path.islink(current):
+            return (None, "LINK_COMPONENT_REJECTED")
+        if _isjunction(current):
+            return (None, "JUNCTION_COMPONENT_REJECTED")
+
+    # Final boundary check using realpath
+    real = os.path.realpath(current)
+    try:
+        common = os.path.commonpath([real, root])
+    except ValueError:
+        return (None, "PATH_ESCAPES_REPOSITORY")
+    if os.path.normcase(common) != os.path.normcase(root):
+        return (None, "PATH_ESCAPES_REPOSITORY")
+
+    # Type check
+    if require_type == "file":
+        if not os.path.isfile(real):
+            return (None, "PATH_NOT_A_FILE")
+    elif require_type == "dir":
+        if not os.path.isdir(real):
+            return (None, "PATH_NOT_A_DIR")
+
+    return (real, None)
+
+
+def validate_path_in_repo(path_str, repo_root, label):
+    """Validate relative path within repo using unified check."""
+    _, err = validate_safe_path(repo_root, path_str)
+    if err:
+        return (None, f"{label}: {err}")
+    return (normalize_path(path_str), None)
+
+
+def validate_dir_in_repo(dir_path, repo_root, label):
+    """Validate directory within repo."""
+    _, err = validate_safe_path(repo_root, dir_path, require_type="dir")
+    if err:
+        return (None, f"{label}: {err}")
+    return (normalize_path(dir_path), None)
+
+
+# ════════════════════ Structure validation helpers ════════════════════
+
+def _require_type(value, expected_type, label):
+    if not isinstance(value, expected_type):
+        return f"INVALID_STRUCTURE: {label} must be {expected_type.__name__}, got {type(value).__name__}"
+    return None
+
+
+def validate_policy_structure(policy):
+    errs = []
+    err = _require_type(policy, dict, "policy")
+    if err: return [err]
+    err = _require_type(policy.get("allowed_paths"), list, "allowed_paths")
+    if err: errs.append(err)
+    else:
+        for i, e in enumerate(policy["allowed_paths"]):
+            if not isinstance(e, dict): errs.append(f"allowed_paths[{i}] must be object")
+    err = _require_type(policy.get("denied_paths"), list, "denied_paths")
+    if err: errs.append(err)
+    else:
+        for i, e in enumerate(policy["denied_paths"]):
+            if not isinstance(e, dict): errs.append(f"denied_paths[{i}] must be object")
+    err = _require_type(policy.get("protected_files"), list, "protected_files")
+    if err: errs.append(err)
+    else:
+        for i, e in enumerate(policy["protected_files"]):
+            if not isinstance(e, dict): errs.append(f"protected_files[{i}] must be object")
+    return errs
+
+
+def validate_spec_structure(spec):
+    errs = []
+    err = _require_type(spec, dict, "upload_spec")
+    if err: return [err]
+    err = _require_type(spec.get("entries"), list, "upload_spec.entries")
+    if err: errs.append(err)
+    else:
+        for i, e in enumerate(spec["entries"]):
+            if not isinstance(e, dict): errs.append(f"upload_spec.entries[{i}] must be object")
+    return errs
+
+
+def validate_manifest_structure(manifest):
+    errs = []
+    err = _require_type(manifest, dict, "manifest")
+    if err: return [err]
+    err = _require_type(manifest.get("entries"), list, "manifest.entries")
+    if err: errs.append(err)
+    else:
+        for i, e in enumerate(manifest["entries"]):
+            if not isinstance(e, dict): errs.append(f"manifest.entries[{i}] must be object")
+    return errs
+
+
+# ════════════════════ Remaining utilities ════════════════════
+
+def get_worktree_changes(repo_root, baseline_commit):
+    changes = {
+        "added": [], "modified": [], "deleted": [], "type_changed": [],
+        "staged_added": [], "staged_modified": [], "staged_deleted": [],
+        "unstaged_modified": [], "unstaged_deleted": [], "untracked": [],
+    }
+
+    def _parse_status(out, prefix_map):
+        for line in out.strip().split("\n"):
+            if not line: continue
+            parts = line.split("\t")
+            status = parts[0]
+            name = parts[-1] if len(parts) > 1 else ""
+            if not name: continue
+            if len(status) >= 2 and status[1] == "T": changes["type_changed"].append(name)
+            for st_prefix, target in prefix_map.items():
+                if status.startswith(st_prefix) and name not in changes[target]:
+                    changes[target].append(name)
+
+    out, err, rc = run_git(["diff", "--name-status", baseline_commit, "HEAD"], repo_root)
+    if rc == 0:
+        _parse_status(out, {"A": "added", "M": "modified", "D": "deleted", "R": "added", "T": "type_changed"})
+        for line in out.strip().split("\n"):
+            if not line: continue
+            parts = line.split("\t")
+            if parts[0].startswith("R") and len(parts) >= 3:
+                changes["deleted"].append(parts[1])
+
+    out, err, rc = run_git(["diff", "--name-status", "--cached"], repo_root)
+    if rc == 0:
+        _parse_status(out, {"A": "staged_added", "M": "staged_modified", "D": "staged_deleted", "T": "type_changed"})
+
+    out, err, rc = run_git(["diff", "--name-status"], repo_root)
+    if rc == 0:
+        _parse_status(out, {"M": "unstaged_modified", "D": "unstaged_deleted", "T": "type_changed"})
+
+    out, err, rc = run_git(["ls-files", "--others", "--exclude-standard"], repo_root)
+    if rc == 0:
+        for line in out.strip().split("\n"):
+            if line: changes["untracked"].append(line)
+
+    return changes
+
+
+def find_entry_by_package_path(package_path, entries):
+    np = normalize_path(package_path)
+    for e in entries:
+        if normalize_path(e.get("package_path", "")).lower() == np.lower():
+            return e
+    return None
+
+
+def detect_duplicate_package_paths(entries):
+    seen = {}
+    dups = []
+    for e in entries:
+        pp = normalize_path(e.get("package_path", "")).lower()
+        if pp in seen: dups.append(e.get("package_path"))
+        seen[pp] = True
+    return dups
+
+
+def load_policy(policy_path):
+    with open(policy_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_upload_spec(spec_path):
+    with open(spec_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_manifest(manifest_path):
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ════════════════════ Deterministic sorting ════════════════════
+
+def sort_result(result):
+    """Sort all list fields for deterministic output."""
+    for key in ["actual_changes", "out_of_scope_changes", "protected_file_changes",
+                "actual_files", "missing_files", "extra_files",
+                "hash_mismatches", "source_mismatches", "task_id_mismatches",
+                "manifest_errors", "input_errors"]:
+        if key in result and isinstance(result[key], list):
+            result[key] = sorted(result[key], key=lambda x: json.dumps(x, sort_keys=True) if isinstance(x, dict) else str(x))
+    return result
+
+
+==============================================================================
+FILE: protocol_guard\phase2_min\upload_package_check.py
+SIZE: 13848 bytes
+SHA256: 4805d0f25698b61f85c3e6a2edbdba7eb0ba9e51c8e28b7f09d59024b70fee4b
+==============================================================================
+
+"""Upload Package Check — verify UPLOAD_NEXT against frozen spec."""
+
+import json, os, sys
+
+from protocol_guard.frozen.snapshot import verify_frozen_task
+from protocol_guard.phase2_min.io_utils import (
+    sha256_file, load_task_card, load_frozen_task, load_upload_spec, load_manifest,
+    normalize_path, detect_duplicate_package_paths, resolve_repo_root,
+    validate_safe_path, validate_spec_structure, validate_manifest_structure, sort_result,
+)
+
+
+def _validate_manifest_filename(mf, upload_dir):
+    """Validate manifest_filename. Returns error or None."""
+    _, err = validate_safe_path(upload_dir, mf, require_type="file")
+    if err:
+        return f"manifest_filename: {err}"
+    if ".." in normalize_path(mf).split("/"):
+        return "manifest_filename contains parent traversal"
+    return None
+
+
+def _recursive_scan(upload_dir):
+    items = {}
+    for dirpath, dirnames, filenames in os.walk(upload_dir):
+        for fn in filenames:
+            fp = os.path.join(dirpath, fn)
+            rel = os.path.relpath(fp, upload_dir).replace("\\", "/")
+            items[rel] = "symlink" if os.path.islink(fp) else "file"
+        for dn in dirnames:
+            dp = os.path.join(dirpath, dn)
+            rel = os.path.relpath(dp, upload_dir).replace("\\", "/")
+            items[rel] = "symlink" if os.path.islink(dp) else "dir"
+    return items
+
+
+def upload_package_check(task_path, frozen_dir):
+    result = {
+        "schema_version": "1",
+        "checker": "upload_package_check",
+        "task_id": None,
+        "upload_spec_sha256": None,
+        "actual_files": [],
+        "missing_files": [],
+        "extra_files": [],
+        "hash_mismatches": [],
+        "source_mismatches": [],
+        "task_id_mismatches": [],
+        "manifest_errors": [],
+        "input_errors": [],
+        "result": None,
+    }
+    errors = result["input_errors"]
+    try:
+        return _upload_package_check_impl(task_path, frozen_dir, result, errors)
+    except Exception as e:
+        errors.append(f"UNEXPECTED_CHECKER_ERROR: {type(e).__name__}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+
+def _upload_package_check_impl(task_path, frozen_dir, result, errors):
+    # 1. Verify frozen task
+    match, _, _, ferr = verify_frozen_task(task_path, frozen_dir)
+    if not match:
+        errors.append(f"Frozen task verification failed: {ferr}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    task_data = load_task_card(task_path)
+    if not isinstance(task_data, dict):
+        errors.append("INVALID_STRUCTURE: task card is not a dict")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    frozen_data, ferr2 = load_frozen_task(frozen_dir)
+    if frozen_data is None or not isinstance(frozen_data, dict):
+        errors.append(ferr2 or "INVALID_STRUCTURE: frozen task is not a dict")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    task_id = task_data.get("task_id", "unknown")
+    result["task_id"] = task_id
+
+    fixed = frozen_data.get("fixed_params", {})
+    if not isinstance(fixed, dict):
+        errors.append("INVALID_STRUCTURE: fixed_params is not a dict")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    upload_spec_path = fixed.get("upload_spec_path")
+    upload_spec_sha = fixed.get("upload_spec_sha256")
+    if not upload_spec_path or not upload_spec_sha:
+        errors.append("Missing fixed_params: upload_spec_path, upload_spec_sha256")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 2. Resolve repo root
+    repo_root, repo_err = resolve_repo_root(task_path)
+    if repo_root is None:
+        errors.append(repo_err)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 3. Validate task and frozen in repo
+    for label, p in [("task_path", task_path), ("frozen_dir", frozen_dir)]:
+        rp = os.path.realpath(p)
+        try:
+            if os.path.commonpath([rp, repo_root]) != repo_root:
+                errors.append(f"{label} is outside repo")
+                result["result"] = "ERROR"
+                return (2, sort_result(result))
+        except ValueError:
+            errors.append(f"{label} is outside repo")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+
+    # 4. Validate upload_spec_path
+    spec_abs, spec_err = validate_safe_path(repo_root, upload_spec_path, require_type="file")
+    if spec_err:
+        errors.append(f"upload_spec_path: {spec_err}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 5. Verify upload spec SHA256
+    actual_spec_sha = sha256_file(spec_abs)
+    result["upload_spec_sha256"] = upload_spec_sha
+    if actual_spec_sha != upload_spec_sha:
+        errors.append("Upload spec SHA256 mismatch")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 6. Load and validate spec
+    try:
+        spec = load_upload_spec(spec_abs)
+    except Exception as e:
+        errors.append(f"Cannot parse upload spec: {e}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    struct_errs = validate_spec_structure(spec)
+    if struct_errs:
+        errors.extend(struct_errs)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    if spec.get("schema_version") != "1":
+        errors.append("Upload spec schema_version must be '1'")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if spec.get("task_id") != task_id:
+        result["task_id_mismatches"].append(f"Spec task_id={spec.get('task_id')} != {task_id}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    spec_entries = spec.get("entries", [])
+    manifest_filename = spec.get("manifest_filename", "UPLOAD_MANIFEST.json")
+
+    # 7. Validate spec entries
+    for entry in spec_entries:
+        pp = entry.get("package_path", "")
+        sp = entry.get("source_path", "")
+        if not pp or not sp:
+            errors.append("Spec entry missing package_path or source_path")
+            result["result"] = "ERROR"
+            return (2, sort_result(result))
+
+    dups = detect_duplicate_package_paths(spec_entries)
+    if dups:
+        result["source_mismatches"].append({"error": "Duplicate package_paths in spec", "paths": dups})
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 8. Validate UPLOAD_NEXT
+    upload_abs, ul_err = validate_safe_path(repo_root, "reviews/UPLOAD_NEXT", require_type="dir")
+    if ul_err:
+        errors.append(f"UPLOAD_NEXT: {ul_err}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 9. Validate manifest_filename
+    mf_err = _validate_manifest_filename(manifest_filename, upload_abs)
+    if mf_err:
+        errors.append(mf_err)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 10. Load manifest
+    manifest_path = os.path.join(upload_abs, manifest_filename)
+    if not os.path.exists(manifest_path):
+        errors.append(f"Manifest not found: {manifest_filename}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    try:
+        manifest = load_manifest(manifest_path)
+    except Exception as e:
+        result["manifest_errors"].append(f"Cannot parse manifest: {e}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    struct_errs = validate_manifest_structure(manifest)
+    if struct_errs:
+        errors.extend(struct_errs)
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    if manifest.get("schema_version") != "1":
+        errors.append("Manifest schema_version must be '1'")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    if manifest.get("task_id") != task_id:
+        result["task_id_mismatches"].append(f"Manifest task_id={manifest.get('task_id')} != {task_id}")
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    manifest_entries = manifest.get("entries", [])
+
+    mdups = detect_duplicate_package_paths(manifest_entries)
+    if mdups:
+        result["source_mismatches"].append({"error": "Duplicate package_paths in manifest", "paths": mdups})
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+
+    # 11. Manifest self-reference
+    for me in manifest_entries:
+        if normalize_path(me.get("package_path", "")).lower() == normalize_path(manifest_filename).lower():
+            result["manifest_errors"].append("Manifest references itself")
+            result["result"] = "FAIL"
+            return (1, sort_result(result))
+
+    # 12. Recursive scan
+    scan_items = _recursive_scan(upload_abs)
+    result["actual_files"] = sorted(scan_items.keys())
+
+    # 13. Build maps
+    spec_map = {}
+    for e in spec_entries:
+        k = normalize_path(e["package_path"]).lower()
+        spec_map[k] = normalize_path(e["source_path"])
+
+    manifest_map = {}
+    for e in manifest_entries:
+        k = normalize_path(e.get("package_path", "")).lower()
+        v = normalize_path(e.get("source_path", ""))
+        manifest_map[k] = v
+
+    spec_keys = set(spec_map.keys())
+    manifest_keys = set(manifest_map.keys())
+    extra_in_manifest = manifest_keys - spec_keys
+    missing_from_manifest = spec_keys - manifest_keys
+
+    for k in extra_in_manifest:
+        result["extra_files"].append(k)
+    for k in missing_from_manifest:
+        result["missing_files"].append(k)
+    for k in spec_keys & manifest_keys:
+        if spec_map[k] != manifest_map[k]:
+            result["source_mismatches"].append({
+                "package_path": k, "spec_source": spec_map[k], "manifest_source": manifest_map[k],
+            })
+
+    # 14. Actual files vs expected
+    expected_files = {normalize_path(manifest_filename).lower()}
+    for e in spec_entries:
+        expected_files.add(normalize_path(e["package_path"]).lower())
+
+    actual_file_keys = set()
+    dirs_in_scan = set()
+    for fn_rel, ftype in scan_items.items():
+        if ftype == "symlink":
+            result["source_mismatches"].append({"path": fn_rel, "error": "Symlink/junction in UPLOAD_NEXT"})
+        elif ftype == "file":
+            actual_file_keys.add(normalize_path(fn_rel).lower())
+        elif ftype == "dir":
+            dirs_in_scan.add(fn_rel)
+
+    for d in sorted(dirs_in_scan):
+        is_parent = any(normalize_path(f).lower().startswith(normalize_path(d).lower() + "/")
+                       for f in actual_file_keys)
+        if not is_parent:
+            result["extra_files"].append(f"{d}/ (empty directory)")
+
+    extra = sorted(actual_file_keys - expected_files)
+    missing = sorted(expected_files - actual_file_keys)
+    if extra:
+        result["extra_files"] = sorted(set(result["extra_files"]) | set(extra))
+    if missing:
+        result["missing_files"] = sorted(set(result["missing_files"]) | set(missing))
+
+    # 15. Per-entry validation
+    for spec_entry in spec_entries:
+        pp = normalize_path(spec_entry["package_path"])
+        sp = normalize_path(spec_entry["source_path"])
+
+        m_entry = None
+        for me in manifest_entries:
+            if normalize_path(me.get("package_path", "")).lower() == pp.lower():
+                m_entry = me
+                break
+        if m_entry is None:
+            continue
+
+        m_sha = m_entry.get("sha256", "")
+
+        # Validate package file via unified safe path
+        pkg_abs, pkg_err = validate_safe_path(upload_abs, pp, require_type="file")
+        if pkg_err:
+            result["missing_files"].append(f"{pp}: {pkg_err}")
+            continue
+        pkg_sha = sha256_file(pkg_abs)
+        if pkg_sha != m_sha:
+            result["hash_mismatches"].append({
+                "package_path": pp, "expected_sha256": m_sha, "actual_sha256": pkg_sha,
+            })
+
+        # Validate source_path via unified safe path (must be file, not dir)
+        src_abs, src_err = validate_safe_path(repo_root, sp, require_type="file")
+        if src_err:
+            result["source_mismatches"].append({"package_path": pp, "error": f"source_path: {src_err}"})
+            continue
+        src_sha = sha256_file(src_abs)
+        if src_sha != pkg_sha:
+            result["hash_mismatches"].append({
+                "package_path": pp, "error": "Source and package SHA256 differ",
+                "package_sha256": pkg_sha, "source_sha256": src_sha,
+            })
+        if os.path.realpath(src_abs).startswith(os.path.realpath(upload_abs) + os.sep):
+            result["source_mismatches"].append({"package_path": pp, "error": "Source inside UPLOAD_NEXT"})
+
+    if errors:
+        result["result"] = "ERROR"
+        return (2, sort_result(result))
+    has_issues = (result["missing_files"] or result["extra_files"] or
+                  result["hash_mismatches"] or result["source_mismatches"] or
+                  result["task_id_mismatches"] or result["manifest_errors"])
+    if has_issues:
+        result["result"] = "FAIL"
+        return (1, sort_result(result))
+    result["result"] = "PASS"
+    return (0, sort_result(result))
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        result = {"result": "ERROR", "input_errors": ["Usage: python -m protocol_guard.phase2_min.upload_package_check <task_path> <frozen_dir>"]}
+        json.dump(sort_result(result), sys.stdout, ensure_ascii=False, sort_keys=True)
+        sys.exit(2)
+    try:
+        code, result = upload_package_check(sys.argv[1], sys.argv[2])
+        json.dump(result, sys.stdout, ensure_ascii=False, sort_keys=True)
+        sys.exit(code)
+    except Exception as e:
+        result = {"result": "ERROR", "input_errors": [f"UNEXPECTED_CHECKER_ERROR: {type(e).__name__}"]}
+        json.dump(sort_result(result), sys.stdout, ensure_ascii=False, sort_keys=True)
+        sys.exit(2)
+
+
+==============================================================================
+FILE: protocol_guard\phase2_min\tests\__init__.py
+SIZE: 0 bytes
+SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+==============================================================================
+
+
+
+==============================================================================
+FILE: protocol_guard\phase2_min\tests\test_checkers.py
+SIZE: 70861 bytes
+SHA256: c185b761f832fb35b8babd61f0c44aeef4c01e94a0255c6779428948637b713d
+==============================================================================
+
+"""Tests for Phase 2 Min — baseline B created BEFORE approval artifacts."""
+
+import hashlib, json, os, shutil, subprocess, tempfile, yaml, pytest
+
+from protocol_guard.phase2_min.change_scope_check import change_scope_check
+from protocol_guard.phase2_min.upload_package_check import upload_package_check
+from protocol_guard.phase2_min.io_utils import sha256_file, normalize_path
+
+
+# ════════════════════════ Git helpers ════════════════════════
+def _git_init(td):
+    subprocess.run(["git", "init"], cwd=td, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "t@t.com"], cwd=td, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "T"], cwd=td, capture_output=True)
+    return td
+
+def _git_commit(repo, msg):
+    subprocess.run(["git", "add", "-A"], cwd=repo, capture_output=True)
+    subprocess.run(["git", "commit", "-m", msg], cwd=repo, capture_output=True)
+
+def _git_add(repo, path):
+    subprocess.run(["git", "add", path], cwd=repo, capture_output=True)
+
+def _write(repo, path, content):
+    fp = os.path.join(repo, path)
+    os.makedirs(os.path.dirname(fp), exist_ok=True)
+    with open(fp, "w") as f: f.write(content)
+    return fp
+
+def _task_dict(task_id, fixed_params):
+    return {
+        "task_id": task_id, "task_card_version": 2, "protocol_version": "v1.0",
+        "execution_mode": "confirm_then_execute", "task_type": "PROTOCOL_MAINTENANCE",
+        "project_state_file": "state.yaml", "input_files": [], "output_files": ["out.txt"],
+        "primary_variable": "x", "dependent_variables": [], "fixed_params": fixed_params,
+        "locked_items": [], "allowed_modifications": [], "forbidden_modifications": [],
+        "preflight_checks": [], "technical_pass_conditions": [],
+        "visual_intent": "", "visual_forbidden": "", "evidence_required": [],
+        "upload_dir": "d", "upload_files": ["out.txt"], "stop_conditions": [],
+        "primary_goal": "test", "state_patch_requested": None,
+    }
+
+
+# ════════════════════ Unified CS Helper ════════════════════════
+def _cs_fixture(td, task_subdir=None, extra_allowed=None, denied=None, protected=None,
+                worktree_clean=True, target_changes=None):
+    """Unified Change Scope fixture.
+
+    Lifecycle:
+      1. Init repo. Create ok.txt. Commit baseline B.
+      2. Create policy.json, task.yaml, frozen/ (AFTER B, as allowed artifacts).
+      3. Apply target_changes to test the checker against.
+      4. Return (repo_root, baseline_sha, task_path, frozen_dir, policy_path).
+    """
+    repo = _git_init(td)
+
+    # Step 1: business file + baseline B
+    _write(repo, "ok.txt", "ok")
+    _git_commit(repo, "baseline B — business file only")
+    bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+    # Step 2: policy
+    allowed = [
+        {"path": "policy.json", "path_type": "file"},
+        {"path": "frozen", "path_type": "directory"},
+    ]
+    task_rel = "task.yaml"
+    if task_subdir:
+        task_rel = f"{task_subdir}/task.yaml"
+        allowed.append({"path": task_subdir, "path_type": "directory"})
+    else:
+        allowed.append({"path": "task.yaml", "path_type": "file"})
+
+    if extra_allowed:
+        allowed.extend(extra_allowed)
+
+    policy = {"schema_version": "1", "task_id": "TASK_CS",
+              "allowed_paths": allowed,
+              "denied_paths": denied or [],
+              "protected_files": protected or []}
+    pp = _write(repo, "policy.json", json.dumps(policy))
+
+    # Step 3: task + frozen
+    task = _task_dict("TASK_CS", {
+        "baseline_commit_sha": bc,
+        "policy_path": "policy.json",
+        "policy_sha256": sha256_file(pp),
+        "worktree_clean_at_approval": worktree_clean,
+    })
+    tp = os.path.join(repo, task_rel)
+    os.makedirs(os.path.dirname(tp), exist_ok=True)
+    with open(tp, "w") as f: yaml.dump(task, f)
+
+    fd = os.path.join(repo, "frozen")
+    os.makedirs(fd, exist_ok=True)
+    shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+    sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+    with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+
+    # Step 4: apply target changes
+    if target_changes:
+        target_changes(repo)
+
+    return repo, bc, tp, fd, pp
+
+
+# ════════════════════ Path Safety ════════════════════════
+class TestPathSafety:
+    def test_abs_rejected(self):
+        with pytest.raises(ValueError): normalize_path("C:\\evil")
+    def test_parent_rejected(self):
+        with pytest.raises(ValueError): normalize_path("../etc")
+    def test_unc_rejected(self):
+        with pytest.raises(ValueError): normalize_path("\\\\s\\share")
+    def test_drive_rel_rejected(self):
+        with pytest.raises(ValueError): normalize_path("C:file.txt")
+    def test_normal_ok(self):
+        assert normalize_path("a/b.txt") == "a/b.txt"
+
+
+# ════════════════════ Change Scope Check ════════════════════
+class TestChangeScopeCheck:
+    # ── PASS ──
+    def test_clean_worktree_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            code, result = change_scope_check(tp, fd)
+            assert code == 0
+            assert result["result"] == "PASS"
+
+    def test_task_in_root_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, task_subdir=None)
+            code, _ = change_scope_check(tp, fd)
+            assert code == 0
+
+    def test_task_in_tasks_dir_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, task_subdir="tasks")
+            code, _ = change_scope_check(tp, fd)
+            assert code == 0
+
+    def test_task_in_nested_dir_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, task_subdir="tasks/nested")
+            code, _ = change_scope_check(tp, fd)
+            assert code == 0
+
+    # ── FAIL ──
+    def test_oos_committed_fail(self):
+        def chg(repo):
+            _write(repo, "bad.txt", "bad")
+            _git_commit(repo, "bad commit")
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, denied=[{"path": "bad.txt", "path_type": "file"}],
+                                           target_changes=chg)
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_protected_sha_mismatch_fail(self):
+        def chg(repo):
+            _write(repo, "secret.key", "tampered")
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td,
+                extra_allowed=[{"path": "secret.key", "path_type": "file"}],
+                protected=[{"path": "secret.key", "sha256": hashlib.sha256(b"original").hexdigest()}],
+                target_changes=lambda r: _write(r, "secret.key", "original"))
+            chg(td)  # tamper after initial write
+            # Re-do: write original as baseline state, then tamper
+            pass
+        # Use a manual setup for this one
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _write(repo, "secret.key", "original")
+            _git_commit(repo, "baseline B")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                    {"path": "policy.json", "path_type": "file"},
+                    {"path": "task.yaml", "path_type": "file"},
+                    {"path": "frozen", "path_type": "directory"},
+                    {"path": "secret.key", "path_type": "file"}],
+                "denied_paths": [],
+                "protected_files": [{"path": "secret.key", "sha256": hashlib.sha256(b"original").hexdigest()}]}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            _write(repo, "secret.key", "tampered")
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    # ── ERROR ──
+    def test_worktree_clean_false_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, worktree_clean=False)
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_policy_sha_changed_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            # Corrupt the policy SHA in the task
+            task2 = yaml.safe_load(open(tp))
+            task2["fixed_params"]["policy_sha256"] = "f" * 64
+            with open(tp, "w") as f: yaml.dump(task2, f)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_baseline_not_found_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            task2 = yaml.safe_load(open(tp))
+            task2["fixed_params"]["baseline_commit_sha"] = "deadbeef" * 5
+            with open(tp, "w") as f: yaml.dump(task2, f)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_nongit_dir_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": "x" * 40, "policy_path": "p.json",
+                "policy_sha256": "f" * 64, "worktree_clean_at_approval": True})
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(td, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_no_file_writes(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo, _, tp, fd, _ = _cs_fixture(td)
+            before = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: before.add(os.path.join(dp, fn))
+            change_scope_check(tp, fd)
+            after = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: after.add(os.path.join(dp, fn))
+            assert before == after
+
+
+# ════════════════════ Upload Package Check ════════════════════
+class TestUploadPackageCheck:
+    def _up_setup(self, td, spec_entries, manifest_entries=None, task_subdir=None, extra_pkg=None):
+        repo = _git_init(td)
+        _write(repo, "ok.txt", "ok")
+        _git_commit(repo, "baseline B")
+        upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+        src_dir = os.path.join(repo, "reports")
+        os.makedirs(upload_dir, exist_ok=True)
+        os.makedirs(src_dir, exist_ok=True)
+        for e in spec_entries:
+            sp = os.path.join(repo, e["source_path"])
+            os.makedirs(os.path.dirname(sp), exist_ok=True)
+            content = e.get("content", "payload")
+            with open(sp, "w") as f: f.write(content)
+            pp = os.path.join(upload_dir, e["package_path"])
+            os.makedirs(os.path.dirname(pp), exist_ok=True)
+            with open(pp, "w") as f: f.write(content)
+        if extra_pkg:
+            for epf, content in extra_pkg.items():
+                ep = os.path.join(upload_dir, epf)
+                os.makedirs(os.path.dirname(ep), exist_ok=True)
+                with open(ep, "w") as f: f.write(content)
+        spec_data = {"schema_version": "1", "task_id": "TASK_UP",
+                     "manifest_filename": "UPLOAD_MANIFEST.json",
+                     "entries": [{"package_path": e["package_path"], "source_path": e["source_path"]} for e in spec_entries]}
+        sp = _write(repo, "upload_spec.json", json.dumps(spec_data))
+        me = manifest_entries if manifest_entries else [
+            {"package_path": e["package_path"], "source_path": e["source_path"],
+             "sha256": sha256_file(os.path.join(upload_dir, e["package_path"]))} for e in spec_entries]
+        _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+            {"schema_version": "1", "task_id": "TASK_UP", "entries": me}))
+        task = _task_dict("TASK_UP", {"upload_spec_path": "upload_spec.json",
+                          "upload_spec_sha256": sha256_file(sp)})
+        task_dir = os.path.join(repo, task_subdir) if task_subdir else repo
+        os.makedirs(task_dir, exist_ok=True)
+        tp = os.path.join(task_dir, "task.yaml")
+        with open(tp, "w") as f: yaml.dump(task, f)
+        fd = os.path.join(repo, "frozen")
+        os.makedirs(fd, exist_ok=True)
+        shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+        sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+        with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+        return tp, fd, repo
+
+    def test_valid_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._up_setup(td, [{"package_path": "r.md", "source_path": "reports/r.md"}])
+            code, result = upload_package_check(tp, fd)
+            assert code == 0
+            assert result["result"] == "PASS"
+
+    def test_tasks_dir_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._up_setup(td, [{"package_path": "r.md", "source_path": "reports/r.md"}], task_subdir="tasks")
+            code, _ = upload_package_check(tp, fd)
+            assert code == 0
+
+    def test_nested_dir_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._up_setup(td, [{"package_path": "r.md", "source_path": "reports/r.md"}], task_subdir="tasks/nested")
+            code, _ = upload_package_check(tp, fd)
+            assert code == 0
+
+    def test_hash_mismatch_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._up_setup(td, [{"package_path": "r.md", "source_path": "reports/r.md"}],
+                manifest_entries=[{"package_path": "r.md", "source_path": "reports/r.md", "sha256": "f" * 64}])
+            code, _ = upload_package_check(tp, fd)
+            assert code == 1
+
+    def test_manifest_self_ref_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._up_setup(td, [{"package_path": "UPLOAD_MANIFEST.json", "source_path": "reports/r.md"}])
+            code, _ = upload_package_check(tp, fd)
+            assert code == 1
+
+    def test_source_missing_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            _write(repo, "reviews/UPLOAD_NEXT/r.md", "x")
+            spec_data = {"schema_version": "1", "task_id": "TASK_UP",
+                         "manifest_filename": "UPLOAD_MANIFEST.json",
+                         "entries": [{"package_path": "r.md", "source_path": "missing/s.txt"}]}
+            sp = _write(repo, "upload_spec.json", json.dumps(spec_data))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "r.md", "source_path": "missing/s.txt", "sha256": sha256_file(os.path.join(upload_dir, "r.md"))}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "upload_spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+
+    def test_extra_file_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, _ = self._up_setup(td, [{"package_path": "r.md", "source_path": "reports/r.md"}],
+                                        extra_pkg={"rogue.txt": "evil"})
+            code, _ = upload_package_check(tp, fd)
+            assert code == 1
+
+    def test_spec_sha_changed_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            sp = _write(repo, "spec.json", json.dumps({"schema_version": "1", "task_id": "TASK_UP",
+                "manifest_filename": "UPLOAD_MANIFEST.json", "entries": []}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": "f" * 64})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+
+    def test_dup_package_path_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            _write(repo, "reviews/UPLOAD_NEXT/a.md", "x")
+            sp = _write(repo, "spec.json", json.dumps({"schema_version": "1", "task_id": "TASK_UP",
+                "manifest_filename": "UPLOAD_MANIFEST.json", "entries": [
+                    {"package_path": "a.md", "source_path": "s/a.md"},
+                    {"package_path": "a.md", "source_path": "s/a.md"}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+
+    def test_nongit_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = _task_dict("TASK_UP", {"upload_spec_path": "s.json", "upload_spec_sha256": "f" * 64})
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(td, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+
+    def test_no_file_writes(self):
+        with tempfile.TemporaryDirectory() as td:
+            tp, fd, repo = self._up_setup(td, [{"package_path": "r.md", "source_path": "reports/r.md"}])
+            before = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: before.add(os.path.join(dp, fn))
+            upload_package_check(tp, fd)
+            after = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: after.add(os.path.join(dp, fn))
+            assert before == after
+
+
+# ════════════════════ Adversarial ════════════════════
+class TestAdversarial:
+    def test_staged_oos_add_fail(self):
+        def chg(repo):
+            _write(repo, "rogue.txt", "bad")
+            _git_add(repo, "rogue.txt")
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, target_changes=chg)
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_staged_denied_delete_fail(self):
+        def chg(repo):
+            _write(repo, "denied.txt", "x")
+            _git_add(repo, "denied.txt")
+            _git_commit(repo, "add denied")  # commit after baseline
+            os.remove(os.path.join(repo, "denied.txt"))
+            _git_add(repo, "denied.txt")
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, denied=[{"path": "denied.txt", "path_type": "file"}],
+                extra_allowed=[{"path": "denied.txt", "path_type": "file"}],
+                target_changes=chg)
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_unstaged_delete_fail(self):
+        def chg(repo):
+            _write(repo, "other.txt", "x")
+            _git_add(repo, "other.txt")
+            _git_commit(repo, "add other")
+            os.remove(os.path.join(repo, "other.txt"))
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, target_changes=chg)
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_committed_oos_fail(self):
+        def chg(repo):
+            _write(repo, "bad.txt", "bad")
+            _git_commit(repo, "bad commit")
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, denied=[{"path": "bad.txt", "path_type": "file"}],
+                                           target_changes=chg)
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_protected_sha_wrong_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _write(repo, "secret.key", "original")
+            _git_commit(repo, "baseline B")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            policy = {"schema_version": "1", "task_id": "TASK_ADV",
+                "allowed_paths": [
+                    {"path": "ok.txt", "path_type": "file"},
+                    {"path": "policy.json", "path_type": "file"},
+                    {"path": "task.yaml", "path_type": "file"},
+                    {"path": "frozen", "path_type": "directory"},
+                    {"path": "secret.key", "path_type": "file"}],
+                "denied_paths": [],
+                "protected_files": [{"path": "secret.key", "sha256": hashlib.sha256(b"original").hexdigest()}]}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            _write(repo, "secret.key", "tampered")
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_worktree_clean_false_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td, worktree_clean=False)
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_policy_sha_wrong_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            task2 = yaml.safe_load(open(tp))
+            task2["fixed_params"]["policy_sha256"] = "b" * 64
+            with open(tp, "w") as f: yaml.dump(task2, f)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_nongit_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            task = _task_dict("TASK_ADV", {"baseline_commit_sha": "x" * 40, "policy_path": "p.json",
+                "policy_sha256": "f" * 64, "worktree_clean_at_approval": True})
+            tp = os.path.join(td, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(td, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_upload_spec_sha_wrong_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            sp = _write(repo, "spec.json", json.dumps({"schema_version": "1", "task_id": "TASK_UP",
+                "manifest_filename": "UPLOAD_MANIFEST.json", "entries": []}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": "c" * 64})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_source_swapped_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            src_dir = os.path.join(repo, "reports")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(src_dir, exist_ok=True)
+            _write(repo, "reports/a.md", "aaa")
+            _write(repo, "reports/b.md", "bbb")
+            _write(repo, "reviews/UPLOAD_NEXT/a.md", "aaa")
+            _write(repo, "reviews/UPLOAD_NEXT/b.md", "bbb")
+            h_a = sha256_file(os.path.join(upload_dir, "a.md"))
+            h_b = sha256_file(os.path.join(upload_dir, "b.md"))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "a.md", "source_path": "reports/b.md", "sha256": h_a},
+                    {"package_path": "b.md", "source_path": "reports/a.md", "sha256": h_b}]}))
+            sp = _write(repo, "spec.json", json.dumps({"schema_version": "1", "task_id": "TASK_UP",
+                "manifest_filename": "UPLOAD_MANIFEST.json", "entries": [
+                    {"package_path": "a.md", "source_path": "reports/a.md"},
+                    {"package_path": "b.md", "source_path": "reports/b.md"}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_dup_package_path_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            _write(repo, "reviews/UPLOAD_NEXT/x.md", "x")
+            sp = _write(repo, "spec.json", json.dumps({"schema_version": "1", "task_id": "TASK_UP",
+                "manifest_filename": "UPLOAD_MANIFEST.json", "entries": [
+                    {"package_path": "x.md", "source_path": "s/x.md"},
+                    {"package_path": "x.md", "source_path": "s/x.md"}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_no_file_writes_either(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo, _, tp, fd, _ = _cs_fixture(td)
+            before = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: before.add(os.path.join(dp, fn))
+            change_scope_check(tp, fd)
+            after = set()
+            for dp, _, fns in os.walk(repo):
+                for fn in fns: after.add(os.path.join(dp, fn))
+            assert before == after
+
+    def test_stdout_single_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            code, result = change_scope_check(tp, fd)
+            assert isinstance(result, dict)
+            assert "result" in result
+
+
+# ════════════════════ R2 Bypass Fixes ════════════════════
+class TestManifestStrictComparison:
+    def test_manifest_extra_entry_fail(self):
+        """upload_spec has a.txt only; manifest has a.txt + ghost.txt -> FAIL code 1"""
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            src_dir = os.path.join(repo, "reports")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(src_dir, exist_ok=True)
+            _write(repo, "reports/a.txt", "aaa")
+            _write(repo, "reviews/UPLOAD_NEXT/a.txt", "aaa")
+            h_a = sha256_file(os.path.join(upload_dir, "a.txt"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP",
+                    "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "a.txt", "source_path": "reports/a.txt"}]}
+            sp = _write(repo, "upload_spec.json", json.dumps(spec))
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "a.txt", "source_path": "reports/a.txt", "sha256": h_a},
+                {"package_path": "ghost.txt", "source_path": "reports/ghost.txt", "sha256": "f" * 64},
+            ]}
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(manifest))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "upload_spec.json",
+                              "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+    def test_source_path_mismatch_fail(self):
+        """Same package_path, different source_path -> FAIL"""
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(os.path.join(repo, "reports"), exist_ok=True)
+            _write(repo, "reports/a.txt", "aaa")
+            _write(repo, "reports/b.txt", "bbb")
+            _write(repo, "reviews/UPLOAD_NEXT/a.txt", "aaa")
+            h = sha256_file(os.path.join(upload_dir, "a.txt"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "a.txt", "source_path": "reports/a.txt"}]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            manifest = {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                {"package_path": "a.txt", "source_path": "reports/b.txt", "sha256": h}]}
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(manifest))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+
+class TestRecursiveScan:
+    def test_nested_package_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(os.path.join(upload_dir, "nested"), exist_ok=True)
+            os.makedirs(os.path.join(repo, "reports"), exist_ok=True)
+            _write(repo, "reports/data.txt", "data")
+            _write(repo, "reviews/UPLOAD_NEXT/nested/data.txt", "data")
+            h = sha256_file(os.path.join(upload_dir, "nested", "data.txt"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "nested/data.txt", "source_path": "reports/data.txt"}]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "nested/data.txt", "source_path": "reports/data.txt", "sha256": h}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 0
+            assert result["result"] == "PASS"
+
+    def test_nested_extra_file_fail(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(os.path.join(upload_dir, "nested"), exist_ok=True)
+            os.makedirs(os.path.join(repo, "reports"), exist_ok=True)
+            _write(repo, "reports/data.txt", "data")
+            _write(repo, "reviews/UPLOAD_NEXT/nested/data.txt", "data")
+            _write(repo, "reviews/UPLOAD_NEXT/nested/extra.txt", "evil")
+            h = sha256_file(os.path.join(upload_dir, "nested", "data.txt"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "nested/data.txt", "source_path": "reports/data.txt"}]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "nested/data.txt", "source_path": "reports/data.txt", "sha256": h}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+
+
+class TestFrozenDirBinding:
+    def test_frozen_outside_repo_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json", "entries": []}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": []}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            # Create frozen OUTSIDE repo
+            outside = tempfile.mkdtemp()
+            fd = os.path.join(outside, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+
+class TestManifestFilenameValidation:
+    def test_parent_traversal_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            spec = {"schema_version": "1", "task_id": "TASK_UP",
+                    "manifest_filename": "../evil.json", "entries": []}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+
+class TestPolicyEntryValidation:
+    def test_escape_path_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, bc, tp, fd, pp = _cs_fixture(td)
+            policy = yaml.safe_load(open(pp))
+            policy["allowed_paths"].append({"path": "../escape", "path_type": "file"})
+            with open(pp, "w") as f: json.dump(policy, f)
+            task = yaml.safe_load(open(tp))
+            task["fixed_params"]["policy_sha256"] = sha256_file(pp)
+            with open(tp, "w") as f: yaml.dump(task, f)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+
+class TestModuleCommands:
+    def test_cs_module_pass_stdout_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            r = subprocess.run(
+                ["python", "-m", "protocol_guard.phase2_min.change_scope_check", tp, fd],
+                capture_output=True, text=True, cwd=os.getcwd(),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            )
+            assert r.returncode == 0
+            out = json.loads(r.stdout.strip())
+            assert out.get("result") == "PASS"
+
+    def test_cs_module_fail_stdout_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            task = yaml.safe_load(open(tp))
+            task["fixed_params"]["worktree_clean_at_approval"] = False
+            with open(tp, "w") as f: yaml.dump(task, f)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            r = subprocess.run(
+                ["python", "-m", "protocol_guard.phase2_min.change_scope_check", tp, fd],
+                capture_output=True, text=True, cwd=os.getcwd(),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            )
+            assert r.returncode == 2
+            out = json.loads(r.stdout.strip())
+            assert out.get("result") == "ERROR"
+
+    def test_up_module_pass_stdout_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(os.path.join(repo, "reports"), exist_ok=True)
+            _write(repo, "reports/r.md", "x")
+            _write(repo, "reviews/UPLOAD_NEXT/r.md", "x")
+            h = sha256_file(os.path.join(upload_dir, "r.md"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "r.md", "source_path": "reports/r.md"}]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "r.md", "source_path": "reports/r.md", "sha256": h}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            r = subprocess.run(
+                ["python", "-m", "protocol_guard.phase2_min.upload_package_check", tp, fd],
+                capture_output=True, text=True, cwd=os.getcwd(),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            )
+            assert r.returncode == 0
+            out = json.loads(r.stdout.strip())
+            assert out.get("result") == "PASS"
+
+    def test_up_module_error_stdout_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            spec = {"schema_version": "1", "task_id": "TASK_UP",
+                    "manifest_filename": "../evil.json", "entries": []}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            r = subprocess.run(
+                ["python", "-m", "protocol_guard.phase2_min.upload_package_check", tp, fd],
+                capture_output=True, text=True, cwd=os.getcwd(),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            )
+            assert r.returncode == 2
+            out = json.loads(r.stdout.strip())
+            assert out.get("result") == "ERROR"
+
+
+# ==============================================================
+# R3 Link Escape & Structure Tests
+# ==============================================================
+class TestLinkEscape:
+    def test_source_intermediate_symlink_rejected(self):
+        """source_path goes through symlink dir -> outside repo -> must FAIL/ERROR"""
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            ext = os.path.join(td, "external")
+            os.makedirs(ext, exist_ok=True)
+            _write(td, "external/src.txt", "external content")
+            link = os.path.join(repo, "linkdir")
+            try:
+                os.symlink(ext, link, target_is_directory=True)
+            except OSError:
+                pytest.skip("symlink requires admin on Windows")
+            _write(repo, "reviews/UPLOAD_NEXT/pkg.txt", "external content")
+            h = sha256_file(os.path.join(upload_dir, "pkg.txt"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "pkg.txt", "source_path": "linkdir/src.txt"}]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "pkg.txt", "source_path": "linkdir/src.txt", "sha256": h}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code != 0, f"source through linkdir MUST NOT pass, got {code}"
+            assert result["result"] in ("FAIL", "ERROR")
+
+    def test_protected_intermediate_symlink_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            bc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+            ext = os.path.join(td, "external")
+            os.makedirs(ext, exist_ok=True)
+            _write(td, "external/secret.txt", "secret")
+            ext_sha = sha256_file(os.path.join(td, "external", "secret.txt"))
+            link = os.path.join(repo, "linkdir")
+            try:
+                os.symlink(ext, link, target_is_directory=True)
+            except OSError:
+                pytest.skip("symlink requires admin on Windows")
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                    {"path": "policy.json", "path_type": "file"},
+                    {"path": "task.yaml", "path_type": "file"},
+                    {"path": "frozen", "path_type": "directory"},
+                    {"path": "linkdir", "path_type": "directory"}],
+                "denied_paths": [], "protected_files": [{"path": "linkdir/secret.txt", "sha256": ext_sha}]}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": bc, "policy_path": "policy.json",
+                "policy_sha256": sha256_file(pp), "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 1
+            assert result["result"] == "FAIL"
+            assert any("LINK" in r.get("reason", "") for r in result.get("protected_file_changes", []))
+
+
+class TestInvalidStructure:
+    def test_policy_allowed_paths_wrong_type_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, bc, tp, fd, pp = _cs_fixture(td)
+            policy = yaml.safe_load(open(pp))
+            policy["allowed_paths"] = "oops"
+            with open(pp, "w") as f: json.dump(policy, f)
+            task = yaml.safe_load(open(tp))
+            task["fixed_params"]["policy_sha256"] = sha256_file(pp)
+            with open(tp, "w") as f: yaml.dump(task, f)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_manifest_entries_wrong_type_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": []}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": "oops"}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_source_is_dir_not_file(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            upload_dir = os.path.join(repo, "reviews", "UPLOAD_NEXT")
+            os.makedirs(upload_dir, exist_ok=True)
+            os.makedirs(os.path.join(repo, "reports", "subdir"), exist_ok=True)
+            _write(repo, "reviews/UPLOAD_NEXT/pkg.txt", "x")
+            h = sha256_file(os.path.join(upload_dir, "pkg.txt"))
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [{"package_path": "pkg.txt", "source_path": "reports/subdir"}]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            _write(repo, "reviews/UPLOAD_NEXT/UPLOAD_MANIFEST.json", json.dumps(
+                {"schema_version": "1", "task_id": "TASK_UP", "entries": [
+                    {"package_path": "pkg.txt", "source_path": "reports/subdir", "sha256": h}]}))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = upload_package_check(tp, fd)
+            assert code in (1, 2)
+            assert result["result"] in ("FAIL", "ERROR")
+
+    def test_module_invalid_structure_json_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "baseline B")
+            os.makedirs(os.path.join(repo, "reviews", "UPLOAD_NEXT"), exist_ok=True)
+            spec = {"schema_version": "1", "task_id": "TASK_UP", "manifest_filename": "UPLOAD_MANIFEST.json",
+                    "entries": [1, 2, 3]}
+            sp = _write(repo, "spec.json", json.dumps(spec))
+            task = _task_dict("TASK_UP", {"upload_spec_path": "spec.json", "upload_spec_sha256": sha256_file(sp)})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            r = subprocess.run(
+                ["python", "-m", "protocol_guard.phase2_min.upload_package_check", tp, fd],
+                capture_output=True, text=True, cwd=os.getcwd(),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            )
+            assert r.returncode == 2
+            out = json.loads(r.stdout.strip())
+            assert out.get("result") == "ERROR"
+
+
+class TestDeterministicOutput:
+    def test_hashseed_1_vs_2_identical(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            env1 = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONHASHSEED": "1"}
+            env2 = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONHASHSEED": "2"}
+            r1 = subprocess.run(["python", "-m", "protocol_guard.phase2_min.change_scope_check", tp, fd],
+                                capture_output=True, text=True, cwd=os.getcwd(), env=env1)
+            r2 = subprocess.run(["python", "-m", "protocol_guard.phase2_min.change_scope_check", tp, fd],
+                                capture_output=True, text=True, cwd=os.getcwd(), env=env2)
+            assert r1.stdout.strip() == r2.stdout.strip()
+            assert r1.returncode == r2.returncode
+
+
+
+# ==============================================================
+# R4 Baseline Commit Type Validation Tests
+# ==============================================================
+class TestBaselineCommitType:
+    def test_valid_40_char_commit_sha_passes(self):
+        with tempfile.TemporaryDirectory() as td:
+            _, _, tp, fd, _ = _cs_fixture(td)
+            code, _ = change_scope_check(tp, fd)
+            assert code == 0
+
+    def test_tree_sha_returns_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            tree_sha = subprocess.run(
+                ["git", "rev-parse", "HEAD^{tree}"], cwd=repo,
+                capture_output=True, text=True
+            ).stdout.strip()
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                      "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                                        {"path": "policy.json", "path_type": "file"},
+                                        {"path": "task.yaml", "path_type": "file"},
+                                        {"path": "frozen", "path_type": "directory"}],
+                      "denied_paths": [], "protected_files": []}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": tree_sha,
+                "policy_path": "policy.json", "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_blob_sha_returns_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            blob_sha = subprocess.run(
+                ["git", "rev-parse", "HEAD:ok.txt"], cwd=repo,
+                capture_output=True, text=True
+            ).stdout.strip()
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                      "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                                        {"path": "policy.json", "path_type": "file"},
+                                        {"path": "task.yaml", "path_type": "file"},
+                                        {"path": "frozen", "path_type": "directory"}],
+                      "denied_paths": [], "protected_files": []}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": blob_sha,
+                "policy_path": "policy.json", "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_nonexistent_sha_returns_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                      "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                                        {"path": "policy.json", "path_type": "file"},
+                                        {"path": "task.yaml", "path_type": "file"},
+                                        {"path": "frozen", "path_type": "directory"}],
+                      "denied_paths": [], "protected_files": []}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": "d" * 40,
+                "policy_path": "policy.json", "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_abbreviated_sha_returns_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                      "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                                        {"path": "policy.json", "path_type": "file"},
+                                        {"path": "task.yaml", "path_type": "file"},
+                                        {"path": "frozen", "path_type": "directory"}],
+                      "denied_paths": [], "protected_files": []}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": "a" * 7,
+                "policy_path": "policy.json", "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_non_hex_sha_returns_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                      "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                                        {"path": "policy.json", "path_type": "file"},
+                                        {"path": "task.yaml", "path_type": "file"},
+                                        {"path": "frozen", "path_type": "directory"}],
+                      "denied_paths": [], "protected_files": []}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": "z" * 40,
+                "policy_path": "policy.json", "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            code, result = change_scope_check(tp, fd)
+            assert code == 2
+            assert result["result"] == "ERROR"
+
+    def test_tree_sha_module_subprocess_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = _git_init(td)
+            _write(repo, "ok.txt", "ok")
+            _git_commit(repo, "init")
+            tree_sha = subprocess.run(
+                ["git", "rev-parse", "HEAD^{tree}"], cwd=repo,
+                capture_output=True, text=True
+            ).stdout.strip()
+            policy = {"schema_version": "1", "task_id": "TASK_CS",
+                      "allowed_paths": [{"path": "ok.txt", "path_type": "file"},
+                                        {"path": "policy.json", "path_type": "file"},
+                                        {"path": "task.yaml", "path_type": "file"},
+                                        {"path": "frozen", "path_type": "directory"}],
+                      "denied_paths": [], "protected_files": []}
+            pp = _write(repo, "policy.json", json.dumps(policy))
+            task = _task_dict("TASK_CS", {"baseline_commit_sha": tree_sha,
+                "policy_path": "policy.json", "policy_sha256": sha256_file(pp),
+                "worktree_clean_at_approval": True})
+            tp = os.path.join(repo, "task.yaml")
+            with open(tp, "w") as f: yaml.dump(task, f)
+            fd = os.path.join(repo, "frozen")
+            os.makedirs(fd, exist_ok=True)
+            shutil.copy2(tp, os.path.join(fd, "frozen_task.yaml"))
+            sha = hashlib.sha256(open(tp, "rb").read()).hexdigest()
+            with open(os.path.join(fd, "frozen_task.sha256"), "w") as f: f.write(sha + "\n")
+            r = subprocess.run(
+                ["python", "-m", "protocol_guard.phase2_min.change_scope_check", tp, fd],
+                capture_output=True, text=True, cwd=os.getcwd(),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            )
+            assert r.returncode == 2
+            out = json.loads(r.stdout.strip())
+            assert out.get("result") == "ERROR"
+            assert "traceback" not in r.stderr.lower()
+
+
+==============================================================================
+MANIFEST
+==============================================================================
+{"protocol_guard\\phase2_min\\__init__.py":"eaedf54de57a67605372293ea7cecc9684cf736af0008458aba158a7a0d6cdac","protocol_guard\\phase2_min\\change_scope_check.py":"dd89cf846a37428db20b425645bd528daf764a297c53973fe6ba76a0697c2853","protocol_guard\\phase2_min\\io_utils.py":"24086bb835820701126749ac1349e2c9d81fd86a0e8af6d6f3f2b892df4a4e52","protocol_guard\\phase2_min\\tests\\__init__.py":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","protocol_guard\\phase2_min\\tests\\test_checkers.py":"c185b761f832fb35b8babd61f0c44aeef4c01e94a0255c6779428948637b713d","protocol_guard\\phase2_min\\upload_package_check.py":"4805d0f25698b61f85c3e6a2edbdba7eb0ba9e51c8e28b7f09d59024b70fee4b"}
+
+MANIFEST_SHA256: e04ff597bd33dce4cc4066013c12c85555277a5c64a59c7f1cb3efe33c3c51ee

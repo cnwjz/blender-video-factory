@@ -1,0 +1,37 @@
+{
+  "file": "D:\\blender-video-factory\\assets\\third_party\\pensamientoazul_supermarket\\Supermercado\\cashier.fbx",
+  "object_names": [
+    "Box001",
+    "Cylinder007",
+    "Object001",
+    "Object002"
+  ],
+  "mesh_count": 4,
+  "empty_count": 0,
+  "armature_count": 0,
+  "asset_type": "register_only",
+  "bbox_min": [
+    -0.5607355833053589,
+    0.0045243375934660435,
+    -0.05400988087058067
+  ],
+  "bbox_max": [
+    -0.04261210560798645,
+    0.0045243375934660435,
+    0.10440884530544281
+  ],
+  "dimensions_xyz": [
+    0.5181234776973724,
+    0.06411198014393449,
+    0.15841872617602348
+  ],
+  "top_surface_z": 0.10440884530544281,
+  "can_support_register": false,
+  "can_support_products": false,
+  "customer_overlap": 0,
+  "employee_overlap": 4,
+  "customer_facing_dot": 1.0,
+  "employee_facing_dot": -1.0,
+  "visual_separation_pass": false,
+  "can_be_checkout_counter": false
+}

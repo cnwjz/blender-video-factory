@@ -1,0 +1,129 @@
+task_id: "EXAMPLE_TASK"
+task_card_version: 2
+protocol_version: "v1.0"
+execution_mode: "confirm_then_execute"
+task_type: "AUDIT"
+
+project_state_file: "PROJECT_STATE.yaml"
+input_files:
+  - "scene/example.blend"
+output_files:
+  - "scene/example_output.blend"
+  - "reports/example_report.md"
+
+primary_goal: "验证协议 Guard 的任务卡 Schema v2 和冻结功能是否正常工作"
+primary_variable: "camera_distance_m"
+
+dependent_variables:
+  - name: "camera_shift_y"
+    solver: "analytical_bbox_centering"
+    minimum: -1.0
+    maximum: 1.0
+    unit: "normalized_camera_shift"
+    step: 0.01
+    description: "垂直偏移以居中画面内容"
+
+fixed_params:
+  lens_mm: 24
+  sensor_fit: "HORIZONTAL"
+  elevation_deg: 25
+
+locked_items:
+  - lock_id: "character_roots"
+    resource_type: "blender_collection"
+    selector: "CHR_*"
+    protected_fields:
+      - "location"
+      - "rotation_euler"
+      - "scale"
+      - "hierarchy"
+  - lock_id: "counter_geometry"
+    resource_type: "blender_object"
+    selector: "Cashier_*"
+    protected_fields:
+      - "location"
+      - "rotation_euler"
+      - "dimensions"
+
+allowed_modifications:
+  - target: "Camera"
+    fields:
+      - "location"
+    description: "摄像机位置可调整以优化构图"
+  - target: "Camera"
+    fields:
+      - "lens"
+    limits:
+      min: 20
+      max: 85
+
+forbidden_modifications:
+  - target: "CHR_*"
+    fields:
+      - "location"
+      - "rotation_euler"
+      - "scale"
+  - target: "Cashier_*"
+    fields:
+      - "location"
+      - "rotation_euler"
+
+preflight_checks:
+  - check_id: "input_scene_exists"
+    checker: "file_exists"
+    required: true
+    params:
+      path_ref: "input_files[0]"
+  - check_id: "frozen_task_valid"
+    checker: "sha256_verify"
+    required: true
+
+technical_pass_conditions:
+  - condition_id: "no_clipping"
+    metric: "clipped_essential_object_count"
+    operator: "eq"
+    expected: 0
+    required: true
+  - condition_id: "content_height"
+    metric: "projected_height_percent"
+    operator: "between"
+    expected: [56, 61]
+    required: true
+
+visual_intent: "摄像机从右前方45度方位角拍摄，收银台和排队顾客完整可见"
+visual_forbidden: "禁止出现角色裁剪、禁止收银台重叠、禁止画面空洞"
+
+evidence_required:
+  - evidence_id: "clean"
+    role: "clean_preview"
+    path: "reviews/L1_C_CLEAN.png"
+    required: true
+    same_run_group: "render_001"
+    sha256_required: true
+  - evidence_id: "debug"
+    role: "debug_preview"
+    path: "reviews/L1_C_DEBUG.png"
+    required: true
+    same_run_group: "render_001"
+    sha256_required: true
+  - evidence_id: "report"
+    role: "report"
+    path: "reports/L1_C_REPORT.md"
+    required: true
+
+upload_dir: "reviews/UPLOAD_NEXT"
+upload_files:
+  - "L1_C_CLEAN.png"
+  - "L1_C_DEBUG.png"
+  - "L1_C_REPORT.md"
+
+stop_conditions:
+  - condition: "frozen_task_sha256_mismatch"
+    action: "stop_before_execution"
+  - condition: "content_height_below_minimum"
+    action: "mark_constraint_conflict"
+
+state_patch_requested:
+  fields:
+    scene_phase: "camera_framing_validated"
+  reason: "首帧摄像机参数验证通过后更新场景阶段状态"

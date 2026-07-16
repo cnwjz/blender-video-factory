@@ -1,0 +1,38 @@
+﻿=== Phase 1.2 Adversarial Integrity Test ===
+
+1. Unknown state patch rejected
+  PASS: unknown field rejected
+
+2. CLAUDE project_id patch rejected
+  PASS: CLAUDE project_id rejected
+
+3. Invalid enum patch rejected atomically
+  PASS: invalid enum rejected
+  PASS: original state unchanged (no partial)
+  PASS: no change_log appended on failure
+
+4. Invalid datetime rejected
+  PASS: invalid datetime rejected
+
+5. Allowed and forbidden conflict rejected
+  PASS: allowed/forbidden conflict rejected
+
+6. Input dictionaries unchanged
+  PASS: original state_data unchanged
+  PASS: original patch_doc unchanged
+
+7. Successful patch appends exactly one log
+  PASS: patch succeeded
+  PASS: exactly one log appended
+  PASS: log entry has timestamp
+  PASS: log entry has actor
+  PASS: log entry has task_id
+  PASS: log entry has fields_changed
+  PASS: log entry has reason
+
+8. change_log in fields explicitly rejected
+  PASS: change_log in fields rejected
+
+==================================================
+RESULTS: 17 passed, 0 failed
+==================================================

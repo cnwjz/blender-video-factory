@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/task_card.schema.json",
+  "title": "BVF Task Card v2",
+  "description": "Schema for a single task card in the BVF collaboration protocol. v2: structured params, conditions, locks, evidence.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_card_version",
+    "protocol_version",
+    "execution_mode",
+    "task_type",
+    "project_state_file",
+    "input_files",
+    "output_files",
+    "primary_goal",
+    "primary_variable",
+    "dependent_variables",
+    "fixed_params",
+    "locked_items",
+    "allowed_modifications",
+    "forbidden_modifications",
+    "preflight_checks",
+    "technical_pass_conditions",
+    "visual_intent",
+    "visual_forbidden",
+    "evidence_required",
+    "upload_dir",
+    "upload_files",
+    "stop_conditions",
+    "state_patch_requested"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_card_version": { "type": "integer", "minimum": 1 },
+    "protocol_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "execution_mode": { "enum": ["confirm_then_execute", "direct_execute"] },
+    "task_type": {
+      "enum": ["AUDIT", "MODIFICATION", "ROOT_CAUSE_AUDIT", "CALIBRATION", "PROTOCOL_MAINTENANCE"]
+    },
+    "project_state_file": { "type": "string" },
+    "input_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "output_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "primary_goal": { "type": "string" },
+    "primary_variable": { "type": "string" },
+
+    "dependent_variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "solver"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "solver": { "type": "string", "minLength": 1 },
+          "minimum": { "type": "number" },
+          "maximum": { "type": "number" },
+          "unit": { "type": "string" },
+          "step": { "type": "number" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "fixed_params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    },
+
+    "locked_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["lock_id", "resource_type", "selector", "protected_fields"],
+        "properties": {
+          "lock_id": { "type": "string", "minLength": 1 },
+          "resource_type": {
+            "enum": ["file", "blender_object", "blender_collection", "blender_scene", "directory", "protocol_code"]
+          },
+          "selector": { "type": "string", "minLength": 1 },
+          "protected_fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "allowed_modifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "fields"],
+        "properties": {
+          "target": { "type": "string", "minLength": 1 },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "limits": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "forbidden_modifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "fields"],
+        "properties": {
+          "target": { "type": "string", "minLength": 1 },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "limits": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "preflight_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "checker", "required"],
+        "properties": {
+          "check_id": { "type": "string", "minLength": 1 },
+          "checker": { "type": "string", "minLength": 1 },
+          "required": { "type": "boolean" },
+          "params": { "type": "object" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "technical_pass_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition_id", "metric", "operator", "expected", "required"],
+        "properties": {
+          "condition_id": { "type": "string", "minLength": 1 },
+          "metric": { "type": "string" },
+          "operator": {
+            "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "between", "in", "exists", "sha256_match", "unchanged"]
+          },
+          "expected": {},
+          "required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "visual_intent": { "type": "string" },
+    "visual_forbidden": { "type": "string" },
+
+    "evidence_required": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "role", "path", "required"],
+        "properties": {
+          "evidence_id": { "type": "string", "minLength": 1 },
+          "role": {
+            "enum": ["clean_preview", "debug_preview", "report", "blend", "json", "log", "source_snapshot", "other"]
+          },
+          "path": { "type": "string" },
+          "required": { "type": "boolean" },
+          "same_run_group": { "type": "string" },
+          "sha256_required": { "type": "boolean" },
+          "save_reopen_required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "upload_dir": { "type": "string" },
+    "upload_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+
+    "stop_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "action"],
+        "properties": {
+          "condition": { "type": "string" },
+          "action": {
+            "enum": ["stop_before_execution", "stop_current_task", "mark_technical_fail",
+                     "mark_constraint_conflict", "mark_evidence_invalid", "mark_spec_invalid"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "state_patch_requested": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["fields", "reason"],
+          "properties": {
+            "fields": {
+              "type": "object",
+              "minProperties": 1
+            },
+            "reason": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

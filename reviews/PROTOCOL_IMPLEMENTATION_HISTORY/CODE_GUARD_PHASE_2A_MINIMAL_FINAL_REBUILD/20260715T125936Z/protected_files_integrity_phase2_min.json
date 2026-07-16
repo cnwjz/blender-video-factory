@@ -1,0 +1,103 @@
+{
+  "files": {
+    "PROJECT_STATE.yaml": {
+      "before_sha256": "1d9b24ecbea869b1a184d7271b9e32f83b571acaf583df507f69850534f6413f",
+      "after_sha256": "1d9b24ecbea869b1a184d7271b9e32f83b571acaf583df507f69850534f6413f",
+      "unchanged": true
+    },
+    "protocol_guard/result.py": {
+      "before_sha256": "c6cf1ab1a907e1bd38e6da8bf7c420ded2e3f4209c59ddb43126db91ae95e9e6",
+      "after_sha256": "c6cf1ab1a907e1bd38e6da8bf7c420ded2e3f4209c59ddb43126db91ae95e9e6",
+      "unchanged": true
+    },
+    "protocol_guard/task_schema.py": {
+      "before_sha256": "9d0cade16f0d4ada9212501e8df8638fd1cf504f6b0e66068abf62e904c785a1",
+      "after_sha256": "9d0cade16f0d4ada9212501e8df8638fd1cf504f6b0e66068abf62e904c785a1",
+      "unchanged": true
+    },
+    "protocol_guard/state/project_state.py": {
+      "before_sha256": "cc40121b28c16d9e99cc92493613b6e4c39bb6746bec776b2f1306e25f3a0bad",
+      "after_sha256": "cc40121b28c16d9e99cc92493613b6e4c39bb6746bec776b2f1306e25f3a0bad",
+      "unchanged": true
+    },
+    "protocol_guard/frozen/snapshot.py": {
+      "before_sha256": "e1bf58706547f3e05ad39b0d9fcaaccee33ae3679c4cdc0153751c9fdd5bff77",
+      "after_sha256": "e1bf58706547f3e05ad39b0d9fcaaccee33ae3679c4cdc0153751c9fdd5bff77",
+      "unchanged": true
+    },
+    "protocol_guard/schemas/task_card.schema.json": {
+      "before_sha256": "80bd706137ece47fd2899f44165d8e87a453368df802c4b40c30cb1b2a622b66",
+      "after_sha256": "80bd706137ece47fd2899f44165d8e87a453368df802c4b40c30cb1b2a622b66",
+      "unchanged": true
+    },
+    "protocol_guard/schemas/project_state.schema.json": {
+      "before_sha256": "c67114e15fa5cad4a0d3d02e3636af9512e6655391cd71876696a8025a76a45d",
+      "after_sha256": "c67114e15fa5cad4a0d3d02e3636af9512e6655391cd71876696a8025a76a45d",
+      "unchanged": true
+    },
+    "protocol_guard/schemas/state_patch.schema.json": {
+      "before_sha256": "a7fcb00d298947721832278014f28923de7a9089745351a801a858664cb84b23",
+      "after_sha256": "a7fcb00d298947721832278014f28923de7a9089745351a801a858664cb84b23",
+      "unchanged": true
+    },
+    "evidence_manifest.json": {
+      "before_sha256": "94817981dc0891a31266e85cffcde4335f96998b63b76953b9c977f1810fb59a",
+      "after_sha256": "94817981dc0891a31266e85cffcde4335f96998b63b76953b9c977f1810fb59a",
+      "unchanged": true
+    },
+    "CODE_GUARD_MVP_PHASE_1_4_REPORT.md": {
+      "before_sha256": "6766f1396799c561a5e2bef9d32a8268444311feb7b2a14e2b6f79a66b0fd14e",
+      "after_sha256": "6766f1396799c561a5e2bef9d32a8268444311feb7b2a14e2b6f79a66b0fd14e",
+      "unchanged": true
+    },
+    "CODE_GUARD_PHASE_1_4_SOURCE_SNAPSHOT.txt": {
+      "before_sha256": "46506ee99fec1e3d287d3be7cd888223af2edfeb6206de0a98b7cd363161273d",
+      "after_sha256": "46506ee99fec1e3d287d3be7cd888223af2edfeb6206de0a98b7cd363161273d",
+      "unchanged": true
+    },
+    "pytest_output.txt": {
+      "before_sha256": "504d9ec2fd58420e58e46fda0ddd6288436279718d0b6bba1718bd50eee1cd55",
+      "after_sha256": "504d9ec2fd58420e58e46fda0ddd6288436279718d0b6bba1718bd50eee1cd55",
+      "unchanged": true
+    },
+    "adversarial_test_output.txt": {
+      "before_sha256": "695f1d16475836d7febafd0e3f697feeecf909ec5e3acf5326392701574f9444",
+      "after_sha256": "695f1d16475836d7febafd0e3f697feeecf909ec5e3acf5326392701574f9444",
+      "unchanged": true
+    },
+    "HUMAN_COLLAB_RULES.md": {
+      "before_sha256": "eb5f2444d9656702a2e4c319615691242a658fd403ca70bf0a849f54e4f0003b",
+      "after_sha256": "eb5f2444d9656702a2e4c319615691242a658fd403ca70bf0a849f54e4f0003b",
+      "unchanged": true
+    },
+    "protocol_guard/tests\\test_project_state.py": {
+      "before_sha256": "adcce99ebe44c3116587282639652a3e837c53019da0c3ecae8bfb05b957edca",
+      "after_sha256": "adcce99ebe44c3116587282639652a3e837c53019da0c3ecae8bfb05b957edca",
+      "unchanged": true
+    },
+    "protocol_guard/tests\\test_result.py": {
+      "before_sha256": "13b7486f09ab2e00489b65f984405ff7bc2b8369e98e0f01109be18c8fe1c207",
+      "after_sha256": "13b7486f09ab2e00489b65f984405ff7bc2b8369e98e0f01109be18c8fe1c207",
+      "unchanged": true
+    },
+    "protocol_guard/tests\\test_snapshot.py": {
+      "before_sha256": "e7c5b65e1a18dc8bf95c355e12eb38eccf3c8f0397521d089c74d4c83ce55237",
+      "after_sha256": "e7c5b65e1a18dc8bf95c355e12eb38eccf3c8f0397521d089c74d4c83ce55237",
+      "unchanged": true
+    },
+    "protocol_guard/tests\\test_task_schema.py": {
+      "before_sha256": "6b3e3e45d945d1de8d4337c391c0653699ba6fd85d943b5f4263f0f3e2d52302",
+      "after_sha256": "6b3e3e45d945d1de8d4337c391c0653699ba6fd85d943b5f4263f0f3e2d52302",
+      "unchanged": true
+    },
+    "protocol_guard/tests\\__init__.py": {
+      "before_sha256": "0abcc38c9a0ac0a6850fae416ef7c67ae0e1222482e725ab9ce5d57917f1fd9c",
+      "after_sha256": "0abcc38c9a0ac0a6850fae416ef7c67ae0e1222482e725ab9ce5d57917f1fd9c",
+      "unchanged": true
+    }
+  },
+  "ps_unchanged": true,
+  "total_protected": 19,
+  "total_unchanged": 19,
+  "total_changed": 0
+}

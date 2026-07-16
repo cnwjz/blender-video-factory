@@ -1,0 +1,215 @@
+{
+  "project_id": "bvf_test_001_checkout_bottleneck",
+  "total_frames": 345,
+  "fps": 30,
+  "duration_seconds": 11.5,
+  "shots": [
+    {
+      "id": 1,
+      "name": "正常状态",
+      "frame_range": [1, 60],
+      "duration_seconds": [0.0, 2.0],
+      "initial_state": {
+        "windows": "三个收银窗口全部正常运作",
+        "queues": "每个窗口前有 2-3 名顾客",
+        "queue_lengths": "三条队伍长度大致相近",
+        "characters_total": "6-9 人（含窗口内收银员 3 人）",
+        "movement": "顾客以稳定缓慢节奏向前移动"
+      },
+      "end_state": {
+        "windows": "三个窗口仍然全部正常",
+        "queues": "队伍轻微前移，有顾客已完成结账离开",
+        "queue_lengths": "三条队伍长度仍然相近"
+      },
+      "main_subjects": ["三个收银窗口", "三条排队队伍", "收银员"],
+      "character_count": {
+        "min": 9,
+        "max": 12,
+        "breakdown": "收银员×3 + 每队 2-3 名顾客 = 9-12 人"
+      },
+      "character_movement": {
+        "direction": "向窗口方向缓慢前移",
+        "type": "整体平移",
+        "speed": "缓慢稳定"
+      },
+      "camera": {
+        "angle": "斜俯视",
+        "coverage": "同时看到三个窗口和三条队伍",
+        "movement": "固定",
+        "requirement": "主体占画面中部大部分区域"
+      },
+      "key_actions": [
+        "顾客向各自窗口缓慢前移",
+        "可能有 1 名顾客完成结账离开"
+      ],
+      "acceptance_criteria": [
+        "第一秒必须看清三个窗口和三条队伍",
+        "窗口灯牌全部亮起",
+        "队伍长度相近",
+        "主体足够大，不依赖文字",
+        "画面不显得像灰盒"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "窗口关闭",
+      "frame_range": [61, 120],
+      "duration_seconds": [2.0, 4.0],
+      "initial_state": {
+        "windows": "三个窗口全部正常",
+        "queues": "三条队伍正在前进",
+        "characters_total": "9-12 人"
+      },
+      "end_state": {
+        "windows": "中间窗口已关闭，灯牌熄灭，挡板落下或柜台变暗",
+        "queues": "中间队伍停止前进，出现短暂停顿",
+        "queue_status": "中间队伍停滞，左右队伍仍在缓慢前进"
+      },
+      "main_subjects": ["中间窗口", "关闭动作", "中间队伍顾客反应"],
+      "character_count": {
+        "min": 9,
+        "max": 12,
+        "breakdown": "收银员×3（中间收银员消失或退后）+ 每队 2-3 名顾客"
+      },
+      "character_movement": {
+        "direction": "左右队伍继续向前，中间队伍停止",
+        "type": "中间队伍：停止；左右队伍：缓慢前移",
+        "speed": "中间队伍减速至零，左右队伍保持原速"
+      },
+      "camera": {
+        "angle": "斜俯视",
+        "coverage": "聚焦中间窗口",
+        "movement": "可轻微推近中间窗口",
+        "requirement": "关闭动作必须占据视觉焦点"
+      },
+      "key_actions": [
+        "中间窗口灯牌熄灭",
+        "中间窗口挡板落下或柜台明显变暗",
+        "中间收银员退后或消失",
+        "中间队伍顾客出现短暂停顿/迟疑"
+      ],
+      "acceptance_criteria": [
+        "关闭状态通过实体视觉变化表达（灯牌、挡板、颜色）",
+        "中间窗口三要素必须至少满足两项：灯牌灭 + 挡板落 + 颜色暗",
+        "无声观看必须理解：这个窗口不能再用了",
+        "中间队伍停顿必须可见",
+        "不能只依赖小字或图标"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "重新分流",
+      "frame_range": [121, 225],
+      "duration_seconds": [4.0, 7.5],
+      "initial_state": {
+        "windows": "中间窗口已关闭",
+        "queues": "中间队伍停滞，左右队伍正常前进",
+        "characters_total": "9-12 人"
+      },
+      "end_state": {
+        "windows": "中间窗口空置，左右窗口忙碌",
+        "queues": "中间队伍已分散至左右两队，左右队伍明显增长",
+        "queue_lengths": "左右队伍明显比 Shot 1 长 50% 以上",
+        "new_arrivals": "后方已有 2-4 名新顾客进入画面"
+      },
+      "main_subjects": ["分流中的中间队伍顾客", "左右队伍增长", "新进入顾客"],
+      "character_count": {
+        "min": 11,
+        "max": 15,
+        "breakdown": "收银员×2（左右各一）+ 左队 3-5 人 + 右队 3-5 人 + 后方新进入 2-4 人"
+      },
+      "character_movement": {
+        "direction": "中间队伍 → 向左分流 → 左队后方 / 向右分流 → 右队后方",
+        "type": "整体平移，沿地面分区线行走",
+        "speed": "适中，方向清楚",
+        "new_customers": "从画面底部或后侧持续进入"
+      },
+      "camera": {
+        "angle": "斜俯视过渡到更高俯视",
+        "coverage": "扩大到包含左右队伍和后方入口",
+        "movement": "可轻微推近或升高以看清分流方向",
+        "requirement": "分流方向必须清楚，左队←、右队→"
+      },
+      "key_actions": [
+        "中间队伍第 1 名顾客选择方向并开始移动",
+        "中间队伍第 2 名顾客跟进移动",
+        "中间队伍剩余顾客全部完成转移",
+        "左右队伍后方持续有新顾客排队",
+        "左右队伍长度快速增长"
+      ],
+      "acceptance_criteria": [
+        "分流方向清晰（向左/向右无歧义）",
+        "顾客不穿模、不重叠",
+        "移动速度稳定、不瞬移",
+        "新顾客持续从后方进入",
+        "左右队伍长度在 3.5 秒内明显增长",
+        "中间窗口保持空置"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "瓶颈结果",
+      "frame_range": [226, 345],
+      "duration_seconds": [7.5, 11.5],
+      "initial_state": {
+        "windows": "只剩左右两个窗口工作，中间窗口空置",
+        "queues": "两条队伍已经明显变长",
+        "characters_total": "12-15 人"
+      },
+      "end_state": {
+        "windows": "左右两个窗口工作，中间窗口空置且昏暗",
+        "queues": "两条长队，队伍前进速度明显慢于 Shot 1",
+        "queue_lengths": "每条队伍 4-5 人以上",
+        "final_hold": "画面稳定停留至少 0.8 秒（24 帧）"
+      },
+      "main_subjects": ["两条长队", "空置的中间窗口", "后方持续进入的顾客"],
+      "character_count": {
+        "min": 12,
+        "max": 15,
+        "breakdown": "收银员×2 + 左队 4-5 人 + 右队 4-5 人 + 后方新进入 2-3 人"
+      },
+      "character_movement": {
+        "direction": "队伍缓慢向窗口方向移动",
+        "type": "缓慢平移，速度明显低于 Shot 1",
+        "speed": "比 Shot 1 慢 30-50%",
+        "new_customers": "后方仍有顾客进入"
+      },
+      "camera": {
+        "angle": "更高俯视或轻微拉远",
+        "coverage": "同时看到关闭的中间窗口和两条长队",
+        "movement": "固定，最终停留",
+        "requirement": "画面必须在静音情况下完成因果闭环"
+      },
+      "key_actions": [
+        "队伍缓慢前进（速度明显低于 Shot 1）",
+        "后方仍有顾客进入画面",
+        "中间窗口保持空置和昏暗",
+        "最终画面稳定停留 24 帧（0.8 秒）"
+      ],
+      "acceptance_criteria": [
+        "无声观看必须理解：窗口减少 → 队伍拥堵",
+        "两条队伍明显长于 Shot 1",
+        "中间窗口明确空置",
+        "队伍前进速度可见地变慢",
+        "最终画面停留至少 0.8 秒",
+        "画面中始终有明确焦点",
+        "不依赖文字说明"
+      ]
+    }
+  ],
+  "inter_shot_transitions": {
+    "shot_1_to_2": "中间窗口灯牌熄灭，视觉焦点自然切换",
+    "shot_2_to_3": "中间队伍开始移动，镜头可能轻微调整",
+    "shot_3_to_4": "分流完成，镜头拉远展示全貌"
+  },
+  "global_constraints": {
+    "max_characters": 15,
+    "no_voiceover": true,
+    "no_text_dependency": true,
+    "no_collision": true,
+    "no_complex_animation": true,
+    "no_cycles": true,
+    "resolution": [1080, 1920],
+    "fps": 30
+  }
+}

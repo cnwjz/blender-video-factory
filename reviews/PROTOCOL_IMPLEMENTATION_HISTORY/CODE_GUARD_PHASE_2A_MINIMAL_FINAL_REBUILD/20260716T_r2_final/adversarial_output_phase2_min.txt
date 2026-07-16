@@ -1,0 +1,16 @@
+Phase 2 Min R2 Adversarial Test Results
+
+All 51 Phase 2 Min tests PASSED (0 failed).
+R2 fixes verified:
+- Manifest strict set comparison (extra entry -> FAIL)
+- Recursive UPLOAD_NEXT scan (nested files)
+- frozen_dir repo binding (outside -> ERROR)
+- manifest_filename validation (.. escape -> ERROR)
+- Policy entry validation (escape path -> ERROR)
+- Module commands (stdout JSON, exit codes 0/1/2)
+
+BASELINE_FIXTURE_MODEL = BASELINE_PRECEDES_APPROVAL_ARTIFACTS
+MODULE_COMMANDS = VERIFIED
+INDEPENDENT_BYPASSES_FIXED = 6
+TEMP_REPO_TESTS: Git-dependent tests in temp repos
+REAL_PROJECT_GIT_VALIDATION = NOT_RUN

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bvf.local/schemas/freeze_bundle.schema.json",
+  "title": "BVF Freeze Bundle",
+  "type": "object",
+  "required": ["task_id", "frozen_at", "task_card_raw_sha256", "project_state_canonical_sha256", "input_files_raw_sha256", "frozen_task_copy_path"],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "frozen_at": { "type": "string" },
+    "task_card_raw_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "project_state_canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "input_files_raw_sha256": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    },
+    "frozen_task_copy_path": { "type": "string" }
+  },
+  "additionalProperties": false
+}

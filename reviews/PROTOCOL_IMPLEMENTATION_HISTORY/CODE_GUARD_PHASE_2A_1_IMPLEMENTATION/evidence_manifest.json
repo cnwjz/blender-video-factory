@@ -1,0 +1,16 @@
+{
+  "files": {
+    "CODE_GUARD_PHASE_2A_1_PROTECTED_FILES_INTEGRITY.json": "f7acfaf28bf46cd11e5f1c692509b139467903b24a15dc82c0e2e73ff08b4970",
+    "CODE_GUARD_PHASE_2A_1_REPORT.md": "6db6e2cce66e611c6d3c5fd77937d67f60d998c7aa961c8edc31b34469948329",
+    "CODE_GUARD_PHASE_2A_1_SOURCE_SNAPSHOT.txt": "aa699c27c2307e9bfa30d0fa21780c6265b31750da5984bd280c1199371a65d8",
+    "adversarial_test_output.txt": "79bb7daaeddb671d35d905b39ea9bff212120a2d528f69f537a651c0c43b86b5",
+    "execution_result.json": "a89fdda5a7a7ad4bdbfe30a2dae2b74feeeb650a151307d576eddf622684838a",
+    "pytest_output.txt": "8f040b170382edccfa5a8fd9ce3c90ecce32bc510496a7bf0a4cc58aeab4c2f7"
+  },
+  "project_state_normalization": {
+    "method": "canonical_json_with_evidence_sha256_null",
+    "sha256": "not_applicable_real_ps_not_in_manifest"
+  },
+  "schema_version": "1.0",
+  "task_id": "CODE_GUARD_PHASE_2A_1_IMPLEMENTATION"
+}

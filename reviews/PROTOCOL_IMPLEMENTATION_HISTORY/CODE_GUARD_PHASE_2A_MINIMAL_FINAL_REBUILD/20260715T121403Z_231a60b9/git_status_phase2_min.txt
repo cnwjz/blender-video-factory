@@ -1,0 +1,2 @@
+Not a git repository -- no git status available.
+All git-dependent tests use temp directories.

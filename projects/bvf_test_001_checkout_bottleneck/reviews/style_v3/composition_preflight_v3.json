@@ -1,0 +1,61 @@
+{
+  "frames": {
+    "F001": {
+      "top_empty": 0.1108,
+      "bot_margin": 0.3314,
+      "left_margin": 0.0556,
+      "right_margin": 0.0556,
+      "bbox": [
+        0.0556,
+        0.9444,
+        0.3314,
+        0.8892
+      ],
+      "clipped": [],
+      "pass": true
+    },
+    "F090": {
+      "top_empty": 0.1108,
+      "bot_margin": 0.3547,
+      "left_margin": 0.0556,
+      "right_margin": 0.0556,
+      "bbox": [
+        0.0556,
+        0.9444,
+        0.3547,
+        0.8892
+      ],
+      "clipped": [],
+      "pass": true
+    },
+    "F150": {
+      "top_empty": 0.1108,
+      "bot_margin": 0.2988,
+      "left_margin": 0.0556,
+      "right_margin": 0.0556,
+      "bbox": [
+        0.0556,
+        0.9444,
+        0.2988,
+        0.8892
+      ],
+      "clipped": [],
+      "pass": true
+    },
+    "F345": {
+      "top_empty": 0.1108,
+      "bot_margin": 0.2546,
+      "left_margin": 0.0556,
+      "right_margin": 0.0556,
+      "bbox": [
+        0.0556,
+        0.9444,
+        0.2546,
+        0.8892
+      ],
+      "clipped": [],
+      "pass": true
+    }
+  },
+  "all_pass": true
+}

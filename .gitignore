@@ -1,0 +1,67 @@
+﻿# Nested Git repositories
+/blender-mcp/
+/jianying-mcp/
+/mcp-vision/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Blender autosave
+*.blend1
+*.blend2
+
+# Regenerable render frames
+/projects/bvf_test_001_checkout_bottleneck/graybox_frames/
+/projects/bvf_test_001_checkout_bottleneck/graybox_frames_v3/
+/projects/bvf_test_001_checkout_bottleneck/graybox_frames_v4/
+/projects/audit_test/frames/
+/projects/bvf_asset_test_001_checkout_lane/reviews/_libtmp/
+
+# Project exports and drafts
+/projects/output/
+/projects/drafts/
+
+# Deprecated Kenney character GLB
+/projects/bvf_asset_test_001_checkout_lane/assets/imported/kenney_mini-characters/Models/GLB format/
+/projects/bvf_asset_test_001_checkout_lane/assets/imported/kenney_mini-market/Models/GLB format/character-employee.glb
+
+# Third-party assets pending license resolution
+/assets/third_party/pensamientoazul_supermarket/
+
+# Market prop GLB pending final review
+/projects/bvf_asset_test_001_checkout_lane/assets/imported/kenney_mini-market/Models/GLB format/
+
+# SHA256-verified root-level duplicate evidence
+/adversarial_test_output.txt
+/CODE_GUARD_PHASE_1_1_SOURCE_SNAPSHOT.txt
+/CODE_GUARD_PHASE_1_2_SOURCE_SNAPSHOT.txt
+/CODE_GUARD_PHASE_1_3_SOURCE_SNAPSHOT.txt
+/CODE_GUARD_PHASE_1_4_SOURCE_SNAPSHOT.txt
+/pytest_output.txt
+
+# Root-level temporary scripts
+/temp_*.py
+/temp_*.ps1
+
+# Operating system files
+Thumbs.db
+Desktop.ini
+
+# Kenney OBJ export-format copies, FBX is canonical
+/projects/bvf_asset_test_001_checkout_lane/assets/imported/kenney_mini-characters/Models/OBJ format/
+/projects/bvf_asset_test_001_checkout_lane/assets/imported/kenney_mini-market/Models/OBJ format/
+# Machine-specific MCP configuration
+/.mcp.json
+
+# Transient review staging and debug outputs
+/projects/bvf_asset_test_001_checkout_lane/reviews/UPLOAD_NEXT/
+/projects/bvf_test_001_checkout_bottleneck/reviews/UPLOAD_NEXT/
+/projects/bvf_asset_test_001_checkout_lane/reviews/_dbg/
+/projects/bvf_asset_test_001_checkout_lane/reviews/_ldbg/
+/projects/bvf_asset_test_001_checkout_lane/reviews/_tmp/
+
+# Obsolete temporary rerender helper
+/projects/bvf_test_001_checkout_bottleneck/temp_render_all.py

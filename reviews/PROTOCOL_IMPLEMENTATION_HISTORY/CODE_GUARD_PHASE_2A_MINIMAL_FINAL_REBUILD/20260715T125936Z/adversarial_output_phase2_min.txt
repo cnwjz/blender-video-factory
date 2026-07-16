@@ -1,0 +1,118 @@
+Phase 2 Min Adversarial Test Results
+
+Date: 20260715T125936Z
+Total Phase 2 Min tests: 39 collected
+Passed: 20
+Failed: 19
+
+=== FAILED TESTS ===
+
+  Class: TestChangeScopeCheck, Function: test_clean_worktree_pass
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_clean_worktree_pass
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_task_in_root_ok
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_root_ok
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_task_in_tasks_dir_ok
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_tasks_dir_ok
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_task_in_nested_dir_ok
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_task_in_nested_dir_ok
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_oos_committed_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_oos_committed_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_protected_sha_mismatch_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_protected_sha_mismatch_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_nongit_dir_error
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_nongit_dir_error
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_policy_sha_changed_error
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_policy_sha_changed_error
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_baseline_not_found_error
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_baseline_not_found_error
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestChangeScopeCheck, Function: test_no_file_writes
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestChangeScopeCheck::test_no_file_writes
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestUploadPackageCheck, Function: test_source_missing_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestUploadPackageCheck::test_source_missing_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_staged_oos_add_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_oos_add_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_staged_denied_delete_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_staged_denied_delete_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_unstaged_delete_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_unstaged_delete_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_committed_oos_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_committed_oos_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_protected_sha_wrong_fail
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_protected_sha_wrong_fail
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_policy_sha_wrong_error
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_policy_sha_wrong_error
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_nongit_error
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_nongit_error
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+  Class: TestAdversarial, Function: test_no_file_writes_either
+    Full: protocol_guard/phase2_min/tests/test_checkers.py::TestAdversarial::test_no_file_writes_either
+    Expected: PASS or FAIL (per test specification)
+    Actual: ERROR (exit code 2) — test fixture file not in policy.allowed_paths
+
+=== ROOT CAUSE ===
+Test repos contain fixture files (frozen/, task*.yaml, policy.json, uspec.json, ufrozen/)
+that are not listed in the policy's allowed_paths. The change scope checker correctly
+flags them as out-of-scope. Tests need their policies updated to include all fixture paths.
+
+=== PASSED ADVERSARIAL TESTS ===
+test_nongit_error: ERROR (2) — non-git directory correctly rejected
+test_policy_sha_wrong_error: ERROR (2) — policy hash mismatch correctly rejected
+test_upload_spec_sha_wrong_error: ERROR (2) — spec hash mismatch correctly rejected
+test_worktree_clean_false_error: ERROR (2) — worktree_clean=false correctly rejected
+test_dup_package_path_error: ERROR (2) — duplicate paths correctly rejected
+
+TEMP_REPO_TESTS: All git-dependent tests use temporary repositories
+REAL_PROJECT_GIT_VALIDATION: NOT_RUN
