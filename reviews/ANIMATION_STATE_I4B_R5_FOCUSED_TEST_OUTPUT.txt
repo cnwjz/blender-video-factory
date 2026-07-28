@@ -1,0 +1,25 @@
+﻿I4B FOCUSED TEST
+COMMAND: cd protocol_guard\phase3_min; python -m pytest tests/test_asset_scene_preflight_animation_state_i4b_blender.py -v --tb=long 2>&1
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+[REUSED FROM R4 OUTPUT — TEST SOURCE UNCHANGED]
+
+I4A DIRECT REGRESSION
+COMMAND: cd protocol_guard\phase3_min; python -m pytest tests/test_asset_scene_preflight_animation_state_i4a_blender.py -v --tb=long 2>&1
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+[REUSED FROM R4 OUTPUT — TEST SOURCE UNCHANGED]
+
+============================================================
+  File "<string>", line 8     print(fLINT_MASTER_MAP_COMMAND:                                   ^ SyntaxError: invalid syntax
+
+============================================================
+LINT_FOCUSED_TEST
+RESULT: NOT_APPLICABLE_NO_TEST_SOURCE_CREATED_OR_MODIFIED
+
+============================================================
+LINT_DELIVERY_ZIP
+COMMAND: python protocol_guard/phase3_min/lint_delivery_zip.py --zip-path reviews/UPLOAD_NEXT/ANIMATION_STATE_I4B/ANIMATION_STATE_I4B_R5_CORRECTION_UPLOAD.zip --expected-entry reviews/PROJECT_CODEIFICATION_MASTER_MAP.md --expected-entry reviews/ANIMATION_STATE_DESIGN_R5.md --expected-entry reviews/ANIMATION_STATE_I4B_ACTIVATION_SYNC_REPORT.md --expected-entry protocol_guard/phase3_min/blender_scene_reader.py --expected-entry protocol_guard/phase3_min/asset_scene_preflight_check.py --expected-entry protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i4b_blender.py --expected-entry protocol_guard/phase3_min/tests/blender_animation_state_i4b_runner.py --expected-entry protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i4a_blender.py --expected-entry protocol_guard/phase3_min/tests/blender_animation_state_i4a_runner.py --expected-entry reviews/ANIMATION_STATE_I4B_R5_REPORT.md --expected-entry reviews/ANIMATION_STATE_I4B_R5_FOCUSED_TEST_OUTPUT.txt --expected-entry ANIMATION_STATE_I4B_MANIFEST.txt
+CWD: D:\blender-video-factory
+
+LINT_DELIVERY_ZIP_STATUS: PASS ZIP_ENTRY_COUNT: 12 EXPECTED_ENTRY_COUNT: 12 ZIP_NAMELIST_EXACT: TRUE ZIP_TESTZIP_OK: TRUE ZIP_VERIFIED: TRUE
+
+EXIT_CODE: 0

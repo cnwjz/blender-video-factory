@@ -1,0 +1,53 @@
+TEST_COMMAND: C:\Python314\python.exe -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py -vv
+CWD: D:\blender-video-factory
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 41 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_visibility_key_missing PASSED [  2%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_visibility_null PASSED [  4%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_visibility_empty_dict PASSED [  7%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_vp_null_hr_configured PASSED [  9%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_hr_null_vp_configured PASSED [ 12%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_both_null PASSED [ 14%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_vp_false PASSED [ 17%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_hr_false PASSED [ 19%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestNotChecked::test_both_false PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestPass::test_both_true_both_visible_full_contract PASSED [ 24%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestPass::test_only_viewport_configured_pass PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestPass::test_only_render_configured_pass PASSED [ 29%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestFail::test_viewport_hidden_full_contract PASSED [ 31%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestFail::test_render_hidden_full_contract PASSED [ 34%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestFail::test_both_hidden PASSED [ 36%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_viewport_read_error_full_contract PASSED [ 39%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_render_read_error_full_contract PASSED [ 41%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_both_read_error PASSED [ 43%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_vp_error_does_not_block_render_pass PASSED [ 46%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_render_error_does_not_block_viewport_pass PASSED [ 48%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_only_vp_configured_render_would_error_but_not_read PASSED [ 51%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestError::test_only_hr_configured_viewport_would_error_but_not_read PASSED [ 53%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_not_checked_full PASSED [ 56%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_double_pass_full PASSED [ 58%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_viewport_fail_full_outer PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_render_fail_full_outer PASSED [ 63%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_viewport_error_full_outer PASSED [ 65%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_render_error_full_outer PASSED [ 68%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_both_error_full_outer PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestResultContract::test_outer_dict_detects_unexpected_field PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnlyBoundary::test_no_writes_during_check PASSED [ 75%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnlyBoundary::test_no_writes_even_on_fail PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnlyBoundary::test_no_writes_even_on_error PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnlyBoundary::test_underscore_write_is_trapped PASSED [ 82%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnce::test_each_read_at_most_once PASSED [ 85%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnce::test_unconfigured_not_read PASSED [ 87%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnce::test_neither_configured_neither_read PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestReadOnce::test_repeated_call_reads_again PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::TestIntegration::test_root_not_found_visibility_not_checked PASSED [ 95%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::test_test_file_self_parse PASSED [ 97%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_visibility_i1.py::test_test_file_no_skip_xfail PASSED [100%]
+
+============================= 41 passed in 0.09s ==============================
+PYTEST_EXIT_CODE: 0

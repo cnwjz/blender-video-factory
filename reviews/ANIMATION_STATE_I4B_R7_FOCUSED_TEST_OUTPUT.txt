@@ -1,0 +1,39 @@
+﻿I4B FOCUSED TEST
+[REUSED FROM R4 — TEST SOURCE UNCHANGED, 19 passed, 0 failed, exit 0]
+
+I4A DIRECT REGRESSION
+[REUSED FROM R4 — TEST SOURCE UNCHANGED, 20 passed, 0 failed, exit 0]
+
+============================================================
+LINT_MASTER_MAP
+CWD: D:\blender-video-factory
+EXIT_CODE: 1
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "-X", "utf8", "protocol_guard/phase3_min/lint_master_map.py", "--map-path", "reviews/PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R52", "--expected-active-task", "ANIMATION_STATE_I4B", "--expected-active-status", "AUTHORIZED_NOT_STARTED", "--expected-next-task", "ANIMATION_STATE_I4B", "--expected-next-action", "鎵ц Animation State I4B Runtime ERROR boundaries锛涗笉寰楀紑濮?I5銆佸畬鏁村洖褰掋€佺姸鎬佸悓姝ユ垨姝ｅ紡閿佸畾銆?, "--expected-visibility-status", "LOCKED"]
+STDOUT:
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R52
+ACTIVE_TASK_MATCH: ANIMATION_STATE_I4B
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+NEXT_TASK_MATCH: ANIMATION_STATE_I4B
+NEXT_ACTION_MATCH: 鎵ц Animation State I4B Runtime ERROR boundaries锛涗笉寰楀紑濮?I5銆佸畬鏁村洖褰掋€佺姸鎬佸悓姝ユ垨姝ｅ紡閿佸畾銆?
+VISIBILITY_STATUS_MATCH: LOCKED
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: Section9_visibility_progress row '^\s+visibility\s+\(([A-Za-z0-9_]+)' not found
+
+STDERR:
+<EMPTY>
+
+============================================================
+LINT_FOCUSED_TEST
+RESULT: NOT_APPLICABLE_NO_TEST_SOURCE_CREATED_OR_MODIFIED
+REASON: 本轮未创建或修改测试源码。
+
+
+============================================================
+LINT_DELIVERY_ZIP
+COMMAND: python protocol_guard/phase3_min/lint_delivery_zip.py --zip-path reviews/UPLOAD_NEXT/ANIMATION_STATE_I4B/ANIMATION_STATE_I4B_R7_EVIDENCE_CORRECTION_UPLOAD.zip --expected-entry reviews/PROJECT_CODEIFICATION_MASTER_MAP.md --expected-entry reviews/ANIMATION_STATE_DESIGN_R5.md --expected-entry reviews/ANIMATION_STATE_I4B_ACTIVATION_SYNC_REPORT.md --expected-entry protocol_guard/phase3_min/blender_scene_reader.py --expected-entry protocol_guard/phase3_min/asset_scene_preflight_check.py --expected-entry protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i4b_blender.py --expected-entry protocol_guard/phase3_min/tests/blender_animation_state_i4b_runner.py --expected-entry protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i4a_blender.py --expected-entry protocol_guard/phase3_min/tests/blender_animation_state_i4a_runner.py --expected-entry reviews/ANIMATION_STATE_I4B_R7_REPORT.md --expected-entry reviews/ANIMATION_STATE_I4B_R7_FOCUSED_TEST_OUTPUT.txt --expected-entry ANIMATION_STATE_I4B_MANIFEST.txt
+CWD: D:\blender-video-factory
+STDOUT:
+LINT_DELIVERY_ZIP_STATUS: PASS ZIP_ENTRY_COUNT: 12 EXPECTED_ENTRY_COUNT: 12 ZIP_NAMELIST_EXACT: TRUE ZIP_TESTZIP_OK: TRUE ZIP_VERIFIED: TRUE
+STDERR: <EMPTY>
+EXIT_CODE: 0

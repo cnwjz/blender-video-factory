@@ -1,0 +1,26 @@
+﻿TEST_COMMAND: python -m pytest tests/test_asset_scene_preflight_animation_state_i3_blender.py -v --tb=long 2>&1
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory\protocol_guard\phase3_min
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 13 items
+
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_blender_exit_zero PASSED [  7%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_blender_version PASSED [ 15%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_factory_startup PASSED [ 23%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_count PASSED [ 30%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_1_root_object_allowed PASSED [ 38%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_2_non_root_non_armature_allowed PASSED [ 46%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_3_case_sensitive_mismatch PASSED [ 53%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_4_missing_object PASSED [ 61%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_5_other_scene_object_from_target PASSED [ 69%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_6_other_scene_object_from_own_scene PASSED [ 76%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_no_blend_opened PASSED [ 84%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_no_render PASSED [ 92%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_cleanup_verified PASSED [100%]
+
+============================= 13 passed in 1.32s ==============================
+
+PYTEST_EXIT_CODE: 0

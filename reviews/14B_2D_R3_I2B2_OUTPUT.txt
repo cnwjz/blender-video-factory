@@ -1,0 +1,22 @@
+﻿COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py -v --tb=long
+STDOUT_BEGIN
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 7 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestSceneObjectsErrorStopsTypeRead::test_scene_objects_error_no_type_read PASSED [ 14%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestRootChildrenErrorStopsTypeRead::test_root_children_error_no_type_read PASSED [ 28%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestDescendantNameErrorStopsChildrenAndType::test_name_error_no_children_or_type_read PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestDescendantChildrenErrorStopsTypeRead::test_children_error_no_type_read PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestAllNormalThenTypeError::test_all_four_normal_then_type_error PASSED [ 71%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestTypeErrorStillPrecedesAmbiguity::test_type_error_before_ambiguity_preserved PASSED [ 85%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py::TestErrorResultOmitsFields::test_name_error_omits_normal_fields PASSED [100%]
+
+============================= 7 passed in 10.89s ==============================
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0

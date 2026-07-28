@@ -1,0 +1,25 @@
+﻿COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py -v --tb=long
+STDOUT_BEGIN
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 10 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestTypeLookupPrecedesAmbiguity::test_first_dup_type_throws PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestTypeLookupPrecedesAmbiguity::test_second_dup_type_throws PASSED [ 20%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestTypeLookupPrecedesAmbiguity::test_both_types_normal_ambiguity_wins PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestUnreferencedAmbiguityTypeNotRead::test_unreferenced_duplicates_not_type_accessed PASSED [ 40%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestI2AUniquePreserved::test_unique_object_type_error_still_works PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestI1NormalPreserved::test_normal_type_match_still_works PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestI1NormalPreserved::test_type_mismatch_still_works PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestErrorResultOmitFields::test_error_omits_normal_fields PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestUnreferencedAmbiguityWithUniqueRefTypeError::test_unreferenced_dup_unique_ref_type_error PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py::TestUnreferencedAmbiguityWithUniqueRefTypeError::test_unreferenced_dup_unique_ref_type_normal PASSED [100%]
+
+============================= 10 passed in 16.04s =============================
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0

@@ -1,0 +1,52 @@
+﻿TEST_COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py -vv
+CWD: D:\blender-video-factory
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 39 items
+
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_map_path_is_reviews PASSED [  2%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_current_map_passes PASSED [  5%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_version_mismatch_fails PASSED [  7%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_next_task_conflict_fails PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_stale_but_consistent_fails PASSED [ 12%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_visibility_table_stale_fails PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_missing_required_section_fails PASSED [ 17%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_valid_zip_with_flat_files_passes PASSED [ 20%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_missing_file_fails PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_extra_file_fails PASSED [ 25%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_duplicate_expected_entry_fails PASSED [ 28%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_bad_zip_fails PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_python_syntax_error_fails PASSED [ 33%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_zero_size_zip_fails PASSED [ 35%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_expected_entry_with_absolute_fails PASSED [ 38%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_drive_relative_expected_entry_fails PASSED [ 41%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_reviews_path_zip_passes PASSED [ 43%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_flattened_path_rejected PASSED [ 46%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_directory_entry_rejected PASSED [ 48%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_inner_zip_rejected PASSED [ 51%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_normal_test_passes PASSED [ 53%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_ast_parse_failure_fails PASSED [ 56%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_skip_decorator_fails PASSED [ 58%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_skipif_decorator_fails PASSED [ 61%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_xfail_decorator_fails PASSED [ 64%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_importorskip_call_fails PASSED [ 66%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_bare_return_fails PASSED [ 69%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_valued_return_fails PASSED [ 71%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assert_literal_pass PASSED [ 74%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_assert_msg_literal_fails PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assert_literal_in_assignment_only_fails PASSED [ 79%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assignment_pass PASSED [ 82%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assignment_missing_fails PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_call_pass PASSED [ 87%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_call_wrong_receiver_fails PASSED [ 89%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_invalid_policy_JSON_exits_2 PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_bad_schema_exits_2 PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::test_test_file_self_parse PASSED [ 97%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::test_test_file_no_skip_xfail PASSED [100%]
+
+============================= 39 passed in 2.36s ==============================
+PYTEST_EXIT_CODE: 0

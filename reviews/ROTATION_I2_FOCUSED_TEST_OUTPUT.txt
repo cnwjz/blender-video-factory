@@ -1,0 +1,133 @@
+﻿TEST_COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py -v
+CWD: D:\blender-video-factory
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 42 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_rotation_missing PASSED [  2%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_rotation_null PASSED [  4%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_rotation_empty PASSED [  7%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_erw_none_tol_present PASSED [  9%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_both_none PASSED [ 11%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_only_tolerance_present PASSED [ 14%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestI2Boundary::test_quaternion_code_present PASSED [ 16%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestI2Boundary::test_no_angle_comparison_in_i2 PASSED [ 19%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_erw_present_tol_missing_detected PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_erw_present_tol_present_ok PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_erw_none_tol_none_ok PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_rotation_not_dict_skipped PASSED [ 28%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_rotation_missing_skipped PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpenWiring::test_preopen_catches_rotation_before_path_validation PASSED [ 33%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestEntryWiring::test_check_rotation_called_in_check_root_objects FAILED [ 35%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestIntegration::test_root_not_found_rotation_not_checked PASSED [ 38%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestIntegration::test_rotation_integrated_in_checks_keys PASSED [ 40%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::test_test_file_self_parse PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::test_test_file_no_skip_xfail PASSED [ 45%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestI1SemanticsPreserved::test_rotation_missing PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestI1SemanticsPreserved::test_rotation_null PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestI1SemanticsPreserved::test_rotation_empty PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestI1SemanticsPreserved::test_erw_none PASSED [ 54%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestI1SemanticsPreserved::test_unconfigured_no_mw_read PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestMatrixWorldRead::test_reads_matrix_world_once PASSED [ 59%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestMatrixWorldRead::test_to_quaternion_called_once PASSED [ 61%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestMatrixWorldRead::test_matrix_world_read_exception PASSED [ 64%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestActualQuaternionErrors::test_to_quaternion_raises PASSED [ 66%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestActualQuaternionErrors::test_actual_nonfinite PASSED [ 69%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestActualQuaternionErrors::test_actual_zero_length PASSED [ 71%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestExpectedEuler::test_euler_order_is_xyz PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestExpectedEuler::test_degrees_to_radians PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestExpectedEuler::test_euler_to_quaternion_called_once PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestExpectedQuaternionErrors::test_euler_conversion_raises PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestExpectedQuaternionErrors::test_expected_nonfinite PASSED [ 83%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestExpectedQuaternionErrors::test_expected_zero_length PASSED [ 85%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestErrorShortCircuit::test_mw_error_blocks_to_quaternion PASSED [ 88%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestErrorShortCircuit::test_actual_error_blocks_expected_conversion PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestSuccessBoundary::test_both_valid_no_angle_compare PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::TestSuccessBoundary::test_success_not_calls_quaternion_min_angle PASSED [ 95%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::test_test_file_self_parse PASSED [ 97%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i2.py::test_test_file_no_skip_xfail PASSED [100%]
+
+================================== FAILURES ===================================
+______ TestEntryWiring.test_check_rotation_called_in_check_root_objects _______
+
+self = <protocol_guard.phase3_min.tests.test_asset_scene_preflight_blender_rotation_i1.TestEntryWiring object at 0x000001B812CFCA50>
+
+        def test_check_rotation_called_in_check_root_objects(self):
+            """Prove _check_rotation is wired into _check_root_objects entry."""
+            import tempfile, subprocess
+            td = tempfile.mkdtemp()
+            try:
+                script = f'''
+    import sys, os, types
+    sys.path.insert(0, r"{ROOT}")
+    _bpy = types.ModuleType("bpy"); sys.modules["bpy"] = _bpy
+    _mu = types.ModuleType("mathutils"); sys.modules["mathutils"] = _mu
+    
+    # Track calls
+    _call_counts = {{}}
+    _orig_funcs = {{}}
+    
+    from protocol_guard.phase3_min import blender_scene_reader as reader
+    
+    for name in ["_check_direct_children", "_check_descendants",
+                  "_check_standing_up_axis", "_check_facing_forward_axis",
+                  "_check_visibility", "_check_rotation"]:
+        _orig_funcs[name] = getattr(reader, name)
+        def _wrapper(fn_name):
+            def _w(*args):
+                _call_counts[fn_name] = _call_counts.get(fn_name, 0) + 1
+                return _orig_funcs[fn_name](*args)
+            return _w
+        setattr(reader, name, _wrapper(name))
+    
+    # Create fake scene with one matching root object
+    class Obj:
+        type = "EMPTY"
+        name = "Root"
+    obj = Obj()
+    class FS:
+        def __init__(self, objs): self.objects = list(objs)
+        @property
+        def scene_name(self): return "Scene"
+    
+    results = reader._check_root_objects(FS([obj]), [{{
+        "target_id":"A","root_object_name":"Root","expected_root_type":"EMPTY",
+        "rotation":{{"expected_world_rotation_euler_degrees":[0,0,0],
+                     "rotation_tolerance_degrees":2.0}},
+    }}])
+    
+    chk = results[0]["checks"]
+    assert "rotation" in chk, f"rotation not in checks: {{chk.keys()}}"
+    assert chk["rotation"]["result"] == "NOT_CHECKED"
+    assert _call_counts.get("_check_rotation") == 1, (
+        f"_check_rotation called {{_call_counts.get('_check_rotation', 0)}} times"
+    )
+    assert _call_counts.get("_check_standing_up_axis") == 1
+    assert _call_counts.get("_check_facing_forward_axis") == 1
+    assert _call_counts.get("_check_visibility") == 1
+    assert "overall" in results[0]
+    print("PASS=ENTRY_WIRED")
+    '''
+                sf = os.path.join(td, "run.py")
+                with open(sf, "w") as f: f.write(script)
+                r = subprocess.run(["python", sf], capture_output=True, text=True)
+>               assert r.returncode == 0 and "PASS=ENTRY_WIRED" in r.stdout, (
+                    f"FAILED: {r.stdout} {r.stderr}"
+                )
+E               AssertionError: FAILED:  Traceback (most recent call last):
+E                   File "C:\Users\ADMINI~1\AppData\Local\Temp\tmpda6h9cjj\run.py", line 42, in <module>
+E                     assert chk["rotation"]["result"] == "NOT_CHECKED"
+E                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E                 AssertionError
+E                 
+E               assert (1 == 0)
+E                +  where 1 = CompletedProcess(args=['python', 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpda6h9cjj\\run.py'], returncode=1, stdout='', stderr='Traceback (most recent call last):\n  File "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpda6h9cjj\\run.py", line 42, in <module>\n    assert chk["rotation"]["result"] == "NOT_CHECKED"\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n').returncode
+
+protocol_guard\phase3_min\tests\test_asset_scene_preflight_blender_rotation_i1.py:257: AssertionError
+=========================== short test summary info ===========================
+FAILED protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestEntryWiring::test_check_rotation_called_in_check_root_objects
+======================== 1 failed, 41 passed in 0.28s =========================
+PYTEST_EXIT_CODE: 1

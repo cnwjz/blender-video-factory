@@ -1,0 +1,68 @@
+# Projection Groups Formal Lock Sync R2 Correction Report
+
+```text
+TASK_ID: PROJECTION_GROUPS_FORMAL_LOCK_SYNC_R2_CORRECTION
+TASK_TYPE: DOCUMENT_AND_STATUS_CORRECTION
+SOURCE_MASTER_MAP_VERSION: R81
+TARGET_MASTER_MAP_VERSION: R82
+DATE: 2026-07-27
+
+USER_FORMAL_APPROVAL: TRUE (unchanged from R81)
+PROJECTION_GROUPS_FINAL_LOCKED: TRUE (unchanged)
+```
+
+## Correction Summary
+
+```text
+PROMPT_DEFECT:
+  R81 主控提示词误将设计锁定记录路径复用于最终锁定记录，
+  导致两个独立的法律事实指向同一文件。
+
+CORRECTION:
+  — 恢复独立的设计锁定记录: reviews/PROJECTION_GROUPS_DESIGN_R3_FORMAL_LOCK_RECORD.md
+  — 最终锁定记录保持原样: reviews/PROJECTION_GROUPS_FORMAL_LOCK_RECORD.md
+  — 总地图 R81 → R82 路径修正
+  — §15 NOT_STARTED_RUNTIME 清除
+  — §9 进度文字和百分比同步
+
+FORMAL_LOCK_PRESERVED:
+  原同步报告被本修正报告取代。
+  设计锁定记录已恢复为独立文件。
+  最终锁定记录 SHA256 未变化。
+  E 结果、测试结果、批准事实保持不变。
+```
+
+## Files Modified
+
+```text
+reviews/PROJECTION_GROUPS_DESIGN_R3_FORMAL_LOCK_RECORD.md — 新建
+reviews/PROJECTION_GROUPS_FORMAL_LOCK_SYNC_R2_CORRECTION_REPORT.md — 新建 (本文件)
+reviews/PROJECT_CODEIFICATION_MASTER_MAP.md — R81 → R82
+```
+
+## Unchanged
+
+```text
+reviews/PROJECTION_GROUPS_FORMAL_LOCK_RECORD.md — 逐字节不变
+生产代码: 未修改
+测试: 未修改
+pytest: 未执行
+Blender: 未执行
+```
+
+## SHA256
+
+```text
+DESIGN_LOCK_RECORD_SHA256:
+  93EA1750CE9CC0BEDD5E5CCF6F6D1FE8138DDB85BB51E2088E68FF19485AF3E8
+
+FINAL_LOCK_RECORD_SHA256 (unchanged):
+  666D64592F462ABD9277E6A69AB0B3DAFABBB9FFD3BAAB183FA24D83834E95A5
+
+MASTER_MAP_SHA256 (R82):
+  C00023E858CA995EEB7332B5F899EC66B1D21821697A5C52C91C7812268F34EB
+```
+
+---
+
+*Correction complete. Design and final lock records are now distinct files.*

@@ -1,0 +1,87 @@
+﻿{
+    "baseline_commit":  "d44679fc11c5069a17277395bb6c52b5a6dfc799",
+    "task_id":  "14B_2D_R12B_EVIDENCE_CORRECTION",
+    "outputs":  [
+                    {
+                        "size":  2702,
+                        "exit_code":  "0",
+                        "sha256":  "49D375534F699A45B2D6B3B40D2E22EA83E10D42D57B861A9D9C079999F3B22E",
+                        "stdout_section_present":  true,
+                        "result_summary":  "12 passed",
+                        "path":  "reviews/14B_2D_R12_I2B1_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  18399,
+                        "exit_code":  "0",
+                        "sha256":  "7DC76403E5A1A9F79F8CAB999D77B0EDAE7727148EF10262B2F313C0C150A1BF",
+                        "stdout_section_present":  true,
+                        "result_summary":  "139 passed",
+                        "path":  "reviews/14B_2D_R12_14A_CORE_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  3622,
+                        "exit_code":  "0",
+                        "sha256":  "7D86E2979C96302905F9282FB402E3C6ED7F88CCF9A92C0F361818AF22DFCD8A",
+                        "stdout_section_present":  true,
+                        "result_summary":  "19 passed",
+                        "path":  "reviews/14B_2D_R12_I1B_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  85695,
+                        "exit_code":  "0",
+                        "sha256":  "F89AD0388DBC1A1DA9274D19EC3A82387BA0A3F36442C662475FAADEA95E2465",
+                        "stdout_section_present":  true,
+                        "result_summary":  "635 passed, 2 skipped",
+                        "path":  "reviews/14B_2D_R12_PROTOCOL_GUARD_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  12718,
+                        "exit_code":  "0",
+                        "sha256":  "E2C546EB4268C2B4791BC0342BA2D221980C11BDD3480BEF419A930EAC41C531",
+                        "stdout_section_present":  true,
+                        "result_summary":  "73 passed",
+                        "path":  "reviews/14B_2D_R12_DESCENDANT_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  2088,
+                        "exit_code":  "0",
+                        "sha256":  "EBA4B996D3D01EEF29B923FF6B59E8BA387774C3781609BDA3C55AFAE9ABF9A2",
+                        "stdout_section_present":  true,
+                        "result_summary":  "9 passed",
+                        "path":  "reviews/14B_2D_R12_I2A_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  1853,
+                        "exit_code":  "0",
+                        "sha256":  "89022017A60A4B18DB79035F47F10EB033A825A5DF68C181146C46CA391DF5BC",
+                        "stdout_section_present":  true,
+                        "result_summary":  "7 passed",
+                        "path":  "reviews/14B_2D_R12_I2B2_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    },
+                    {
+                        "size":  3354,
+                        "exit_code":  "0",
+                        "sha256":  "EBAB42957673EB3DA9922C807D01BCAEF6D186818EB7FAABAEAE537BE4304B2D",
+                        "stdout_section_present":  true,
+                        "result_summary":  "17 passed",
+                        "path":  "reviews/14B_2D_R12_I1A_OUTPUT.txt",
+                        "stderr_section_present":  true,
+                        "command_present":  true
+                    }
+                ],
+    "output_count":  8
+}

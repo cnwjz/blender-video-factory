@@ -1,0 +1,120 @@
+=== pytest ===
+COMMAND_ARGV_JSON_ASCII: ["C:\\Python314\\python.exe", "-m", "pytest", "D:\\blender-video-factory\\protocol_guard\\phase3_min\\tests\\test_asset_scene_preflight_animation_state_i5_scope_guard.py", "-v", "--tb=long"]
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory\protocol_guard\phase3_min
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 56 items
+
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_exists PASSED [  1%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_counts PASSED [  3%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_reads_zero PASSED [  5%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_calls_zero PASSED [  7%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_writes_zero PASSED [  8%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[bound_box] PASSED [ 10%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[dimensions] PASSED [ 12%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_depsgraph_get] PASSED [ 14%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_get] PASSED [ 16%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_get] PASSED [ 17%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_render] PASSED [ 19%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_viewport] PASSED [ 21%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[location] PASSED [ 23%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[material_slots] PASSED [ 25%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_basis] PASSED [ 26%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_local] PASSED [ 28%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_parent_inverse] PASSED [ 30%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_world] PASSED [ 32%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[nla_tracks] PASSED [ 33%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_euler] PASSED [ 35%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_mode] PASSED [ 37%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_quaternion] PASSED [ 39%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[scale] PASSED [ 41%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh] PASSED [ 42%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh_clear] PASSED [ 44%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[users_collection] PASSED [ 46%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails PASSED [ 48%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[scene.objects] PASSED [ 50%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[animation_object.name] PASSED [ 51%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[animation_object.animation_data] PASSED [ 53%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[animation_data.action] PASSED [ 55%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[action.name] PASSED [ 57%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[animation_object.data] PASSED [ 58%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[data.pose_position] PASSED [ 60%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate_injection[scene.frame_current] PASSED [ 62%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_ops_injection PASSED [ 64%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_ops_alias_injection PASSED [ 66%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_data_get_injection PASSED [ 67%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_data_get_alias_injection PASSED [ 69%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_data_subscript_injection PASSED [ 71%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_data_subscript_alias_injection PASSED [ 73%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_write_injection PASSED [ 75%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_delete_injection PASSED [ 76%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_aug_assign_injection PASSED [ 78%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_ann_assign_injection PASSED [ 80%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_setattr_injection PASSED [ 82%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_delattr_injection PASSED [ 83%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_tuple_nested_write_injection PASSED [ 85%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_forbidden PASSED [ 87%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_alias_forbidden PASSED [ 89%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_multi_layer_helper PASSED [ 91%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_recursive_helper PASSED [ 92%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_lambda_forbidden PASSED [ 94%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_helper_skipped PASSED [ 96%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_lambda_skipped PASSED [ 98%]
+tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_missing_fails PASSED [100%]
+
+============================= 56 passed in 0.58s ==============================
+
+STDERR:
+<EMPTY>
+EXIT_CODE: 0
+
+=== lint_map ===
+COMMAND_ARGV_JSON_ASCII: ["C:\\Python314\\python.exe", "-X", "utf8", "D:\\blender-video-factory\\protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "D:\\blender-video-factory\\reviews\\PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R54", "--expected-active-task", "ANIMATION_STATE_I5", "--expected-active-status", "AUTHORIZED_NOT_STARTED", "--expected-next-task", "ANIMATION_STATE_I5", "--expected-next-action", "\u6267\u884c Animation State I5 Scope Guard\uff1b\u4e0d\u5f97\u5f00\u59cb E \u5b8c\u6574\u56de\u5f52\u3001\u72b6\u6001\u540c\u6b65\u6216\u6b63\u5f0f\u9501\u5b9a\u3002", "--expected-visibility-status", "LOCKED"]
+CWD: D:\blender-video-factory
+STDOUT:
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R54
+ACTIVE_TASK_MATCH: ANIMATION_STATE_I5
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+NEXT_TASK_MATCH: ANIMATION_STATE_I5
+NEXT_ACTION_MATCH: 执行 Animation State I5 Scope Guard；不得开始 E 完整回归、状态同步或正式锁定。
+VISIBILITY_STATUS_MATCH: LOCKED
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: Section9_visibility_progress row '^\s+visibility\s+\(([A-Za-z0-9_]+)' not found
+
+STDERR:
+<EMPTY>
+EXIT_CODE: 1
+MASTER_MAP_LINT_CORE_CHECK_RESULT: PASS
+MASTER_MAP_LINT_RESULT: NOT_APPLICABLE_CURRENT_IMPLEMENTATION_VISIBILITY_SPECIFIC
+NEXT_ACTION_SHA256_MATCH: true
+
+=== lint_focused ===
+COMMAND_ARGV_JSON_ASCII: ["C:\\Python314\\python.exe", "D:\\blender-video-factory\\protocol_guard\\phase3_min\\lint_focused_test.py", "--test-path", "D:\\blender-video-factory\\protocol_guard\\phase3_min\\tests\\test_asset_scene_preflight_animation_state_i5_scope_guard.py"]
+CWD: D:\blender-video-factory
+STDOUT:
+LINT_FOCUSED_TEST_STATUS: PASS
+FILES_CHECKED: 1
+TEST_FUNCTION_COUNT: 29
+SKIP_XFAIL_VIOLATION_COUNT: 0
+EARLY_RETURN_COUNT: 0
+ASSERT_POLICY_FAILURE_COUNT: 0
+ASSIGNMENT_POLICY_FAILURE_COUNT: 0
+CALL_POLICY_FAILURE_COUNT: 0
+TOTAL_VIOLATIONS: 0
+
+STDERR:
+<EMPTY>
+EXIT_CODE: 0
+
+=== lint_delivery_zip ===
+COMMAND_ARGV_JSON_ASCII: python protocol_guard/phase3_min/lint_delivery_zip.py --zip-path reviews/UPLOAD_NEXT/ANIMATION_STATE_I5/ANIMATION_STATE_I5_R5_CORRECTION_UPLOAD.zip --expected-entry reviews/PROJECT_CODEIFICATION_MASTER_MAP.md --expected-entry reviews/ANIMATION_STATE_DESIGN_R5.md --expected-entry reviews/ANIMATION_STATE_I5_ACTIVATION_SYNC_REPORT.md --expected-entry protocol_guard/phase3_min/blender_scene_reader.py --expected-entry protocol_guard/phase3_min/asset_scene_preflight_check.py --expected-entry protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py --expected-entry reviews/ANIMATION_STATE_I5_R5_REPORT.md --expected-entry reviews/ANIMATION_STATE_I5_R5_FOCUSED_TEST_OUTPUT.txt --expected-entry ANIMATION_STATE_I5_MANIFEST.txt
+CWD: D:\blender-video-factory
+STDOUT:
+LINT_DELIVERY_ZIP_STATUS: PASS ZIP_ENTRY_COUNT: 9 EXPECTED_ENTRY_COUNT: 9 ZIP_NAMELIST_EXACT: TRUE ZIP_TESTZIP_OK: TRUE ZIP_VERIFIED: TRUE
+STDERR: <EMPTY>
+EXIT_CODE: 0

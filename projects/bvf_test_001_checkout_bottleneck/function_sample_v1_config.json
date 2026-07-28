@@ -1,0 +1,46 @@
+{
+  "task_id": "FUNCTION_SAMPLE_V1_BUILD",
+  "sample_scope": "checkout_window_close",
+  "duration_seconds": 4.5,
+  "fps": 30,
+  "total_frames": 135,
+  "output_resolution": [540, 960],
+
+  "interactions": [
+    {"id": 1, "name": "conveyor_running", "frames": [1, 35], "description": "Products move along belt, green status light"},
+    {"id": 2, "name": "status_green_to_red", "frames": [36, 40], "description": "Status light changes from green to red"},
+    {"id": 3, "name": "conveyor_stop", "frames": [36, 60], "description": "Products stop moving on belt"},
+    {"id": 4, "name": "close_sign_appears", "frames": [40, 50], "description": "Close sign rises into view"},
+    {"id": 5, "name": "cashier_turn_and_exit", "frames": [60, 110], "description": "Cashier turns and walks away from counter"},
+    {"id": 6, "name": "customer_begin_turn", "frames": [90, 120], "description": "Front customer begins turning in reaction"}
+  ],
+
+  "assets": {
+    "environment": "checkout_candidate_01 (Supermercado.zip)",
+    "characters": "character_candidate_01 (Blends-*.zip)",
+    "cashier": "Worker_Male",
+    "customer": "Casual_Bald",
+    "counter": "cashier.fbx",
+    "shelves": ["shelfMarker.fbx", "shelfMarker2.fbx"],
+    "products": ["Milk.fbx", "Bread.fbx", "Juice.fbx", "Eggs.fbx"],
+    "shopping_cart": "ShopingCar.fbx",
+    "status_light": "BUILT_FROM_PRIMITIVE (cylinder + emission material)",
+    "close_sign": "BUILT_FROM_PRIMITIVE (plane + yellow material)"
+  },
+
+  "camera": {
+    "type": "angled_top_down",
+    "lens": 35,
+    "position": [0, -3.0, 2.5],
+    "rotation": [65, 0, 0],
+    "rationale": "Clear view of counter, characters, belt, and close sign while suggesting 9:16 framing"
+  },
+
+  "lighting": {
+    "engine": "EEVEE",
+    "key": {"type": "SUN", "position": [5, -5, 8], "energy": 5.0},
+    "fill": {"type": "AREA", "position": [-3, 2, 3], "energy": 100, "size": 4},
+    "rim": {"type": "AREA", "position": [0, 4, 2], "energy": 60, "size": 4},
+    "world_color": [0.6, 0.65, 0.7]
+  }
+}

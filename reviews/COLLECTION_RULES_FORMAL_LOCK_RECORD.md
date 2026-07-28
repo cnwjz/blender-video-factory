@@ -1,0 +1,46 @@
+# Collection Rules Formal Lock Record
+
+```text
+TASK_ID: COLLECTION_RULES_FORMAL_LOCK_SYNC
+RECORD_TYPE: FORMAL_LOCK_RECORD
+DATE: 2026-07-26
+
+USER_FORMAL_APPROVAL: TRUE
+USER_FORMAL_APPROVAL_DATE: 2026-07-26
+LOCK_STATUS: FORMALLY_LOCKED
+LOCK_BASIS: USER_FORMAL_APPROVAL
+
+DESIGN_VERSION: R1
+DESIGN_FILE: reviews/COLLECTION_RULES_DESIGN_R1.md
+DESIGN_FORMALLY_LOCKED: TRUE
+
+IMPLEMENTATION_STAGES:
+  I1: COMPLETED_AND_INDEPENDENTLY_PASSED
+  I2: COMPLETED_AND_INDEPENDENTLY_PASSED
+  I3: COMPLETED_AND_INDEPENDENTLY_PASSED
+  I4A: COMPLETED_AND_INDEPENDENTLY_PASSED
+  I4B: COMPLETED_AND_INDEPENDENTLY_PASSED
+  E: COMPLETED_AND_INDEPENDENTLY_PASSED
+
+FINAL_RESULTS:
+  COLLECTION_RULES_FOCUSED: 234 passed, 0 failed, 0 skipped, exit 0
+  CORE_14A: 139 passed, 0 failed, 0 skipped, exit 0
+  FULL_PROTOCOL_GUARD: 1716 collected, 1714 passed, 0 failed, 0 errors, 2 skipped, exit 0
+  I4B_BLENDER_SCENARIOS: 13 of 13 passed
+  BLENDER_VERSION: 5.1.2
+
+SAFETY_BOUNDARY:
+  REAL_PROJECT_BLEND_OPENED: FALSE
+  TEMP_BLEND_SAVED: FALSE
+  RENDER_EXECUTED: FALSE
+
+NON_BLOCKING_LIMITATION:
+  Collection Rules I4A Scope Guard protects the frozen project contract
+  and is not a general-purpose Python static analyzer.
+
+LOCK_EFFECT:
+  Collection Rules Design R1, current production semantics,
+  required tests and accepted boundaries are frozen.
+  They must not be redesigned, weakened or expanded
+  without explicit user authorization.
+```

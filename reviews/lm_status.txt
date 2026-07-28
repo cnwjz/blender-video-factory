@@ -1,0 +1,19 @@
+CWD: D:\blender-video-factory
+EXIT_CODE: 1
+COMMAND_ARGV_JSON_ASCII: ["C:\\Python314\\python.exe", "-X", "utf8", "protocol_guard/phase3_min/lint_master_map.py", "--map-path", "reviews/PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R53", "--expected-active-task", "NONE", "--expected-active-status", "NONE", "--expected-next-task", "AWAIT_USER_DIRECTION", "--expected-next-action", "\u7b49\u5f85\u7528\u6237\u6388\u6743 Animation State I5\uff1b\u4e0d\u5f97\u81ea\u884c\u5f00\u59cb I5 Scope Guard\u3001E \u5b8c\u6574\u56de\u5f52\u3001\u72b6\u6001\u540c\u6b65\u6216\u6b63\u5f0f\u9501\u5b9a\u3002", "--expected-visibility-status", "LOCKED"]
+COMMAND_ARGV_JSON_PARSEABLE: true
+EXPECTED_NEXT_ACTION_SHA256: dd2777cdf6787194a199746b2ae008cc1caad87fc3316d17a1ada55ab0bd5fa0
+MASTER_MAP_NEXT_ACTION_SHA256: dd2777cdf6787194a199746b2ae008cc1caad87fc3316d17a1ada55ab0bd5fa0
+NEXT_ACTION_SHA256_MATCH: true
+STDOUT:
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R53
+ACTIVE_TASK_MATCH: NONE
+ACTIVE_STATUS_MATCH: NONE
+NEXT_TASK_MATCH: AWAIT_USER_DIRECTION
+NEXT_ACTION_MATCH: 等待用户授权 Animation State I5；不得自行开始 I5 Scope Guard、E 完整回归、状态同步或正式锁定。
+VISIBILITY_STATUS_MATCH: LOCKED
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: Section9_visibility_progress row '^\s+visibility\s+\(([A-Za-z0-9_]+)' not found
+STDERR:
+<EMPTY>

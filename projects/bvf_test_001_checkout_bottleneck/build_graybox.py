@@ -36,12 +36,19 @@ def make_material(name, rgb):
     bsdf.inputs["Roughness"].default_value = 0.9
     return mat
 
-def make_character(name, x, y, z, color):
+def make_character(name, x, y, z, color, radius=None, height=None):
     """Simplified geometric humanoid: cylinder body + sphere head."""
+    if radius is None: radius = CFG["spatial"].get("character_radius", 0.15)
+    if height is None: height = CFG["spatial"].get("character_height", 1.4)
+    body_depth = height * 0.643  # body is ~64% of total height
+    head_radius = radius * 0.93
+    body_z = body_depth / 2
+    head_z = body_depth + head_radius * 0.5
+    local_head_z = head_z - body_z
     # Body
     bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.15, depth=0.9,
-        location=(x, y, z + 0.45)
+        radius=radius, depth=body_depth,
+        location=(x, y, z + body_z)
     )
     body = bpy.context.object
     body.name = f"{name}_body"
@@ -50,23 +57,30 @@ def make_character(name, x, y, z, color):
 
     # Head
     bpy.ops.mesh.primitive_uv_sphere_add(
-        radius=0.14,
-        location=(x, y, z + 0.97)
+        radius=head_radius,
+        location=(0, 0, 0)
     )
     head = bpy.context.object
     head.name = f"{name}_head"
     head.data.materials.append(mat)
 
-    # Parent head to body
     head.parent = body
+    head.location = (0, 0, local_head_z)
 
     return body
 
 def make_cashier(name, x, y, z, color):
     """Cashier standing behind counter."""
+    r = CFG["spatial"].get("character_radius", 0.15) * 1.07  # slightly larger
+    h = CFG["spatial"].get("character_height", 1.4) * 1.07
+    body_depth = h * 0.643
+    head_radius = r * 0.93
+    body_z = body_depth / 2
+    local_head_z = body_depth + head_radius * 0.5 - body_z
+
     bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.16, depth=0.95,
-        location=(x, y, z + 0.475)
+        radius=r, depth=body_depth,
+        location=(x, y, z + body_z)
     )
     body = bpy.context.object
     body.name = f"{name}_body"
@@ -74,13 +88,14 @@ def make_cashier(name, x, y, z, color):
     body.data.materials.append(mat)
 
     bpy.ops.mesh.primitive_uv_sphere_add(
-        radius=0.15,
-        location=(x, y, z + 1.0)
+        radius=head_radius,
+        location=(0, 0, 0)
     )
     head = bpy.context.object
     head.name = f"{name}_head"
     head.data.materials.append(mat)
     head.parent = body
+    head.location = (0, 0, local_head_z)
     return body
 
 def make_counter(name, x, y, z, color):
@@ -208,14 +223,30 @@ def build_scene():
         obj = make_cashier(name, pos[0], pos[1] - 0.3, pos[2] - 0.9, mat["cashier"])
         cashiers[key] = obj
 
-    # Initial customers
+    # ── Unified queue slot allocator ──
+    qsy = CFG["spatial"]["queue_spacing_y"]
+    qsy_front = CFG["spatial"]["queue_start_y"]
+    lane_slots = {"left": 0, "middle": 0, "right": 0}  # next available slot per lane
+
+    def allocate_slot(lane_name):
+        """Return Y position for the next available slot in lane."""
+        slot = lane_slots[lane_name]
+        lane_slots[lane_name] += 1
+        return qsy_front - slot * qsy
+
+    # Initial customers — positions from slot allocator
     characters = {}
-    for queue_key, queue_name in [("left_queue", "left"), ("middle_queue", "middle"), ("right_queue", "right")]:
-        for cust in CFG["characters_initial"][queue_key]:
-            sp = cust["start"]
-            char = make_character(cust["id"], sp[0], sp[1], sp[2], cust["color"])
-            characters[cust["id"]] = {"obj": char, "color": cust["color"],
-                                       "start": sp.copy(), "queue": queue_name}
+    for queue_key in ["left_queue", "middle_queue", "right_queue"]:
+        qdata = CFG["characters_initial"][queue_key]
+        lane_x = qdata["lane_x"]
+        lane_name = queue_key.replace("_queue", "")
+        color = qdata["color"]
+        for cid in qdata["ids"]:
+            cy = allocate_slot(lane_name)
+            sp = [lane_x, cy, 0.0]
+            char = make_character(cid, sp[0], sp[1], sp[2], color)
+            characters[cid] = {"obj": char, "color": color,
+                               "start": sp, "queue": lane_name}
 
     # ── Animation Setup ────────────────────────────────────
     scene = bpy.context.scene
@@ -298,13 +329,67 @@ def build_scene():
     mid_shutter.location.z = end_z
     mid_shutter.keyframe_insert(data_path="location", frame=88, index=2)
 
-    # Middle cashier retreats (frames 72-90)
+    # Middle cashier: walk out from behind counter to the right, then exit through open area (frames 82-102)
     mid_cashier = cashiers["middle"]
-    cashier_retreat = CFG["spatial"]["cashier_retreat"]
-    mid_cashier.location.y = CFG["spatial"]["window_positions"]["middle"][1] - 0.3
+    cashier_start_y = CFG["spatial"]["window_positions"]["middle"][1] - 0.3  # 2.7
+    cashier_start_x = CFG["spatial"]["window_positions"]["middle"][0]  # 0.0
+
+    # Hold initial position at frame 1
+    mid_cashier.location.x = cashier_start_x
+    mid_cashier.location.y = cashier_start_y
+    mid_cashier.keyframe_insert(data_path="location", frame=1, index=0)
     mid_cashier.keyframe_insert(data_path="location", frame=1, index=1)
-    mid_cashier.location.y = cashier_retreat[1]
-    mid_cashier.keyframe_insert(data_path="location", frame=90, index=1)
+    mid_cashier.keyframe_insert(data_path="location", frame=1, index=2)
+
+    # Phase 1 (82-90): step out from behind middle counter to the right (X: 0.0→1.4)
+    mid_cashier.location.y = cashier_start_y
+    mid_cashier.keyframe_insert(data_path="location", frame=82, index=1)
+    mid_cashier.location.x = cashier_start_x
+    mid_cashier.keyframe_insert(data_path="location", frame=82, index=0)
+    mid_cashier.location.z = mid_cashier.location.z
+    mid_cashier.keyframe_insert(data_path="location", frame=82, index=2)
+    mid_cashier.location.x = 1.4
+    mid_cashier.keyframe_insert(data_path="location", frame=90, index=0)
+
+    # Phase 2 (90-102): continue moving forward-right into open area (X: 1.4→2.2, Y: 2.7→1.5)
+    mid_cashier.location.x = 2.2
+    mid_cashier.keyframe_insert(data_path="location", frame=102, index=0)
+    mid_cashier.location.y = 1.5
+    mid_cashier.keyframe_insert(data_path="location", frame=102, index=1)
+    mid_cashier.location.z = mid_cashier.location.z
+    mid_cashier.keyframe_insert(data_path="location", frame=102, index=2)
+
+    # Frame 1: ensure cashier body visible
+    mid_cashier.hide_viewport = False
+    mid_cashier.hide_render = False
+    mid_cashier.keyframe_insert(data_path="hide_viewport", frame=1)
+    mid_cashier.keyframe_insert(data_path="hide_render", frame=1)
+
+    # Frame 102: hide cashier body (matches patch_cashier_exit_on_validated_b.py)
+    mid_cashier.hide_viewport = True
+    mid_cashier.hide_render = True
+    mid_cashier.keyframe_insert(data_path="hide_viewport", frame=102)
+    mid_cashier.keyframe_insert(data_path="hide_render", frame=102)
+
+    # XYZ hold at TOTAL — stabilize DG evaluation for hidden animated objects
+    mid_cashier.location.x = 2.2
+    mid_cashier.keyframe_insert(data_path="location", frame=TOTAL, index=0)
+    mid_cashier.location.y = 1.5
+    mid_cashier.keyframe_insert(data_path="location", frame=TOTAL, index=1)
+    mid_cashier.location.z = mid_cashier.location.z
+    mid_cashier.keyframe_insert(data_path="location", frame=TOTAL, index=2)
+
+    # Cashier head visibility sync (matches patch lines 98-106)
+    for child in mid_cashier.children:
+        if child.name.endswith("_head"):
+            child.hide_viewport = False
+            child.hide_render = False
+            child.keyframe_insert(data_path="hide_viewport", frame=1)
+            child.keyframe_insert(data_path="hide_render", frame=1)
+            child.hide_viewport = True
+            child.hide_render = True
+            child.keyframe_insert(data_path="hide_viewport", frame=102)
+            child.keyframe_insert(data_path="hide_render", frame=102)
 
     # Middle queue customers pause (stop advancing after frame 60)
     for cid in ["M1", "M2", "M3"]:
@@ -324,8 +409,8 @@ def build_scene():
         target_queue = d["to"]
         target_x = sp["window_positions"][target_queue][0]
 
-        # Target Y: behind the last person in target queue
-        target_y = sp["queue_start_y"] - (2 * sp["queue_spacing_y"])  # behind 3 existing
+        # Target Y: allocate unique slot in target lane
+        target_y = allocate_slot(target_queue)
 
         # Three-phase path: step back → sideways → forward
         obj = characters[cid]["obj"]
@@ -338,7 +423,7 @@ def build_scene():
         # Phase 1: step back (away from counter, lower Y)
         step_back_y = start_y - 0.6
         obj.location.y = start_y
-        obj.keyframe_insert(data_path="location", frame=120, index=1)
+        obj.keyframe_insert(data_path="location", frame=f_start, index=1)
         obj.location.y = step_back_y
         obj.keyframe_insert(data_path="location", frame=mid_frames, index=1)
 
@@ -365,17 +450,22 @@ def build_scene():
             "from_x": start_x, "to_x": target_x, "target_queue": target_queue
         })
 
-    # New customers enter
+    # New customers enter — positions computed from queue_spacing_y
     new_char_objs = {}
     for nc in new_custs:
         fid = nc["frame"]
-        tx = sp["window_positions"][nc["target_queue"]][0]
-        spx, spy, spz = nc["start_pos"]
-        char = make_character(nc["id"], spx, spy, spz, nc["color"])
+        qkey = nc["target_queue"]
+        lane_x = CFG["characters_initial"][qkey]["lane_x"]
+        color = nc["color"]
+        # Entry from below, Y = new_customer_entry_y
+        spy = CFG["spatial"]["new_customer_entry_y"]
+        spx, spz = lane_x, 0.0
+        char = make_character(nc["id"], spx, spy, spz, color)
         new_char_objs[nc["id"]] = char
 
-        # Enter from bottom: start off-screen at Y=-3.5, move to queue tail
-        target_y = sp["queue_start_y"] - (3 * sp["queue_spacing_y"])
+        # Target Y: allocate unique slot in target lane
+        lane_key = qkey.replace("_queue", "")
+        target_y = allocate_slot(lane_key)
         entry_end = min(fid + 28, TOTAL)
         char.location.y = spy
         char.keyframe_insert(data_path="location", frame=1, index=1)
@@ -397,6 +487,18 @@ def build_scene():
         char.hide_render = False
         char.keyframe_insert(data_path="hide_viewport", frame=fid)
         char.keyframe_insert(data_path="hide_render", frame=fid)
+
+        # BUG FIX (R2): sync head visibility with body
+        for child in char.children:
+            if child.name.endswith("_head"):
+                child.hide_viewport = True
+                child.hide_render = True
+                child.keyframe_insert(data_path="hide_viewport", frame=1)
+                child.keyframe_insert(data_path="hide_render", frame=1)
+                child.hide_viewport = False
+                child.hide_render = False
+                child.keyframe_insert(data_path="hide_viewport", frame=fid)
+                child.keyframe_insert(data_path="hide_render", frame=fid)
 
     # R1, R2, R3 also get gentle advance in Shot 3-4 (frames 121-270)
     # L1, L2, L3 same
@@ -556,7 +658,9 @@ if __name__ == "__main__":
     else:
         print("Skipped full render (--skip-render)")
 
-    # Save .blend
+    # Save .blend at frame 1 (stable state for downstream checks)
+    bpy.context.scene.frame_set(1)
+    bpy.context.view_layer.update()
     blend_path = os.path.join(SCRIPT_DIR, blend_name)
     bpy.ops.wm.save_mainfile(filepath=blend_path)
     print(f"Saved: {blend_path}")

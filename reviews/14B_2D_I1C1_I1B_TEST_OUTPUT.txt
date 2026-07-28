@@ -1,0 +1,34 @@
+﻿COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py -v --tb=long
+BEGIN_STDOUT
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 19 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesFieldMissingNullEmpty::test_field_missing PASSED [  5%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesFieldMissingNullEmpty::test_field_null PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesFieldMissingNullEmpty::test_field_empty_object PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesBasicMatch::test_single_direct_child_type_match PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesBasicMatch::test_deep_descendant_type_match PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesBasicMatch::test_multiple_all_match PASSED [ 31%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesNameNotFound::test_name_not_found PASSED [ 36%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesTypeMismatch::test_type_mismatch PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesCaseSensitive::test_name_case_sensitive PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesCaseSensitive::test_type_case_sensitive PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesMixedResults::test_mixed_pass_fail PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesOnlyTypesRule::test_only_types_configured PASSED [ 63%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesCombinedWithOtherRules::test_with_required_names_overlap PASSED [ 68%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesCombinedWithOtherRules::test_with_forbidden_combined PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesRootExcluded::test_root_not_satisfy_type_requirement PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesSceneScope::test_other_scene_object_not_satisfy PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesUnreferencedTypeNotRead::test_unreferenced_type_not_read PASSED [ 89%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesCheckSortOrder::test_checks_sorted_by_name PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py::TestTypesAmbiguityPreserved::test_ambiguity_still_errors PASSED [100%]
+
+============================= 19 passed in 27.55s =============================
+END_STDOUT
+BEGIN_STDERR
+END_STDERR
+EXIT_CODE: 0

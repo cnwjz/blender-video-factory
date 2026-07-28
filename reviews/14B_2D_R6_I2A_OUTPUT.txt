@@ -1,0 +1,24 @@
+﻿COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py -v --tb=long
+STDOUT_BEGIN
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 9 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestTypeReadError::test_type_read_throws_error PASSED [ 11%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestTypeReadError::test_error_omits_normal_fields PASSED [ 22%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestUnreferencedTypeNotRead::test_unreferenced_type_throw_not_accessed PASSED [ 33%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestNameNotFoundNoTypeRead::test_name_not_found_no_type_read PASSED [ 44%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestStableFirstError::test_multiple_errors_stable_first_by_casefold PASSED [ 55%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestNormalBehaviorPreserved::test_type_match_still_works PASSED [ 66%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestNormalBehaviorPreserved::test_type_mismatch_still_works PASSED [ 77%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestAmbiguityPreserved::test_ambiguity_still_errors_when_no_type_exception PASSED [ 88%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py::TestTopLevelErrorCollection::test_top_level_error_message PASSED [100%]
+
+============================= 9 passed in 15.03s ==============================
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0

@@ -1,0 +1,31 @@
+﻿TEST_COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py -vv
+CWD: D:\blender-video-factory
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 19 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_rotation_missing PASSED [  5%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_rotation_null PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_rotation_empty PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_erw_none_tol_present PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_both_none PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNotChecked::test_only_tolerance_present PASSED [ 31%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNoQuaternionInI1::test_full_config_does_not_read_matrix_world PASSED [ 36%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestNoQuaternionInI1::test_no_quaternion_code_triggered PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_erw_present_tol_missing_detected PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_erw_present_tol_present_ok PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_erw_none_tol_none_ok PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_rotation_not_dict_skipped PASSED [ 63%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpen::test_rotation_missing_skipped PASSED [ 68%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestPreOpenWiring::test_preopen_catches_rotation_before_path_validation PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestEntryWiring::test_check_rotation_called_in_check_root_objects PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestIntegration::test_root_not_found_rotation_not_checked PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::TestIntegration::test_rotation_integrated_in_checks_keys PASSED [ 89%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::test_test_file_self_parse PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_rotation_i1.py::test_test_file_no_skip_xfail PASSED [100%]
+
+============================= 19 passed in 0.19s ==============================
+PYTEST_EXIT_CODE: 0

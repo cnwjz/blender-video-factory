@@ -3,7 +3,10 @@
   "phase": "graybox",
   "seed": 42,
   "output": {
-    "resolution": [540, 960],
+    "resolution": [
+      540,
+      960
+    ],
     "fps": 30,
     "total_frames": 345,
     "engine": "BLENDER_EEVEE",
@@ -12,85 +15,322 @@
   "spatial": {
     "window_spacing": 2.0,
     "window_positions": {
-      "left": [-2.0, 3.0, 1.2],
-      "middle": [0.0, 3.0, 1.2],
-      "right": [2.0, 3.0, 1.2]
+      "left": [
+        -2.0,
+        3.0,
+        1.2
+      ],
+      "middle": [
+        0.0,
+        3.0,
+        1.2
+      ],
+      "right": [
+        2.0,
+        3.0,
+        1.2
+      ]
     },
-    "counter_size": [1.6, 0.8, 1.2],
+    "counter_size": [
+      1.6,
+      0.8,
+      1.2
+    ],
     "counter_y": 2.6,
-    "shutter_size": [1.5, 0.05, 0.9],
-    "signboard_size": [1.2, 0.08, 0.3],
+    "shutter_size": [
+      1.5,
+      0.05,
+      0.9
+    ],
+    "signboard_size": [
+      1.2,
+      0.08,
+      0.3
+    ],
     "signboard_z": 2.6,
-    "cashier_start": [0.0, 2.7, 0.0],
-    "cashier_retreat": [0.0, 3.8, 0.0],
+    "cashier_start": [
+      0.0,
+      2.7,
+      0.0
+    ],
+    "cashier_retreat": [
+      0.0,
+      3.8,
+      0.0
+    ],
     "character_radius": 0.15,
     "character_height": 1.4,
     "queue_start_y": 1.4,
-    "queue_spacing_y": 0.55,
+    "queue_spacing_y": 0.8,
     "queue_spacing_x": 0.0,
     "new_customer_entry_y": -3.5
   },
   "characters_initial": {
-    "left_queue": [
-      {"id": "L1", "start": [-2.0, 1.4, 0.0], "color": [0.25, 0.35, 0.55]},
-      {"id": "L2", "start": [-2.0, 0.85, 0.0], "color": [0.45, 0.35, 0.30]},
-      {"id": "L3", "start": [-2.0, 0.30, 0.0], "color": [0.30, 0.45, 0.30]}
-    ],
-    "middle_queue": [
-      {"id": "M1", "start": [0.0, 1.4, 0.0], "color": [0.50, 0.35, 0.35]},
-      {"id": "M2", "start": [0.0, 0.85, 0.0], "color": [0.35, 0.40, 0.50]},
-      {"id": "M3", "start": [0.0, 0.30, 0.0], "color": [0.35, 0.30, 0.45]}
-    ],
-    "right_queue": [
-      {"id": "R1", "start": [2.0, 1.4, 0.0], "color": [0.40, 0.45, 0.35]},
-      {"id": "R2", "start": [2.0, 0.85, 0.0], "color": [0.50, 0.40, 0.30]},
-      {"id": "R3", "start": [2.0, 0.30, 0.0], "color": [0.30, 0.35, 0.50]}
-    ]
+    "left_queue": {
+      "ids": [
+        "L1",
+        "L2",
+        "L3"
+      ],
+      "lane_x": -2.0,
+      "color": [
+        0.25,
+        0.35,
+        0.55
+      ]
+    },
+    "middle_queue": {
+      "ids": [
+        "M1",
+        "M2",
+        "M3"
+      ],
+      "lane_x": 0.0,
+      "color": [
+        0.5,
+        0.35,
+        0.35
+      ]
+    },
+    "right_queue": {
+      "ids": [
+        "R1",
+        "R2",
+        "R3"
+      ],
+      "lane_x": 2.0,
+      "color": [
+        0.4,
+        0.45,
+        0.35
+      ]
+    }
   },
   "new_customers": [
-    {"id": "N1", "frame": 165, "target_queue": "right", "start_pos": [2.0, -3.5, 0.0], "color": [0.40, 0.30, 0.45]},
-    {"id": "N2", "frame": 195, "target_queue": "left", "start_pos": [-2.0, -3.5, 0.0], "color": [0.50, 0.35, 0.40]},
-    {"id": "N3", "frame": 245, "target_queue": "right", "start_pos": [2.0, -3.5, 0.0], "color": [0.30, 0.45, 0.35]},
-    {"id": "N4", "frame": 285, "target_queue": "left", "start_pos": [-2.0, -3.5, 0.0], "color": [0.45, 0.35, 0.30]}
+    {
+      "id": "N1",
+      "frame": 165,
+      "target_queue": "right_queue",
+      "color": [
+        0.4,
+        0.3,
+        0.45
+      ]
+    },
+    {
+      "id": "N2",
+      "frame": 195,
+      "target_queue": "left_queue",
+      "color": [
+        0.5,
+        0.35,
+        0.4
+      ]
+    },
+    {
+      "id": "N3",
+      "frame": 245,
+      "target_queue": "right_queue",
+      "color": [
+        0.3,
+        0.45,
+        0.35
+      ]
+    },
+    {
+      "id": "N4",
+      "frame": 285,
+      "target_queue": "left_queue",
+      "color": [
+        0.45,
+        0.35,
+        0.3
+      ]
+    }
   ],
   "window_close": {
-    "light_off": [61, 72],
-    "shutter_down": [70, 88],
-    "cashier_retreat": [72, 90],
-    "middle_queue_pause": [61, 105]
+    "light_off": [
+      61,
+      72
+    ],
+    "shutter_down": [
+      70,
+      88
+    ],
+    "cashier_retreat": [
+      72,
+      90
+    ],
+    "middle_queue_pause": [
+      61,
+      105
+    ]
   },
   "diversion": {
-    "customer_1": {"id": "M1", "from": "middle", "to": "left", "frames": [121, 153]},
-    "customer_2": {"id": "M2", "from": "middle", "to": "right", "frames": [136, 168]},
-    "customer_3": {"id": "M3", "from": "middle", "to": "left", "frames": [151, 183]}
+    "customer_1": {
+      "id": "M1",
+      "from": "middle",
+      "to": "left",
+      "frames": [
+        110,
+        142
+      ]
+    },
+    "customer_2": {
+      "id": "M2",
+      "from": "middle",
+      "to": "right",
+      "frames": [
+        125,
+        157
+      ]
+    },
+    "customer_3": {
+      "id": "M3",
+      "from": "middle",
+      "to": "left",
+      "frames": [
+        140,
+        172
+      ]
+    }
   },
   "camera": {
-    "location": [0.2, -1.5, 5.5],
-    "rotation": [1.22, 0.0, 0.0],
+    "location": [
+      0.2,
+      -1.5,
+      5.5
+    ],
+    "rotation": [
+      1.22,
+      0.0,
+      0.0
+    ],
     "focal_length": 35,
     "sensor_width": 36,
     "movements": {
-      "frames_1_120": {"type": "stable", "drift": [0.0, 0.15, -0.1]},
-      "frames_121_225": {"type": "push_elevate", "offset": [0.0, -0.3, 0.3]},
-      "frames_226_270": {"type": "pull_out", "offset": [0.0, 0.3, 0.5]},
-      "frames_271_345": {"type": "stable"}
+      "frames_1_120": {
+        "type": "stable",
+        "drift": [
+          0.0,
+          0.15,
+          -0.1
+        ]
+      },
+      "frames_121_225": {
+        "type": "push_elevate",
+        "offset": [
+          0.0,
+          -0.3,
+          0.3
+        ]
+      },
+      "frames_226_270": {
+        "type": "pull_out",
+        "offset": [
+          0.0,
+          0.3,
+          0.5
+        ]
+      },
+      "frames_271_345": {
+        "type": "stable"
+      }
     }
   },
   "lighting": {
-    "sun": {"location": [5.0, -5.0, 8.0], "energy": 2.5, "color": [1.0, 0.98, 0.95]},
-    "fill": {"location": [-3.0, -2.0, 3.0], "energy": 1.2, "color": [0.9, 0.92, 1.0]},
-    "ambient": {"strength": 0.3, "color": [0.5, 0.5, 0.6]}
+    "sun": {
+      "location": [
+        5.0,
+        -5.0,
+        8.0
+      ],
+      "energy": 2.5,
+      "color": [
+        1.0,
+        0.98,
+        0.95
+      ]
+    },
+    "fill": {
+      "location": [
+        -3.0,
+        -2.0,
+        3.0
+      ],
+      "energy": 1.2,
+      "color": [
+        0.9,
+        0.92,
+        1.0
+      ]
+    },
+    "ambient": {
+      "strength": 0.3,
+      "color": [
+        0.5,
+        0.5,
+        0.6
+      ]
+    }
   },
   "materials_graybox": {
-    "floor": [0.35, 0.35, 0.38],
-    "counter": [0.55, 0.55, 0.58],
-    "window_active": [0.65, 0.62, 0.55],
-    "window_closed": [0.18, 0.18, 0.20],
-    "signboard_on": [0.9, 0.75, 0.3],
-    "signboard_off": [0.12, 0.12, 0.12],
-    "shutter": [0.15, 0.15, 0.16],
-    "character_head": [0.65, 0.60, 0.55],
-    "cashier": [0.55, 0.50, 0.58]
+    "floor": [
+      0.35,
+      0.35,
+      0.38
+    ],
+    "counter": [
+      0.55,
+      0.55,
+      0.58
+    ],
+    "window_active": [
+      0.65,
+      0.62,
+      0.55
+    ],
+    "window_closed": [
+      0.18,
+      0.18,
+      0.2
+    ],
+    "signboard_on": [
+      0.9,
+      0.75,
+      0.3
+    ],
+    "signboard_off": [
+      0.12,
+      0.12,
+      0.12
+    ],
+    "shutter": [
+      0.15,
+      0.15,
+      0.16
+    ],
+    "character_head": [
+      0.65,
+      0.6,
+      0.55
+    ],
+    "cashier": [
+      0.55,
+      0.5,
+      0.58
+    ]
   },
-  "comparison_frames": [1, 60, 90, 120, 150, 183, 225, 270, 321, 345]
+  "comparison_frames": [
+    1,
+    60,
+    90,
+    120,
+    150,
+    183,
+    225,
+    270,
+    321,
+    345
+  ]
 }

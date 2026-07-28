@@ -1,0 +1,56 @@
+﻿TEST_COMMAND: python -m pytest tests/test_asset_scene_preflight_animation_state_i2.py -v --tb=long 2>&1
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory\protocol_guard\phase3_min
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 43 items
+
+tests/test_asset_scene_preflight_animation_state_i2.py::test_block_missing PASSED [  2%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_block_null PASSED [  4%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_model_a_object_only PASSED [  6%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_model_a_object_not_found PASSED [  9%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_animation_object_subkey_always_present PASSED [ 11%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_animation_data_true_with_data_present PASSED [ 13%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_animation_data_true_with_data_none PASSED [ 16%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_animation_data_false_omits_subkey PASSED [ 18%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_animation_data_null_omits_subkey PASSED [ 20%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_animation_data_missing_omits_subkey PASSED [ 23%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_set_match PASSED [ 25%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_set_mismatch PASSED [ 27%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_set_action_none PASSED [ 30%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_null_omits_subkey PASSED [ 32%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_missing_omits_subkey PASSED [ 34%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_empty_string_omitted PASSED [ 37%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_standalone_data_none PASSED [ 39%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_action_name_standalone_data_present PASSED [ 41%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_pose_position_set_match PASSED [ 44%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_pose_position_set_mismatch PASSED [ 46%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_pose_position_set_data_none PASSED [ 48%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_pose_position_set_pp_none PASSED [ 51%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_pose_position_null_omits_subkey PASSED [ 53%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_pose_position_missing_omits_subkey PASSED [ 55%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_record_current_frame_true PASSED [ 58%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_record_current_frame_false_omits_subkey PASSED [ 60%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_record_current_frame_null_omits_subkey PASSED [ 62%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_record_current_frame_missing_omits_subkey PASSED [ 65%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_record_current_frame_none_value PASSED [ 67%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_aggregation_all_pass PASSED [ 69%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_aggregation_one_fail PASSED [ 72%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_aggregation_error_over_fail PASSED [ 74%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_aggregation_no_subkeys_pass PASSED [ 76%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_dependency_object_not_found_cascades PASSED [ 79%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_dependency_object_fail_frame_independent PASSED [ 81%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_dependency_anim_data_fail_action_name_not_checked PASSED [ 83%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_dependency_data_fail_pose_independent PASSED [ 86%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_recompute_overall_all_pass PASSED [ 88%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_recompute_overall_as_fail_root_pass PASSED [ 90%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_recompute_overall_as_error_root_fail PASSED [ 93%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_recompute_overall_as_pass_root_fail PASSED [ 95%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_recompute_overall_as_not_checked_ignored PASSED [ 97%]
+tests/test_asset_scene_preflight_animation_state_i2.py::test_no_anim_data_read_when_false PASSED [100%]
+
+============================= 43 passed in 0.04s ==============================
+
+PYTEST_EXIT_CODE: 0

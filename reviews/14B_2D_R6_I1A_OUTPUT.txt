@@ -1,0 +1,32 @@
+﻿COMMAND: python -m pytest protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py -v --tb=long
+STDOUT_BEGIN
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 17 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestFieldMissingNullEmpty::test_field_missing_no_error PASSED [  5%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestFieldMissingNullEmpty::test_field_null_no_error PASSED [ 11%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestFieldMissingNullEmpty::test_field_empty_object_no_error PASSED [ 17%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestValidKeyValues::test_single_valid_key_value_no_error PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestValidKeyValues::test_multiple_valid_key_values_no_error PASSED [ 29%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestValidKeyValues::test_unknown_type_string_accepted PASSED [ 35%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidKeys::test_empty_string_key_rejected PASSED [ 41%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidKeys::test_non_string_key_rejected PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidValues::test_null_value_rejected PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidValues::test_empty_string_value_rejected PASSED [ 58%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidValues::test_numeric_value_rejected PASSED [ 64%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidValues::test_bool_value_rejected PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidValues::test_list_value_rejected PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestInvalidValues::test_object_value_rejected PASSED [ 82%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestMultipleErrorsStable::test_multiple_errors_sorted PASSED [ 88%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestExistingRulesUnaffected::test_direct_child_validation_unchanged PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py::TestExistingRulesUnaffected::test_descendant_name_validation_unchanged PASSED [100%]
+
+============================= 17 passed in 0.07s ==============================
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0

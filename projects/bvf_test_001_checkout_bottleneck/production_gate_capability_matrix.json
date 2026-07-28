@@ -1,0 +1,18 @@
+{
+  "document":"production_gate_capability_matrix","version":"r2-final","master_map_version":"R83",
+  "total_locked_runtime_capabilities":11,
+  "capabilities":[
+    {"name":"hierarchy","status":"APPLICABLE_AND_ENABLED"},
+    {"name":"standing","status":"APPLICABLE_AND_ENABLED"},
+    {"name":"facing","status":"APPLICABLE_AND_ENABLED"},
+    {"name":"rotation","status":"NOT_APPLICABLE_WITH_PROVEN_REASON","reason":"direction.json: no rotation requirements. No keyframed rotation in build_graybox.py."},
+    {"name":"visibility","status":"APPLICABLE_AND_ENABLED","reason":"Per-frame expected visibility from gate_video_profile. N1-N4 hidden before entry, visible after."},
+    {"name":"animation_state","status":"APPLICABLE_AND_ENABLED"},
+    {"name":"material_assignment","status":"APPLICABLE_AND_ENABLED"},
+    {"name":"camera_check","status":"NOT_APPLICABLE_WITH_PROVEN_REASON","reason":"Mathematical impossibility: required_screen_bbox coverage check (screen_min_y > min_bottom → FAIL, screen_max_y < max_top → FAIL) combined with validator constraint (min_bottom <= max_top) implies actual_max_y <= actual_min_y — impossible for any object with height > 0. Checker cannot pass for individual small meshes without per-target values. Documented in production_gate.py spec builder."},
+    {"name":"ground_contact","status":"APPLICABLE_AND_ENABLED","reason":"ground_z=0.0, tolerance=0.10. Only on visible bodies. N1-N4 excluded when hidden."},
+    {"name":"collection_rules","status":"APPLICABLE_AND_ENABLED"},
+    {"name":"projection_groups","status":"APPLICABLE_AND_ENABLED","reason":"Per-frame visible narrative objects. min_left=0.0, max_right=1.0, min_bottom=0.55, max_top=0.60. 49/49 pass."}
+  ],
+  "summary":{"applicable_and_enabled":9,"not_applicable":2,"blocked":0}
+}

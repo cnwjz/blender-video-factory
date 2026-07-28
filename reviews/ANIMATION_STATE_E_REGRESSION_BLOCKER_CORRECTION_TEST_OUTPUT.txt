@@ -1,0 +1,141 @@
+PYTHON_VERSION: 3.14.5
+MASTER_MAP_LINT_COMMAND: C:\Python314\python.exe protocol_guard/phase3_min/lint_master_map.py --map-path reviews/PROJECT_CODEIFICATION_MASTER_MAP.md --expected-version R56 --expected-active-task ANIMATION_STATE_E --expected-active-status AUTHORIZED_NOT_STARTED --expected-unique-next-atomic-task ANIMATION_STATE_E --expected-next-task ANIMATION_STATE_E --expected-next-action "执行 Animation State E 完整回归与最低必要证据；不得开始 E 状态同步、正式锁定或其他字段组。"
+MASTER_MAP_LINT_STDOUT:
+LINT_MASTER_MAP_STATUS: PASS
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: ANIMATION_STATE_E
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: ANIMATION_STATE_E
+NEXT_TASK_MATCH: ANIMATION_STATE_E
+NEXT_ACTION_MATCH: 执行 Animation State E 完整回归与最低必要证据；不得开始 E 状态同步、正式锁定或其他字段组。
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: True
+SECTION_15_BLOCK_VALID: True
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: True
+MISMATCH_COUNT: 0
+MISMATCH_LINES: None
+MASTER_MAP_LINT_EXIT_CODE: 0
+
+TEST_COMMAND: C:\Python314\python.exe -m pytest protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_scene_basic.py::TestScopeStatic::test_production_code_has_no_beyond_scope_imports protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py -vv
+CWD: D:\blender-video-factory
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 110 items
+
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_map_path_is_reviews PASSED [  0%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_current_map_passes PASSED [  1%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_version_mismatch_fails PASSED [  2%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_active_task_fails PASSED [  3%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_active_status_fails PASSED [  4%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_unique_next_atomic_task_fails PASSED [  5%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_next_task_fails PASSED [  6%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_next_action_fails PASSED [  7%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_missing_field_fails PASSED [  8%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_three_block_conflict_fails PASSED [  9%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_occurrence_count_wrong_fails PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_three_blocks_all_at_top_fails PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_prefix_impostor_fields_not_counted PASSED [ 11%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_valid_zip_with_flat_files_passes PASSED [ 12%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_missing_file_fails PASSED [ 13%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_extra_file_fails PASSED [ 14%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_duplicate_expected_entry_fails PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_bad_zip_fails PASSED [ 16%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_python_syntax_error_fails PASSED [ 17%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_zero_size_zip_fails PASSED [ 18%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_expected_entry_with_absolute_fails PASSED [ 19%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_drive_relative_expected_entry_fails PASSED [ 20%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_reviews_path_zip_passes PASSED [ 20%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_flattened_path_rejected PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_directory_entry_rejected PASSED [ 22%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_inner_zip_rejected PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_normal_test_passes PASSED [ 24%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_ast_parse_failure_fails PASSED [ 25%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_skip_decorator_fails PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_skipif_decorator_fails PASSED [ 27%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_xfail_decorator_fails PASSED [ 28%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_importorskip_call_fails PASSED [ 29%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_bare_return_fails PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_valued_return_fails PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assert_literal_pass PASSED [ 31%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_assert_msg_literal_fails PASSED [ 32%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assert_literal_in_assignment_only_fails PASSED [ 33%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assignment_pass PASSED [ 34%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assignment_missing_fails PASSED [ 35%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_call_pass PASSED [ 36%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_call_wrong_receiver_fails PASSED [ 37%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_invalid_policy_JSON_exits_2 PASSED [ 38%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_bad_schema_exits_2 PASSED [ 39%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::test_test_file_self_parse PASSED [ 40%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::test_test_file_no_skip_xfail PASSED [ 40%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_scene_basic.py::TestScopeStatic::test_production_code_has_no_beyond_scope_imports PASSED [ 41%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_exists PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_counts PASSED [ 43%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_reads_zero PASSED [ 44%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_calls_zero PASSED [ 45%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_writes_zero PASSED [ 46%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[bound_box] PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[dimensions] PASSED [ 48%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_depsgraph_get] PASSED [ 49%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_get] PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_get] PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_render] PASSED [ 51%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_viewport] PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[location] PASSED [ 53%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[material_slots] PASSED [ 54%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_basis] PASSED [ 55%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_local] PASSED [ 56%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_parent_inverse] PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_world] PASSED [ 58%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[nla_tracks] PASSED [ 59%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_euler] PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_mode] PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_quaternion] PASSED [ 61%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[scale] PASSED [ 62%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh] PASSED [ 63%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh_clear] PASSED [ 64%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[users_collection] PASSED [ 65%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[scene.objects] PASSED [ 66%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_object.name] PASSED [ 67%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_object.animation_data] PASSED [ 68%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_data.action] PASSED [ 69%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[action.name] PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_object.data] PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[data.pose_position] PASSED [ 71%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[scene.frame_current] PASSED [ 72%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[scene.objects] PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_object.name] PASSED [ 74%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_object.animation_data] PASSED [ 75%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_data.action] PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[action.name] PASSED [ 77%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_object.data] PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[data.pose_position] PASSED [ 79%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[scene.frame_current] PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[scene.objects] PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_object.name] PASSED [ 81%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_object.animation_data] PASSED [ 82%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_data.action] PASSED [ 83%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[action.name] PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_object.data] PASSED [ 85%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[data.pose_position] PASSED [ 86%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[scene.frame_current] PASSED [ 87%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p1_bpy_ops_two_layer_alias PASSED [ 88%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p2_bpy_data_get_alias PASSED [ 89%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p3_bpy_data_subscript_multi_alias PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p4_obj_alias_write PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p5_bpy_alias_write PASSED [ 91%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p6_deep_tuple_write PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p7_uncalled_lambda_is_clean PASSED [ 93%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_forbidden PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_alias PASSED [ 95%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_multi_layer PASSED [ 96%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_recursive PASSED [ 97%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_helper PASSED [ 98%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_local_class PASSED [ 99%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_missing PASSED [100%]
+
+============================= 110 passed in 3.74s =============================
+PYTEST_EXIT_CODE: 0

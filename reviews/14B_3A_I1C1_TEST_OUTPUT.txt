@@ -1,0 +1,47 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 38 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_standing_field_missing PASSED [  2%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_standing_null PASSED [  5%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_standing_empty_object PASSED [  7%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_all_three_explicit_null PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_all_three_configured_zero_tolerance PASSED [ 13%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_only_local_up_axis PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_only_expected_world_up_axis PASSED [ 18%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_only_tolerance PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_local_plus_expected PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_local_plus_tolerance PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1.py::TestStandingPreopen::test_expected_plus_tolerance PASSED [ 28%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestStandingNotChecked::test_all_three_none PASSED [ 31%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestStandingNotChecked::test_no_standing_key PASSED [ 34%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestStandingPass::test_plus_z_to_plus_z_zero_tolerance PASSED [ 36%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestStandingPass::test_angle_equal_tolerance_passes PASSED [ 39%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestStandingPass::test_angle_within_tolerance_passes PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestStandingFail::test_angle_exceeds_tolerance_fails PASSED [ 44%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestNormalization::test_non_unit_vector_normalized PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestMatrixWorldReadOnce::test_matrix_read_at_most_once PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestRootPreconditions::test_root_precondition_standing_not_checked[not_found-ROOT_OBJECT_NOT_FOUND] PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestRootPreconditions::test_root_precondition_standing_not_checked[type_mismatch-ROOT_OBJECT_TYPE_MISMATCH] PASSED [ 55%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestRootPreconditions::test_root_precondition_standing_not_checked[ambiguous-AMBIGUOUS_ROOT_OBJECT_NAME] PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestCheckRootObjectsIntegration::test_valid_root_standing_executes PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1b.py::TestTo3x3SingleCall::test_to_3x3_called_once PASSED [ 63%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestReadRootMatrixWorldError::test_matrix_world_access_raises PASSED [ 65%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestReadRootMatrixWorldError::test_normal_fields_omitted PASSED [ 68%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestConvertRootMatrixWorldTo3x3Error::test_to_3x3_raises PASSED [ 71%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestConvertRootMatrixWorldTo3x3Error::test_normal_fields_omitted PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestConvertRootMatrixWorldTo3x3Error::test_matrix_world_not_read_after_to_3x3_fails PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestTransformLocalUpAxisError::test_matmul_raises PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestTransformLocalUpAxisError::test_normal_fields_omitted PASSED [ 81%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestTransformLocalUpAxisError::test_to_3x3_called_once_before_matmul_fails PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestComputeUpAxisAngleError::test_vector_angle_degrees_raises PASSED [ 86%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestComputeUpAxisAngleError::test_normal_fields_omitted PASSED [ 89%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestComputeUpAxisAngleError::test_matrix_world_read_once_before_angle_fails PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestCheckRootObjectsIntegration::test_standing_error_makes_overall_error PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestExistingConstraintsPreserved::test_matrix_world_read_at_most_once PASSED [ 97%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i1c1.py::TestExistingConstraintsPreserved::test_to_3x3_called_once PASSED [100%]
+
+============================= 38 passed in 0.32s ==============================

@@ -1,0 +1,34 @@
+﻿TEST_COMMAND: python -m pytest tests/test_asset_scene_preflight_animation_state_i3_blender.py -v --tb=long 2>&1
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+
+BLENDER_SUBPROCESS_COMMAND: D:\Windows software\blender\blender.exe --background --factory-startup --python-use-system-env --python tests/blender_animation_state_i3_runner.py
+BLENDER_SUBPROCESS_EXIT_CODE: 0
+BLENDER_STDOUT_START
+BLENDER_ANIMATION_STATE_I3_RESULTS_START {   "BLENDER_VERSION": "5.1.2",   "scenarios": [     {       "scenario": "1_root_object_allowed",       "result": {         "animation_object": {           "result": "PASS",           "object_name": "_I3_RootEmpty"         },         "result": "PASS"       }     },     {       "scenario": "2_non_root_non_armature_allowed",       "result": {         "animation_object": {           "result": "PASS",           "object_name": "_I3_AnimMesh"         },         "result": "PASS"       }     },     {       "scenario": "3_case_sensitive_mismatch",       "result": {         "animation_object": {           "result": "FAIL",           "failure_code": "ANIMATION_OBJECT_NOT_FOUND",           "object_name": "_i3_animmesh"         },         "result": "FAIL"       }     },     {       "scenario": "4_missing_object",       "result": {         "animation_object": {           "result": "FAIL",           "failure_code": "ANIMATION_OBJECT_NOT_FOUND",           "object_name": "_I3_NonExistent"         },         "result": "FAIL"       }     },     {       "scenario": "5_other_scene_object_from_target",       "result": {         "animation_object": {           "result": "FAIL",           "failure_code": "ANIMATION_OBJECT_NOT_FOUND",           "object_name": "_I3_OtherAnimObj"         },         "result": "FAIL"       }     },     {       "scenario": "6_other_scene_object_from_own_scene",       "result": {         "animation_object": {           "result": "PASS",           "object_name": "_I3_OtherAnimObj"         },         "result": "PASS"       }     }   ],   "safety": {     "load_event_count": 0,     "save_event_count": 0,     "render_event_count": 0,     "filepath_before": "",     "filepath_after": "",     "filepath_unchanged": true,     "handlers_restored": true   },   "cleanup": {     "our_objects_removed": true,     "remaining_our_objects": [],     "our_meshes_removed": true,     "remaining_our_meshes": [],     "our_armatures_removed": true,     "remaining_our_armatures": [],     "our_scenes_removed": true,     "remaining_our_scenes": [],     "original_scene_objects_before": [       "Camera",       "Cube",       "Light"     ],     "original_scene_objects_after": [       "Camera",       "Cube",       "Light"     ],     "original_scene_objects_restored": true,     "active_scene_restored": true,     "pre_state_equals_post_state": true   } } BLENDER_ANIMATION_STATE_I3_RESULTS_END Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)  Blender quit
+BLENDER_STDOUT_END
+BLENDER_STDERR_START
+BLENDER_STDERR_END
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory\protocol_guard\phase3_min
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 13 items
+
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_blender_exit_zero PASSED [  7%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_blender_version_exact PASSED [ 15%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_background_factory_startup PASSED [ 23%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_no_blend_arguments PASSED [ 30%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_safety_events PASSED [ 38%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_scenario_count PASSED [ 46%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_s1_root_object PASSED [ 53%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_s2_non_root_non_armature PASSED [ 61%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_s3_case_sensitive PASSED [ 69%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_s4_missing PASSED [ 76%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_s5_other_scene_from_target PASSED [ 84%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_s6_other_scene_from_own PASSED [ 92%]
+tests/test_asset_scene_preflight_animation_state_i3_blender.py::test_cleanup_verified PASSED [100%]
+
+============================= 13 passed in 1.23s ==============================
+
+PYTEST_EXIT_CODE: 0

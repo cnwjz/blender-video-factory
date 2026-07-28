@@ -1,0 +1,88 @@
+# Animation State I2 Report
+
+```text
+TASK_ID: ANIMATION_STATE_I2
+TASK_TYPE: FOCUSED_TEST
+DATE: 2026-07-23
+TASK_STATUS: IMPLEMENTED_AND_FOCUSED_TESTED_PENDING_INDEPENDENT_REVIEW
+```
+
+## State Confirmation
+
+```text
+MASTER_MAP_VERSION: R46
+ACTIVE_TASK_ID: ANIMATION_STATE_I2
+ACTIVE_TASK_STATUS: AUTHORIZED_NOT_STARTED
+ANIMATION_STATE_DESIGN_VERSION: R5
+ANIMATION_STATE_DESIGN_LOCKED: TRUE
+```
+
+## I2 Scope
+
+```text
+I2_SCOPE: CONFIGURATION_SEMANTICS_CPYTHON
+Per Design R5 14: Configuration semantics, CPython only.
+```
+
+## Production Changes
+
+```text
+PRODUCTION_FILE_MODIFIED: blender_scene_reader.py
+  - Added _check_animation_state(scene, target) function
+  - Added _recompute_target_overall(checks) function
+  - Added Animation State merge loop in open_blend_and_get_scene()
+
+NEW_TEST_FILES: 1
+  protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i2.py
+
+EXISTING_TESTS_MODIFIED: FALSE
+CORE_MODIFIED: FALSE (9b5daa1cf...)
+CHECK_PY_MODIFIED: FALSE (b23159f6...)
+MASTER_MAP_MODIFIED: FALSE
+DESIGN_R5_MODIFIED: FALSE
+BLENDER_EXECUTED: FALSE
+BLEND_FILES_OPENED: FALSE
+```
+
+## File Integrity
+
+```text
+PRE/POST HASHES:
+  blender_scene_reader.py: 12709a193415135fcd393a2ed1678998c74130046798f23ec0dfa663911cbdce (MODIFIED)
+  asset_scene_preflight_check.py: b23159f68f5e2c4f372f1825b0e893ce85a655561812ece4941f64adef44aa5b (UNCHANGED)
+  asset_scene_preflight_core.py: 9b5daa1cf7a8c568f418bf2a8b2a93cab09b7513ec3b47b47c4896e823982f10 (UNCHANGED)
+  test_asset_scene_preflight_core.py: 9b8f28ece7d54cc9fe6eec09d2cd9b691e643430b1342012f91306159b63980e (UNCHANGED)
+  PROJECT_CODEIFICATION_MASTER_MAP.md: 36e367a37c7a1ad47d973f74823f4408d3efdcb0f1508d88b2837dc715d3f3fc (UNCHANGED)
+  ANIMATION_STATE_DESIGN_R5.md: a1ef6744e86694109cf24cfdf6d79d0f77445f014f9ca347546fb987a3476e67 (UNCHANGED)
+```
+
+## Test Results
+
+```text
+I2 FOCUSED:
+  TESTS_COLLECTED: 43
+  TESTS_PASSED: 43
+  TESTS_FAILED: 0
+  PYTEST_EXIT_CODE: 0
+
+I1 REGRESSION:
+  TESTS_COLLECTED: 2
+  TESTS_PASSED: 2
+  TESTS_FAILED: 0
+  PYTEST_EXIT_CODE: 0
+```
+
+## Stage Boundaries
+
+```text
+SCENE_LOOKUP_STAGE_STARTED: FALSE
+REAL_BLENDER_STAGE_STARTED: FALSE
+SCOPE_GUARD_STAGE_STARTED: FALSE
+FULL_REGRESSION_RUN: FALSE
+```
+
+## Deliverable
+
+```text
+UPLOAD_NEXT_FILE: reviews/UPLOAD_NEXT/ANIMATION_STATE_I2/ANIMATION_STATE_I2_UPLOAD.zip
+```

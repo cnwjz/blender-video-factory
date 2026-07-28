@@ -1,0 +1,69 @@
+﻿{
+    "baseline_commit":  "d44679fc11c5069a17277395bb6c52b5a6dfc799",
+    "task_id":  "14B_2D_R7B_EVIDENCE_GRADE_REGRESSION",
+    "files":  [
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  28251,
+                      "path":  "protocol_guard/phase3_min/blender_scene_reader.py",
+                      "pre_test_sha256":  "AC3F16B1572A76FA3674EFD1D220B9723E1A6CE6E3589D53A08353B611C0128C",
+                      "post_test_sha256":  "AC3F16B1572A76FA3674EFD1D220B9723E1A6CE6E3589D53A08353B611C0128C",
+                      "pre_test_size":  28251,
+                      "size_match":  true
+                  },
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  6980,
+                      "path":  "protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py",
+                      "pre_test_sha256":  "B01662AA94311DE360470217FB8784397CC2014701D1EE78F7DFB40777750559",
+                      "post_test_sha256":  "B01662AA94311DE360470217FB8784397CC2014701D1EE78F7DFB40777750559",
+                      "pre_test_size":  6980,
+                      "size_match":  true
+                  },
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  11975,
+                      "path":  "protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py",
+                      "pre_test_sha256":  "F25A4C6DF0DE7E03A457B3F0F7FAD901668B480C5F51291F8BC68AA6B9D94323",
+                      "post_test_sha256":  "F25A4C6DF0DE7E03A457B3F0F7FAD901668B480C5F51291F8BC68AA6B9D94323",
+                      "pre_test_size":  11975,
+                      "size_match":  true
+                  },
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  9006,
+                      "path":  "protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py",
+                      "pre_test_sha256":  "35AF2594B5032F2BDC2A6DECDD004D3F01C9E42BCB6B2D64B55F2994B85A36F8",
+                      "post_test_sha256":  "35AF2594B5032F2BDC2A6DECDD004D3F01C9E42BCB6B2D64B55F2994B85A36F8",
+                      "pre_test_size":  9006,
+                      "size_match":  true
+                  },
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  7945,
+                      "path":  "protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py",
+                      "pre_test_sha256":  "1E7DA9242C1AAE3398718CE95A13CA53812A4EB026527F21A32A06D70E6F35DA",
+                      "post_test_sha256":  "1E7DA9242C1AAE3398718CE95A13CA53812A4EB026527F21A32A06D70E6F35DA",
+                      "pre_test_size":  7945,
+                      "size_match":  true
+                  },
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  14173,
+                      "path":  "protocol_guard/phase3_min/asset_scene_preflight_check.py",
+                      "pre_test_sha256":  "DD5A0E436DB64006E0BE2562C474294FC3572F2B3C948113A0884E2D7C75204F",
+                      "post_test_sha256":  "DD5A0E436DB64006E0BE2562C474294FC3572F2B3C948113A0884E2D7C75204F",
+                      "pre_test_size":  14173,
+                      "size_match":  true
+                  },
+                  {
+                      "sha256_match":  true,
+                      "post_test_size":  6180,
+                      "path":  "protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py",
+                      "pre_test_sha256":  "D3A19BBD958BAF082862657CEE951246AB38860F0BF68E9E3CF55AD9E9E18B8A",
+                      "post_test_sha256":  "D3A19BBD958BAF082862657CEE951246AB38860F0BF68E9E3CF55AD9E9E18B8A",
+                      "pre_test_size":  6180,
+                      "size_match":  true
+                  }
+              ]
+}

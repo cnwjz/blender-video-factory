@@ -1,0 +1,38 @@
+﻿# 14B-2D R12 Final Code Regression Report
+TASK_ID: 14B_2D_R12_FINAL_CODE_REGRESSION
+BASELINE: d44679fc11c5069a17277395bb6c52b5a6dfc799 | HEAD_UNCHANGED: TRUE
+
+## I2B1 Verification
+| ORIGINAL_TEST_COUNT | 10 |
+| NEW_TEST_COUNT | 2 |
+| TOTAL | 12 |
+
+## Results
+| Suite | Passed | Failed | Skipped |
+|-------|--------|--------|---------|
+| I1A | 17 | 0 | 0 |
+| I1B | 19 | 0 | 0 |
+| I2A | 9 | 0 | 0 |
+| I2B1 | 12 | 0 | 0 |
+| I2B2 | 7 | 0 | 0 |
+| Descendants | 73 | 0 | 0 |
+| 14A core | 139 | 0 | 0 |
+| protocol_guard | 635 | 0 | 2 |
+
+## Key Assertions
+| BUILDER_DIRECT_OBJECT_TYPE_READ_REMOVED | TRUE |
+| BUILDER_AST_TYPE_ATTRIBUTE_READ_COUNT | 0 |
+| BUILDER_USES_CACHE_ONLY | TRUE |
+| ALL_TYPE_READ_COUNT_ASSERTIONS_PASS | TRUE |
+| GLOBAL_TYPE_ERROR_PRECEDES_ANY_AMBIGUITY | TRUE |
+| TEST_HARNESS_HARDENING_PRESERVED | TRUE |
+| STATIC_READ_ONLY_CHECK | PASS |
+
+## Integrity
+| FORMAL_FILE_COUNT | 7 |
+| ALL_PRE_POST_SIZE_MATCH | TRUE |
+| ALL_PRE_POST_SHA256_MATCH | TRUE |
+
+## Boundaries
+| PRODUCTION_FILES_MODIFIED | 0 | TEST_FILES_MODIFIED | 0 |
+| BLENDER_RUN | TRUE | FINAL_PACKAGE_STARTED | FALSE |

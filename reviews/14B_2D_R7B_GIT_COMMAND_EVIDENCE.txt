@@ -1,0 +1,124 @@
+﻿COMMAND: git rev-parse HEAD
+STDOUT_BEGIN
+d44679fc11c5069a17277395bb6c52b5a6dfc799
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0
+
+COMMAND: git status --short --untracked-files=all
+STDOUT_BEGIN
+?? protocol_guard/phase3_min/__init__.py
+?? protocol_guard/phase3_min/asset_scene_preflight_check.py
+?? protocol_guard/phase3_min/asset_scene_preflight_core.py
+?? protocol_guard/phase3_min/blender_scene_reader.py
+?? protocol_guard/phase3_min/tests/__init__.py
+?? protocol_guard/phase3_min/tests/blender_exit_code_probe.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i1b.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2a.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b1.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendant_types_i2b2.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendants_i1.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendants_i2.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendants_i3a.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_descendants_i3b1.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_scene_basic.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_core.py
+?? protocol_guard/phase3_min/tests/test_asset_scene_preflight_descendant_types_validation_i1a.py
+?? reviews/14B_2D_I1C1_14A_CORE_TEST_OUTPUT.txt
+?? reviews/14B_2D_I1C1_DESCENDANT_REGRESSION_OUTPUT.txt
+?? reviews/14B_2D_I1C1_I1A_TEST_OUTPUT.txt
+?? reviews/14B_2D_I1C1_I1B_TEST_OUTPUT.txt
+?? reviews/14B_2D_I1C1_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/14B_2D_I1C1_REGRESSION_REPORT.md
+?? reviews/14B_2D_I2A_REPORT.md
+?? reviews/14B_2D_I2B1_REPORT.md
+?? reviews/14B_2D_I2B2_REPORT.md
+?? reviews/14B_2D_I2C1_14A_CORE_OUTPUT.txt
+?? reviews/14B_2D_I2C1_DESCENDANT_OUTPUT.txt
+?? reviews/14B_2D_I2C1_I1A_OUTPUT.txt
+?? reviews/14B_2D_I2C1_I1B_OUTPUT.txt
+?? reviews/14B_2D_I2C1_I2A_OUTPUT.txt
+?? reviews/14B_2D_I2C1_I2B1_OUTPUT.txt
+?? reviews/14B_2D_I2C1_I2B2_OUTPUT.txt
+?? reviews/14B_2D_I2C1_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/14B_2D_I2C1_REGRESSION_REPORT.md
+?? reviews/14B_2D_R1A_SCOPE_AND_FAILURE_AUDIT_REPORT.md
+?? reviews/14B_2D_R1_TEST_HARNESS_FIX_REPORT.md
+?? reviews/14B_2D_R2_TYPE_ERROR_FIX_REPORT.md
+?? reviews/14B_2D_R3_14A_CORE_OUTPUT.txt
+?? reviews/14B_2D_R3_CORRECTED_REGRESSION_REPORT.md
+?? reviews/14B_2D_R3_DESCENDANT_OUTPUT.txt
+?? reviews/14B_2D_R3_I1A_OUTPUT.txt
+?? reviews/14B_2D_R3_I1B_OUTPUT.txt
+?? reviews/14B_2D_R3_I2A_OUTPUT.txt
+?? reviews/14B_2D_R3_I2B1_OUTPUT.txt
+?? reviews/14B_2D_R3_I2B2_OUTPUT.txt
+?? reviews/14B_2D_R3_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/14B_2D_R5_GLOBAL_TYPE_PRIORITY_FIX_REPORT.md
+?? reviews/14B_2D_R6_14A_CORE_OUTPUT.txt
+?? reviews/14B_2D_R6_CORRECTED_REGRESSION_REPORT.md
+?? reviews/14B_2D_R6_DESCENDANT_OUTPUT.txt
+?? reviews/14B_2D_R6_I1A_OUTPUT.txt
+?? reviews/14B_2D_R6_I1B_OUTPUT.txt
+?? reviews/14B_2D_R6_I2A_OUTPUT.txt
+?? reviews/14B_2D_R6_I2B1_OUTPUT.txt
+?? reviews/14B_2D_R6_I2B2_OUTPUT.txt
+?? reviews/14B_2D_R6_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/14B_2D_R7B_GIT_COMMAND_EVIDENCE.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_14A_CORE_TEST_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_DESCENDANT_REGRESSION_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_EVIDENCE_MANIFEST.json
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_GIT_EVIDENCE.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_I1A_TEST_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_I1B_TEST_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_I2A_TEST_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_I2B1_TEST_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_I2B2_TEST_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_REVIEW_REPORT.md
+?? reviews/UPLOAD_NEXT/14B_2D_FINAL_SOURCE_SNAPSHOT.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_14A_CORE_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_DESCENDANT_REGRESSION_OUTPUT.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_EVIDENCE_MANIFEST.json
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_GIT_EVIDENCE.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_I1A_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_I1B_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_REVIEW_REPORT.md
+?? reviews/archive/14B_2D_I1_FINAL_EVIDENCE/14B_2D_I1_FINAL_SOURCE_SNAPSHOT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_14A_CORE_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_DESCENDANT_REGRESSION_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_EVIDENCE_MANIFEST.json
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_GIT_EVIDENCE.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_I1A_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_I1B_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_I2A_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_I2B1_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_I2B2_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_REVIEW_REPORT.md
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R0/14B_2D_FINAL_SOURCE_SNAPSHOT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_14A_CORE_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_DESCENDANT_REGRESSION_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_EVIDENCE_MANIFEST.json
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_GIT_EVIDENCE.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_I1A_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_I1B_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_I2A_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_I2B1_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_I2B2_TEST_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_PROTOCOL_GUARD_OUTPUT.txt
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_REVIEW_REPORT.md
+?? reviews/archive/14B_2D_REJECTED_FINAL_PACKAGE_R1/14B_2D_FINAL_SOURCE_SNAPSHOT.txt
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0
+
+COMMAND: git diff --stat
+STDOUT_BEGIN
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+EXIT_CODE: 0

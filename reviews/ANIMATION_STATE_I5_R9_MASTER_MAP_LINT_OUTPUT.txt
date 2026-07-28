@@ -1,0 +1,12 @@
+TEST_COMMAND: C:\Python314\python.exe protocol_guard/phase3_min/lint_master_map.py --map-path reviews/PROJECT_CODEIFICATION_MASTER_MAP.md --expected-version R54 --expected-active-task ANIMATION_STATE_I5 --expected-active-status AUTHORIZED_NOT_STARTED --expected-next-task ANIMATION_STATE_I5 --expected-next-action 执行 Animation State I5 Scope Guard；不得开始 E 完整回归、状态同步或正式锁定。 --expected-visibility-status LOCKED
+CWD: D:\blender-video-factory
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R54
+ACTIVE_TASK_MATCH: ANIMATION_STATE_I5
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+NEXT_TASK_MATCH: ANIMATION_STATE_I5
+NEXT_ACTION_MATCH: 执行 Animation State I5 Scope Guard；不得开始 E 完整回归、状态同步或正式锁定。
+VISIBILITY_STATUS_MATCH: LOCKED
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: Section9_visibility_progress row '^\s+visibility\s+\(([A-Za-z0-9_]+)' not found
+EXIT_CODE: 1

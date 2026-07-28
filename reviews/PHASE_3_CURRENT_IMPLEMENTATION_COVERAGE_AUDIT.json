@@ -1,0 +1,70 @@
+{
+  "task_id": "PHASE_3_CURRENT_IMPLEMENTATION_COVERAGE_AUDIT",
+  "baseline_commit": "d44679fc11c5069a17277395bb6c52b5a6dfc799",
+  "checkers": {
+    "asset_scene_preflight_check": {
+      "exists": true,
+      "entry_file": "protocol_guard/phase3_min/asset_scene_preflight_check.py",
+      "core_file": "protocol_guard/phase3_min/asset_scene_preflight_core.py",
+      "reader_file": "protocol_guard/phase3_min/blender_scene_reader.py",
+      "fields": {
+        "scene_basic": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "open_blend_and_get_scene()", "tests": "basic.py (85)", "blender_tests": 85, "cpython_tests": 0},
+        "root_object_existence": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_check_root_objects()", "tests": "basic.py (7)", "blender_tests": 7, "cpython_tests": 0},
+        "root_object_type": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_check_root_objects()", "tests": "basic.py (7)", "blender_tests": 7, "cpython_tests": 0},
+        "required_direct_child_names": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_check_direct_children()/_build_required_result()", "tests": "basic.py (4)", "blender_tests": 4, "cpython_tests": 0},
+        "allowed_direct_child_names": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_build_allowed_result()", "tests": "basic.py (7)", "blender_tests": 7, "cpython_tests": 0},
+        "forbidden_direct_child_name_patterns": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_build_forbidden_result()", "tests": "basic.py (9)", "blender_tests": 9, "cpython_tests": 0},
+        "required_descendant_names": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_build_descendant_required()", "tests": "i1.py (26)", "blender_tests": 26, "cpython_tests": 0},
+        "forbidden_descendant_name_patterns": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_build_descendant_forbidden()", "tests": "i2.py (29)", "blender_tests": 29, "cpython_tests": 0},
+        "required_descendant_types": {"status": "FULLY_IMPLEMENTED_AND_TESTED", "production": "_build_descendant_required_types()", "tests": "types_i1b.py (19) + types_i2a.py (9) + types_i2b1.py (12) + types_i2b2.py (7) + validation_i1a.py (17)", "blender_tests": 47, "cpython_tests": 17},
+        "standing": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "facing": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "rotation": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "ground_contact": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "visibility": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "material_assignment": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "animation_state": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "camera_check": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "collection_rules": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0},
+        "projection_groups": {"status": "CORE_VALIDATION_ONLY", "production": "NOT IN READER", "tests": "core.py (schema validation only)", "blender_tests": 0, "cpython_tests": 0}
+      },
+      "supported_field_count": 19,
+      "fully_implemented_field_count": 9,
+      "partial_field_count": 0,
+      "not_implemented_field_count": 10,
+      "field_count_completion_percent": 47.4,
+      "weighted_completion_percent": 64.9,
+      "weighting_rule": "FULLY_IMPLEMENTED=3pts, CORE_VALIDATION_ONLY=1pt, max=3pts per field. Weighted = (9*3 + 10*1) / (19*3)"
+    },
+    "blender_output_artifact_check": {
+      "exists": false,
+      "entry_file": null,
+      "core_file": null,
+      "reader_file": null,
+      "fields": {},
+      "supported_field_count": 0,
+      "fully_implemented_field_count": 0,
+      "not_implemented_field_count": 0,
+      "field_count_completion_percent": 0.0,
+      "weighted_completion_percent": 0.0
+    }
+  },
+  "test_harness": {
+    "total_blender_test_files": 10,
+    "hardened_files": 7,
+    "noncompliant_files": ["blender_exit_code_probe.py", "test_asset_scene_preflight_blender_descendants_i2.py", "test_asset_scene_preflight_blender_descendants_i3a.py"],
+    "hardening_checks": ["returncode == 0", "PASS=OK in stdout", "no Traceback in stderr", "no AssertionError in stderr", "child script sys.exit(1) on exception"]
+  },
+  "test_counts": {
+    "cpython_tests": 139,
+    "blender_tests": 244,
+    "total": 383
+  },
+  "locked_scope_protection": {
+    "14B_1_modified": false,
+    "14B_2A_modified": false,
+    "14B_2B_modified": false,
+    "14B_2C_modified": false,
+    "14B_2D_modified": false
+  }
+}

@@ -1,0 +1,705 @@
+BLENDER_SUBPROCESS_EVIDENCE
+BLENDER_EXE: D:\Windows software\blender\blender.exe
+BLENDER_VERSION: 5.1.2
+========================================================================
+
+RUNNER_ID: I3
+COMMAND_ARGV_JSON: ["D:\\Windows software\\blender\\blender.exe", "--background", "--factory-startup", "--python-use-system-env", "--python", "protocol_guard/phase3_min/tests/blender_animation_state_i3_runner.py"]
+CWD: D:\blender-video-factory
+START_TIME: 2026-07-24T17:09:53
+END_TIME: 2026-07-24T17:09:54
+ELAPSED_SECONDS: 1.6
+FACTORY_STARTUP_USED: TRUE
+REAL_PROJECT_BLEND_OPENED: FALSE
+BLEND_FILES_SAVED: FALSE
+RENDER_EXECUTED: FALSE
+TEMP_FILES_CLEANED: TRUE
+EXIT_CODE: 0
+RESULT: PASS
+STDOUT_BEGIN
+BLENDER_ANIMATION_STATE_I3_RESULTS_START
+{
+  "BLENDER_VERSION": "5.1.2",
+  "scenarios": [
+    {
+      "scenario": "1_root_object_allowed",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I3_RootEmpty"
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "2_non_root_non_armature_allowed",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I3_AnimMesh"
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "3_case_sensitive_mismatch",
+      "result": {
+        "animation_object": {
+          "result": "FAIL",
+          "failure_code": "ANIMATION_OBJECT_NOT_FOUND",
+          "object_name": "_i3_animmesh"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "4_missing_object",
+      "result": {
+        "animation_object": {
+          "result": "FAIL",
+          "failure_code": "ANIMATION_OBJECT_NOT_FOUND",
+          "object_name": "_I3_NonExistent"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "5_other_scene_object_from_target",
+      "result": {
+        "animation_object": {
+          "result": "FAIL",
+          "failure_code": "ANIMATION_OBJECT_NOT_FOUND",
+          "object_name": "_I3_OtherAnimObj"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "6_other_scene_object_from_own_scene",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I3_OtherAnimObj"
+        },
+        "result": "PASS"
+      }
+    }
+  ],
+  "safety": {
+    "load_event_count": 0,
+    "save_event_count": 0,
+    "render_event_count": 0,
+    "filepath_before": "",
+    "filepath_after": "",
+    "filepath_unchanged": true,
+    "handlers_restored": true
+  },
+  "cleanup": {
+    "our_objects_removed": true,
+    "remaining_our_objects": [],
+    "our_meshes_removed": true,
+    "remaining_our_meshes": [],
+    "our_armatures_removed": true,
+    "remaining_our_armatures": [],
+    "our_scenes_removed": true,
+    "remaining_our_scenes": [],
+    "original_scene_objects_before": [
+      "Camera",
+      "Cube",
+      "Light"
+    ],
+    "original_scene_objects_after": [
+      "Camera",
+      "Cube",
+      "Light"
+    ],
+    "original_scene_objects_restored": true,
+    "active_scene_restored": true,
+    "pre_state_equals_post_state": true
+  }
+}
+BLENDER_ANIMATION_STATE_I3_RESULTS_END
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+========================================================================
+
+RUNNER_ID: I4A
+COMMAND_ARGV_JSON: ["D:\\Windows software\\blender\\blender.exe", "--background", "--factory-startup", "--python-use-system-env", "--python", "protocol_guard/phase3_min/tests/blender_animation_state_i4a_runner.py"]
+CWD: D:\blender-video-factory
+START_TIME: 2026-07-24T17:09:54
+END_TIME: 2026-07-24T17:09:56
+ELAPSED_SECONDS: 1.6
+FACTORY_STARTUP_USED: TRUE
+REAL_PROJECT_BLEND_OPENED: FALSE
+BLEND_FILES_SAVED: FALSE
+RENDER_EXECUTED: FALSE
+TEMP_FILES_CLEANED: TRUE
+EXIT_CODE: 0
+RESULT: PASS
+STDOUT_BEGIN
+BLENDER_ANIMATION_STATE_I4A_RESULTS_START
+{
+  "BLENDER_VERSION": "5.1.2",
+  "scenarios": [
+    {
+      "scenario": "1_animation_data_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "animation_data": {
+          "result": "PASS",
+          "animation_data_present": true
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "2_animation_data_none_fail",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_TmpNoAD"
+        },
+        "animation_data": {
+          "result": "FAIL",
+          "failure_code": "ANIMATION_DATA_NOT_PRESENT"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "3_scenario_a_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "animation_data": {
+          "result": "PASS",
+          "animation_data_present": true
+        },
+        "action_name": {
+          "result": "PASS",
+          "action_name": "Walk"
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "4_scenario_a_dependency",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_TmpNoAD2"
+        },
+        "animation_data": {
+          "result": "FAIL",
+          "failure_code": "ANIMATION_DATA_NOT_PRESENT"
+        },
+        "action_name": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_DATA_NOT_AVAILABLE"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "5_scenario_b_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "action_name": {
+          "result": "PASS",
+          "action_name": "Walk"
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "6_scenario_b_missing_data_fail",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_TmpNoAD3"
+        },
+        "action_name": {
+          "result": "FAIL",
+          "failure_code": "ACTION_NAME_MISMATCH"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "7_action_none_fail",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "action_name": {
+          "result": "FAIL",
+          "failure_code": "ACTION_NAME_MISMATCH"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "8_action_mismatch_fail",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "action_name": {
+          "result": "FAIL",
+          "failure_code": "ACTION_NAME_MISMATCH"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "9_pose_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "pose_position": {
+          "result": "PASS",
+          "pose_position": "POSE"
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "10_rest_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "pose_position": {
+          "result": "PASS",
+          "pose_position": "REST"
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "11_pose_mismatch_fail",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "pose_position": {
+          "result": "FAIL",
+          "failure_code": "POSE_POSITION_MISMATCH"
+        },
+        "result": "FAIL"
+      }
+    },
+    {
+      "scenario": "12_current_frame_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Armature"
+        },
+        "current_frame": {
+          "result": "PASS",
+          "current_frame": 37
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "13_combined_all_pass",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "animation_data": {
+          "result": "PASS",
+          "animation_data_present": true
+        },
+        "action_name": {
+          "result": "PASS",
+          "action_name": "Walk"
+        },
+        "pose_position": {
+          "result": "PASS",
+          "pose_position": "POSE"
+        },
+        "current_frame": {
+          "result": "PASS",
+          "current_frame": 42
+        },
+        "result": "PASS"
+      }
+    },
+    {
+      "scenario": "14_combined_fail_aggregation",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "_I4A_Tmp"
+        },
+        "animation_data": {
+          "result": "PASS",
+          "animation_data_present": true
+        },
+        "action_name": {
+          "result": "FAIL",
+          "failure_code": "ACTION_NAME_MISMATCH"
+        },
+        "pose_position": {
+          "result": "PASS",
+          "pose_position": "POSE"
+        },
+        "current_frame": {
+          "result": "PASS",
+          "current_frame": 42
+        },
+        "result": "FAIL"
+      }
+    }
+  ],
+  "safety": {
+    "load_event_count": 0,
+    "save_event_count": 0,
+    "render_event_count": 0,
+    "filepath_before": "",
+    "filepath_after": "",
+    "filepath_unchanged": true,
+    "handlers_restored": true
+  },
+  "cleanup": {
+    "our_objects_removed": true,
+    "our_meshes_removed": true,
+    "our_armatures_removed": true,
+    "our_actions_removed": true,
+    "our_scenes_removed": true,
+    "original_scene_objects_before": [
+      "Camera",
+      "Cube",
+      "Light"
+    ],
+    "original_scene_objects_after": [
+      "Camera",
+      "Cube",
+      "Light"
+    ],
+    "original_scene_objects_restored": true,
+    "active_scene_restored": true,
+    "pre_state_equals_post_state": true
+  }
+}
+BLENDER_ANIMATION_STATE_I4A_RESULTS_END
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+========================================================================
+
+RUNNER_ID: I4B
+COMMAND_ARGV_JSON: ["D:\\Windows software\\blender\\blender.exe", "--background", "--factory-startup", "--python-use-system-env", "--python", "protocol_guard/phase3_min/tests/blender_animation_state_i4b_runner.py"]
+CWD: D:\blender-video-factory
+START_TIME: 2026-07-24T17:09:56
+END_TIME: 2026-07-24T17:09:57
+ELAPSED_SECONDS: 1.5
+FACTORY_STARTUP_USED: TRUE
+REAL_PROJECT_BLEND_OPENED: FALSE
+BLEND_FILES_SAVED: FALSE
+RENDER_EXECUTED: FALSE
+TEMP_FILES_CLEANED: TRUE
+EXIT_CODE: 0
+RESULT: PASS
+STDOUT_BEGIN
+BLENDER_ANIMATION_STATE_I4B_RESULTS_START
+{
+  "BLENDER_VERSION": "5.1.2",
+  "scenarios": [
+    {
+      "scenario": "lookup_animation_object_error",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "LOOKUP_ANIMATION_OBJECT",
+          "note": "LOOKUP_ANIMATION_OBJECT_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "ambiguous_animation_object_name",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "RESOLVE_ANIMATION_OBJECT_NAME",
+          "note": "AMBIGUOUS_ANIMATION_OBJECT_NAME"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_animation_object_name_error",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_OBJECT_NAME",
+          "note": "READ_ANIMATION_OBJECT_NAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_animation_data_error_scenario_a",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A4"
+        },
+        "animation_data": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_DATA",
+          "note": "READ_ANIMATION_DATA_FAILED"
+        },
+        "action_name": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_DATA_NOT_AVAILABLE"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_animation_data_error_scenario_b",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A5"
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_DATA",
+          "note": "READ_ANIMATION_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_action_reference_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A6"
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ACTION_REFERENCE",
+          "note": "READ_ACTION_REFERENCE_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_action_name_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A7"
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ACTION_NAME",
+          "note": "READ_ACTION_NAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_object_data_exception",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A8"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_OBJECT_DATA",
+          "note": "READ_OBJECT_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_object_data_none",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A9"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_OBJECT_DATA",
+          "note": "READ_OBJECT_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_pose_position_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A10"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_POSE_POSITION",
+          "note": "READ_POSE_POSITION_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "read_current_frame_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "X"
+        },
+        "current_frame": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_CURRENT_FRAME",
+          "note": "READ_CURRENT_FRAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "animation_object_error_dependencies",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "RESOLVE_ANIMATION_OBJECT_NAME",
+          "note": "AMBIGUOUS_ANIMATION_OBJECT_NAME"
+        },
+        "animation_data": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_OBJECT_UNAVAILABLE"
+        },
+        "action_name": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_OBJECT_UNAVAILABLE"
+        },
+        "pose_position": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_OBJECT_UNAVAILABLE"
+        },
+        "current_frame": {
+          "result": "PASS",
+          "current_frame": 42
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "three_simultaneous_errors",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A13"
+        },
+        "animation_data": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_DATA",
+          "note": "READ_ANIMATION_DATA_FAILED"
+        },
+        "action_name": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_DATA_NOT_AVAILABLE"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_OBJECT_DATA",
+          "note": "READ_OBJECT_DATA_FAILED"
+        },
+        "current_frame": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_CURRENT_FRAME",
+          "note": "READ_CURRENT_FRAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "collect_target_errors_order_and_messages",
+      "collected": [
+        "AMBIGUOUS_ROOT_OBJECT_NAME: target 'T14' root_object_name 'R14' has 2 matches",
+        "AMBIGUOUS_DIRECT_CHILD_NAME: target 'T14' root_object_name 'R14' direct child name 'C1' has 2 matches",
+        "AMBIGUOUS_DESCENDANT_NAME: target 'T14' root_object_name 'R14' descendant name 'D1' has 2 matches",
+        "STANDING_UP_AXIS_ERROR: target 'T14' root_object_name 'R14' operation 'COMPUTE_UP_AXIS_ANGLE'",
+        "FACING_FORWARD_AXIS_ERROR: target 'T14' root_object_name 'R14' operation 'COMPUTE_FORWARD_AXIS_ANGLE'",
+        "VISIBILITY_READ_ERROR: target 'T14' root_object_name 'R14' operation 'READ_ROOT_HIDE_VIEWPORT'",
+        "ROTATION_COMPUTATION_ERROR: target 'T14' root_object_name 'R14' operation 'CONVERT_ROOT_MATRIX_WORLD_TO_QUATERNION'",
+        "ANIMATION_STATE_COMPUTATION_ERROR: target 'T14' animation_state operation 'RESOLVE_ANIMATION_OBJECT_NAME'",
+        "ANIMATION_STATE_COMPUTATION_ERROR: target 'T14' animation_state operation 'READ_OBJECT_DATA'",
+        "ANIMATION_STATE_COMPUTATION_ERROR: target 'T14' animation_state operation 'READ_CURRENT_FRAME'"
+      ]
+    }
+  ],
+  "safety": {
+    "load_event_count": 0,
+    "save_event_count": 0,
+    "render_event_count": 0,
+    "filepath_before": "",
+    "filepath_after": "",
+    "filepath_unchanged": true,
+    "handlers_restored": true
+  },
+  "cleanup": {
+    "our_objects_removed": true,
+    "our_meshes_removed": true,
+    "our_armatures_removed": true,
+    "our_actions_removed": true,
+    "our_scenes_removed": true,
+    "active_scene_restored": true,
+    "pre_state_equals_post_state": true
+  }
+}
+BLENDER_ANIMATION_STATE_I4B_RESULTS_END
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+========================================================================
+

@@ -1,0 +1,14 @@
+TEST_COMMAND: python -m pytest tests/test_asset_scene_preflight_core.py::TestSpecValidation::test_animation_state_valid tests/test_asset_scene_preflight_core.py::TestSpecValidation::test_animation_state_missing_object_name -v --tb=long
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory\protocol_guard\phase3_min
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 2 items
+
+tests/test_asset_scene_preflight_core.py::TestSpecValidation::test_animation_state_valid PASSED [ 50%]
+tests/test_asset_scene_preflight_core.py::TestSpecValidation::test_animation_state_missing_object_name PASSED [100%]
+
+============================== 2 passed in 0.03s ==============================
+PYTEST_EXIT_CODE: 0

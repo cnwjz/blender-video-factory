@@ -1,0 +1,259 @@
+﻿BLENDER_ANIMATION_STATE_I4B_RESULTS_START
+{
+  "BLENDER_VERSION": "5.1.2",
+  "scenarios": [
+    {
+      "scenario": "1_lookup_animation_object_error",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "LOOKUP_ANIMATION_OBJECT",
+          "note": "LOOKUP_ANIMATION_OBJECT_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "2_ambiguous_animation_object_name",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "RESOLVE_ANIMATION_OBJECT_NAME",
+          "note": "AMBIGUOUS_ANIMATION_OBJECT_NAME"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "3_read_animation_object_name_error",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_OBJECT_NAME",
+          "note": "READ_ANIMATION_OBJECT_NAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "4_read_animation_data_error_scenario_a",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A4"
+        },
+        "animation_data": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_DATA",
+          "note": "READ_ANIMATION_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "5_read_animation_data_error_scenario_b",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A5"
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ANIMATION_DATA",
+          "note": "READ_ANIMATION_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "6_read_action_reference_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A6"
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ACTION_REFERENCE",
+          "note": "READ_ACTION_REFERENCE_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "7_read_action_name_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A7"
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ACTION_NAME",
+          "note": "READ_ACTION_NAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "8_read_object_data_exception",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A8"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_OBJECT_DATA",
+          "note": "READ_OBJECT_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "9_read_object_data_none",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A9"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_OBJECT_DATA",
+          "note": "READ_OBJECT_DATA_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "10_read_pose_position_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A10"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_POSE_POSITION",
+          "note": "READ_POSE_POSITION_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "11_read_current_frame_error",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "X"
+        },
+        "current_frame": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_CURRENT_FRAME",
+          "note": "READ_CURRENT_FRAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "12_animation_object_error_dependencies",
+      "result": {
+        "animation_object": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "RESOLVE_ANIMATION_OBJECT_NAME",
+          "note": "AMBIGUOUS_ANIMATION_OBJECT_NAME"
+        },
+        "animation_data": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_OBJECT_UNAVAILABLE"
+        },
+        "action_name": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_OBJECT_UNAVAILABLE"
+        },
+        "pose_position": {
+          "result": "NOT_CHECKED",
+          "note": "ANIMATION_OBJECT_UNAVAILABLE"
+        },
+        "current_frame": {
+          "result": "PASS",
+          "current_frame": 42
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "13_three_simultaneous_errors",
+      "result": {
+        "animation_object": {
+          "result": "PASS",
+          "object_name": "A13"
+        },
+        "animation_data": {
+          "result": "PASS",
+          "animation_data_present": true
+        },
+        "action_name": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_ACTION_REFERENCE",
+          "note": "READ_ACTION_REFERENCE_FAILED"
+        },
+        "pose_position": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_OBJECT_DATA",
+          "note": "READ_OBJECT_DATA_FAILED"
+        },
+        "current_frame": {
+          "result": "ERROR",
+          "error_type": "ANIMATION_STATE_COMPUTATION_ERROR",
+          "operation": "READ_CURRENT_FRAME",
+          "note": "READ_CURRENT_FRAME_FAILED"
+        },
+        "result": "ERROR"
+      }
+    },
+    {
+      "scenario": "14_collect_target_errors_order_and_messages",
+      "collected": [
+        "ANIMATION_STATE_COMPUTATION_ERROR: target 'T14' animation_state operation 'READ_OBJECT_DATA'",
+        "ANIMATION_STATE_COMPUTATION_ERROR: target 'T14' animation_state operation 'READ_CURRENT_FRAME'"
+      ]
+    }
+  ],
+  "safety": {
+    "load_event_count": 0,
+    "save_event_count": 0,
+    "render_event_count": 0,
+    "filepath_before": "",
+    "filepath_after": "",
+    "filepath_unchanged": true,
+    "handlers_restored": true
+  },
+  "cleanup": {
+    "our_objects_removed": true,
+    "our_meshes_removed": true,
+    "our_armatures_removed": true,
+    "our_actions_removed": true,
+    "our_scenes_removed": true,
+    "active_scene_restored": true,
+    "pre_state_equals_post_state": true
+  }
+}
+BLENDER_ANIMATION_STATE_I4B_RESULTS_END
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit

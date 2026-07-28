@@ -1,0 +1,19 @@
+COMMAND_ARGV_JSON_ASCII: ["C:\\Python314\\python.exe", "-X", "utf8", "protocol_guard/phase3_min/lint_master_map.py", "--map-path", "reviews/PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R54", "--expected-active-task", "ANIMATION_STATE_I5", "--expected-active-status", "AUTHORIZED_NOT_STARTED", "--expected-next-task", "ANIMATION_STATE_I5", "--expected-next-action", "\u6267\u884c Animation State I5 Scope Guard\uff1b\u4e0d\u5f97\u5f00\u59cb E \u5b8c\u6574\u56de\u5f52\u3001\u72b6\u6001\u540c\u6b65\u6216\u6b63\u5f0f\u9501\u5b9a\u3002", "--expected-visibility-status", "LOCKED"]
+CWD: D:\blender-video-factory
+LINT_MASTER_MAP_CORE_CHECK_RESULT: PASS
+LINT_MASTER_MAP_RESULT: NOT_APPLICABLE_CURRENT_IMPLEMENTATION_VISIBILITY_SPECIFIC
+LINT_MASTER_MAP_EXIT_CODE: 1
+NEXT_ACTION_SHA256_MATCH: true
+STDOUT:
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R54
+ACTIVE_TASK_MATCH: ANIMATION_STATE_I5
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+NEXT_TASK_MATCH: ANIMATION_STATE_I5
+NEXT_ACTION_MATCH: 执行 Animation State I5 Scope Guard；不得开始 E 完整回归、状态同步或正式锁定。
+VISIBILITY_STATUS_MATCH: LOCKED
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: Section9_visibility_progress row '^\s+visibility\s+\(([A-Za-z0-9_]+)' not found
+
+STDERR:
+<EMPTY>

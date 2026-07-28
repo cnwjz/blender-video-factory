@@ -1,0 +1,19 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 10 items
+
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestIdentity::test_identity_plus_z_pass PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestRotation::test_rot_x_90_z_to_minus_y PASSED [ 20%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestRotation::test_rot_y_90_z_to_plus_x PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestNegativeScale::test_neg_z_scale_180_deg_fail PASSED [ 40%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestNonUniformScale::test_nonuniform_scale_normalizes PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestNonUniformScale::test_rot_and_scale_combined PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestShear::test_shear_zx_tol30_pass PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestShear::test_shear_zx_tol10_fail PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestZeroScaleError::test_zero_z_scale_normalize_error PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_standing_i2.py::TestAllScenariosMatch::test_all_expected_results_match PASSED [100%]
+
+============================= 10 passed in 1.44s ==============================

@@ -1,0 +1,469 @@
+PYTHON_VERSION: 3.14.5
+CWD: D:\blender-video-factory
+MASTER_MAP_LINT_COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard/phase3_min/lint_master_map.py", "--map-path", "reviews/PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R56", "--expected-active-task", "ANIMATION_STATE_E", "--expected-active-status", "AUTHORIZED_NOT_STARTED", "--expected-unique-next-atomic-task", "ANIMATION_STATE_E", "--expected-next-task", "ANIMATION_STATE_E", "--expected-next-action", "\u6267\u884c Animation State E \u5b8c\u6574\u56de\u5f52\u4e0e\u6700\u4f4e\u5fc5\u8981\u8bc1\u636e\uff1b\u4e0d\u5f97\u5f00\u59cb E \u72b6\u6001\u540c\u6b65\u3001\u6b63\u5f0f\u9501\u5b9a\u6216\u5176\u4ed6\u5b57\u6bb5\u7ec4\u3002"]
+MASTER_MAP_LINT_STDOUT:
+LINT_MASTER_MAP_STATUS: PASS
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: ANIMATION_STATE_E
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: ANIMATION_STATE_E
+NEXT_TASK_MATCH: ANIMATION_STATE_E
+NEXT_ACTION_MATCH: 执行 Animation State E 完整回归与最低必要证据；不得开始 E 状态同步、正式锁定或其他字段组。
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: True
+SECTION_15_BLOCK_VALID: True
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: True
+MISMATCH_COUNT: 0
+MISMATCH_LINES: None
+MASTER_MAP_LINT_EXIT_CODE: 0
+
+PYTEST_COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "-m", "pytest", "protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py", "protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_scene_basic.py::TestScopeStatic::test_production_code_has_no_beyond_scope_imports", "protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py", "-vv"]
+CWD: D:\blender-video-factory
+============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: D:\blender-video-factory
+plugins: anyio-4.13.0, cov-4.1.0
+collecting ... collected 113 items
+
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_map_path_is_reviews PASSED [  0%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_current_map_passes PASSED [  1%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_version_mismatch_fails PASSED [  2%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_active_task_fails PASSED [  3%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_active_status_fails PASSED [  4%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_unique_next_atomic_task_fails PASSED [  5%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_next_task_fails PASSED [  6%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_wrong_next_action_fails PASSED [  7%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_missing_field_fails PASSED [  7%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_three_block_conflict_fails PASSED [  8%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_occurrence_count_wrong_fails PASSED [  9%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_three_blocks_all_at_top_fails PASSED [ 10%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_prefix_impostor_fields_not_counted PASSED [ 11%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_extra_formal_field_outside_three_blocks_fails PASSED [ 12%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_section_21_not_accepted_as_section_11 PASSED [ 13%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintMasterMap::test_section_25_not_accepted_as_section_15 PASSED [ 14%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_valid_zip_with_flat_files_passes PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_missing_file_fails PASSED [ 15%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_extra_file_fails PASSED [ 16%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_duplicate_expected_entry_fails PASSED [ 17%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_bad_zip_fails PASSED [ 18%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_python_syntax_error_fails PASSED [ 19%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_zero_size_zip_fails PASSED [ 20%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_expected_entry_with_absolute_fails PASSED [ 21%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_drive_relative_expected_entry_fails PASSED [ 22%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_reviews_path_zip_passes PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_flattened_path_rejected PASSED [ 23%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_directory_entry_rejected PASSED [ 24%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintDeliveryZip::test_inner_zip_rejected PASSED [ 25%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_normal_test_passes PASSED [ 26%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_ast_parse_failure_fails PASSED [ 27%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_skip_decorator_fails PASSED [ 28%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_skipif_decorator_fails PASSED [ 29%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_xfail_decorator_fails PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_importorskip_call_fails PASSED [ 30%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_bare_return_fails PASSED [ 31%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_valued_return_fails PASSED [ 32%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assert_literal_pass PASSED [ 33%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_assert_msg_literal_fails PASSED [ 34%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assert_literal_in_assignment_only_fails PASSED [ 35%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assignment_pass PASSED [ 36%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_assignment_missing_fails PASSED [ 37%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_call_pass PASSED [ 38%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_call_wrong_receiver_fails PASSED [ 38%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_invalid_policy_JSON_exits_2 PASSED [ 39%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::TestLintFocusedTest::test_policy_bad_schema_exits_2 PASSED [ 40%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::test_test_file_self_parse PASSED [ 41%]
+protocol_guard/phase3_min/tests/test_phase3_min_predelivery_lints.py::test_test_file_no_skip_xfail PASSED [ 42%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_blender_scene_basic.py::TestScopeStatic::test_production_code_has_no_beyond_scope_imports PASSED [ 43%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_exists PASSED [ 44%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_counts PASSED [ 45%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_reads_zero PASSED [ 46%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_calls_zero PASSED [ 46%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_writes_zero PASSED [ 47%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[bound_box] PASSED [ 48%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[dimensions] PASSED [ 49%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_depsgraph_get] PASSED [ 50%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_get] PASSED [ 51%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_get] PASSED [ 52%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_render] PASSED [ 53%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_viewport] PASSED [ 53%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[location] PASSED [ 54%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[material_slots] PASSED [ 55%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_basis] PASSED [ 56%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_local] PASSED [ 57%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_parent_inverse] PASSED [ 58%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_world] PASSED [ 59%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[nla_tracks] PASSED [ 60%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_euler] PASSED [ 61%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_mode] PASSED [ 61%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_quaternion] PASSED [ 62%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[scale] PASSED [ 63%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh] PASSED [ 64%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh_clear] PASSED [ 65%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[users_collection] PASSED [ 66%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[scene.objects] PASSED [ 67%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_object.name] PASSED [ 68%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_object.animation_data] PASSED [ 69%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_data.action] PASSED [ 69%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[action.name] PASSED [ 70%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[animation_object.data] PASSED [ 71%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[data.pose_position] PASSED [ 72%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_missing_fails[scene.frame_current] PASSED [ 73%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[scene.objects] PASSED [ 74%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_object.name] PASSED [ 75%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_object.animation_data] PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_data.action] PASSED [ 76%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[action.name] PASSED [ 77%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[animation_object.data] PASSED [ 78%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[data.pose_position] PASSED [ 79%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_wrong_prefix[scene.frame_current] PASSED [ 80%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[scene.objects] PASSED [ 81%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_object.name] PASSED [ 82%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_object.animation_data] PASSED [ 83%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_data.action] PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[action.name] PASSED [ 84%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[animation_object.data] PASSED [ 85%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[data.pose_position] PASSED [ 86%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_duplicate[scene.frame_current] PASSED [ 87%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p1_bpy_ops_two_layer_alias PASSED [ 88%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p2_bpy_data_get_alias PASSED [ 89%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p3_bpy_data_subscript_multi_alias PASSED [ 90%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p4_obj_alias_write PASSED [ 91%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p5_bpy_alias_write PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p6_deep_tuple_write PASSED [ 92%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_p7_uncalled_lambda_is_clean PASSED [ 93%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_forbidden PASSED [ 94%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_alias PASSED [ 95%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_multi_layer PASSED [ 96%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_recursive PASSED [ 97%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_helper PASSED [ 98%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_local_class PASSED [ 99%]
+protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_missing PASSED [100%]
+
+============================= 113 passed in 3.73s =============================
+PYTEST_EXIT_CODE: 0
+
+========================================================================
+MECHANICAL PROBES — R3 EVIDENCE CORRECTION
+========================================================================
+PYTEST_RERUN_EXECUTED: FALSE
+BLENDER_EXECUTED: FALSE
+FULL_REGRESSION_EXECUTED: FALSE
+ANIMATION_STATE_E_RERUN_EXECUTED: FALSE
+
+--- PROBE 1: REAL_R56_MAP ---
+DESCRIPTION: Current R56 master map must pass all checks
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "reviews/PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R56", "--expected-active-task", "ANIMATION_STATE_E", "--expected-active-status", "AUTHORIZED_NOT_STARTED", "--expected-unique-next-atomic-task", "ANIMATION_STATE_E", "--expected-next-task", "ANIMATION_STATE_E", "--expected-next-action", "\u6267\u884c Animation State E \u5b8c\u6574\u56de\u5f52\u4e0e\u6700\u4f4e\u5fc5\u8981\u8bc1\u636e\uff1b\u4e0d\u5f97\u5f00\u59cb E \u72b6\u6001\u540c\u6b65\u3001\u6b63\u5f0f\u9501\u5b9a\u6216\u5176\u4ed6\u5b57\u6bb5\u7ec4\u3002"]
+TEMP_MAP_CONTENT:
+REAL reviews/PROJECT_CODEIFICATION_MASTER_MAP.md
+EXPECTED_EXIT_CODE: 0
+ACTUAL_EXIT_CODE: 0
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: PASS
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: ANIMATION_STATE_E
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: ANIMATION_STATE_E
+NEXT_TASK_MATCH: ANIMATION_STATE_E
+NEXT_ACTION_MATCH: 执行 Animation State E 完整回归与最低必要证据；不得开始 E 状态同步、正式锁定或其他字段组。
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: True
+SECTION_15_BLOCK_VALID: True
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: True
+MISMATCH_COUNT: 0
+MISMATCH_LINES: None
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+--- PROBE 2: THREE_BLOCKS_ALL_AT_TOP ---
+DESCRIPTION: All three state blocks in TOP without section headers must fail
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp0mt9l7dx\\map.md", "--expected-version", "R56", "--expected-active-task", "TASK_A", "--expected-active-status", "STATUS_A", "--expected-unique-next-atomic-task", "TASK_A", "--expected-next-task", "TASK_A", "--expected-next-action", "Action A"]
+TEMP_MAP_CONTENT:
+VERSION: R56
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+EXPECTED_EXIT_CODE: 1
+ACTUAL_EXIT_CODE: 1
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: TASK_A
+ACTIVE_STATUS_MATCH: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: TASK_A
+NEXT_TASK_MATCH: TASK_A
+NEXT_ACTION_MATCH: Action A
+TOP_BLOCK_VALID: False
+SECTION_11_BLOCK_VALID: False
+SECTION_15_BLOCK_VALID: False
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: False
+MISMATCH_COUNT: 7
+MISMATCH_LINES: DUPLICATE: ACTIVE_TASK_ID appears 3 times in TOP_BLOCK; DUPLICATE: ACTIVE_TASK_STATUS appears 3 times in TOP_BLOCK; DUPLICATE: UNIQUE_NEXT_ATOMIC_TASK appears 3 times in TOP_BLOCK; DUPLICATE: CURRENT_NEXT_TASK appears 3 times in TOP_BLOCK; DUPLICATE: CURRENT_NEXT_ACTION appears 3 times in TOP_BLOCK; MISSING: SECTION_11 (## 十一、) not found; MISSING: SECTION_15 (## 十五、) not found
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+--- PROBE 3: PREFIX_ONLY_FAKE_FIELDS ---
+DESCRIPTION: Only prefix-impostor fields without real fields must fail
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp62_1p01r\\map.md", "--expected-version", "R56", "--expected-active-task", "TASK_A", "--expected-active-status", "STATUS_A", "--expected-unique-next-atomic-task", "TASK_A", "--expected-next-task", "TASK_A", "--expected-next-action", "Action A"]
+TEMP_MAP_CONTENT:
+VERSION: R56
+OLD_ACTIVE_TASK_ID: OLD_VALUE
+PREVIOUS_ACTIVE_TASK_STATUS: OLD_VALUE
+XUNIQUE_NEXT_ATOMIC_TASK: OLD_VALUE
+OLD_CURRENT_NEXT_TASK: OLD_VALUE
+PREVIOUS_CURRENT_NEXT_ACTION: Old action
+
+## 十一、当前唯一下一步
+
+OLD_ACTIVE_TASK_ID: OLD_VALUE
+PREVIOUS_CURRENT_NEXT_ACTION: Old action
+
+## 十五、当前状态摘要
+
+OLD_ACTIVE_TASK_ID: OLD_VALUE
+PREVIOUS_CURRENT_NEXT_ACTION: Old action
+EXPECTED_EXIT_CODE: 1
+ACTUAL_EXIT_CODE: 1
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: TASK_A
+ACTIVE_STATUS_MATCH: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: TASK_A
+NEXT_TASK_MATCH: TASK_A
+NEXT_ACTION_MATCH: Action A
+TOP_BLOCK_VALID: False
+SECTION_11_BLOCK_VALID: False
+SECTION_15_BLOCK_VALID: False
+OCCURRENCE_COUNTS_MATCH: False
+THREE_CURRENT_STATE_BLOCKS_MATCH: False
+MISMATCH_COUNT: 20
+MISMATCH_LINES: MISSING: ACTIVE_TASK_ID not found in TOP_BLOCK; MISSING: ACTIVE_TASK_STATUS not found in TOP_BLOCK; MISSING: UNIQUE_NEXT_ATOMIC_TASK not found in TOP_BLOCK; MISSING: CURRENT_NEXT_TASK not found in TOP_BLOCK; MISSING: CURRENT_NEXT_ACTION not found in TOP_BLOCK; MISSING: ACTIVE_TASK_ID not found in SECTION_11_BLOCK; MISSING: ACTIVE_TASK_STATUS not found in SECTION_11_BLOCK; MISSING: UNIQUE_NEXT_ATOMIC_TASK not found in SECTION_11_BLOCK; MISSING: CURRENT_NEXT_TASK not found in SECTION_11_BLOCK; MISSING: CURRENT_NEXT_ACTION not found in SECTION_11_BLOCK; MISSING: ACTIVE_TASK_ID not found in SECTION_15_BLOCK; MISSING: ACTIVE_TASK_STATUS not found in SECTION_15_BLOCK; MISSING: UNIQUE_NEXT_ATOMIC_TASK not found in SECTION_15_BLOCK; MISSING: CURRENT_NEXT_TASK not found in SECTION_15_BLOCK; MISSING: CURRENT_NEXT_ACTION not found in SECTION_15_BLOCK; OCCURRENCE_COUNT: ACTIVE_TASK_ID appears 0 times, expected 3; OCCURRENCE_COUNT: ACTIVE_TASK_STATUS appears 0 times, expected 3; OCCURRENCE_COUNT: UNIQUE_NEXT_ATOMIC_TASK appears 0 times, expected 3; OCCURRENCE_COUNT: CURRENT_NEXT_TASK appears 0 times, expected 3; OCCURRENCE_COUNT: CURRENT_NEXT_ACTION appears 0 times, expected 3
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+--- PROBE 4: VALID_FIELDS_PLUS_PREFIX_FAKE_FIELDS ---
+DESCRIPTION: Valid fields with extra prefix impostors must pass
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp9d8qlfim\\map.md", "--expected-version", "R56", "--expected-active-task", "TASK_A", "--expected-active-status", "STATUS_A", "--expected-unique-next-atomic-task", "TASK_A", "--expected-next-task", "TASK_A", "--expected-next-action", "Action A"]
+TEMP_MAP_CONTENT:
+VERSION: R56
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+OLD_ACTIVE_TASK_ID: SHOULD_BE_IGNORED
+
+## 十一、当前唯一下一步
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+PREVIOUS_CURRENT_NEXT_ACTION: SHOULD_BE_IGNORED
+
+## 十五、当前状态摘要
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+XUNIQUE_NEXT_ATOMIC_TASK: SHOULD_BE_IGNORED
+EXPECTED_EXIT_CODE: 0
+ACTUAL_EXIT_CODE: 0
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: PASS
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: TASK_A
+ACTIVE_STATUS_MATCH: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: TASK_A
+NEXT_TASK_MATCH: TASK_A
+NEXT_ACTION_MATCH: Action A
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: True
+SECTION_15_BLOCK_VALID: True
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: True
+MISMATCH_COUNT: 0
+MISMATCH_LINES: None
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+--- PROBE 5: EXTRA_FORMAL_FIELD_OUTSIDE_THREE_BLOCKS ---
+DESCRIPTION: A 4th formal field outside the three blocks must cause occurrence count failure
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp6dremfs0\\map.md", "--expected-version", "R56", "--expected-active-task", "TASK_A", "--expected-active-status", "STATUS_A", "--expected-unique-next-atomic-task", "TASK_A", "--expected-next-task", "TASK_A", "--expected-next-action", "Action A"]
+TEMP_MAP_CONTENT:
+VERSION: R56
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 十一、当前唯一下一步
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 十五、当前状态摘要
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 十六、附录
+
+ACTIVE_TASK_ID: TASK_A
+EXPECTED_EXIT_CODE: 1
+ACTUAL_EXIT_CODE: 1
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: TASK_A
+ACTIVE_STATUS_MATCH: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: TASK_A
+NEXT_TASK_MATCH: TASK_A
+NEXT_ACTION_MATCH: Action A
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: True
+SECTION_15_BLOCK_VALID: True
+OCCURRENCE_COUNTS_MATCH: False
+THREE_CURRENT_STATE_BLOCKS_MATCH: True
+MISMATCH_COUNT: 1
+MISMATCH_LINES: OCCURRENCE_COUNT: ACTIVE_TASK_ID appears 4 times, expected 3
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+--- PROBE 6: SECTION_11_REPLACED_BY_SECTION_21 ---
+DESCRIPTION: Section 21 must not match as section 11
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpbc99_s28\\map.md", "--expected-version", "R56", "--expected-active-task", "TASK_A", "--expected-active-status", "STATUS_A", "--expected-unique-next-atomic-task", "TASK_A", "--expected-next-task", "TASK_A", "--expected-next-action", "Action A"]
+TEMP_MAP_CONTENT:
+VERSION: R56
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 二十一、其他内容
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 十五、当前状态摘要
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+EXPECTED_EXIT_CODE: 1
+ACTUAL_EXIT_CODE: 1
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: TASK_A
+ACTIVE_STATUS_MATCH: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: TASK_A
+NEXT_TASK_MATCH: TASK_A
+NEXT_ACTION_MATCH: Action A
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: False
+SECTION_15_BLOCK_VALID: True
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: False
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: SECTION_11 (## 十一、) not found
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+--- PROBE 7: SECTION_15_REPLACED_BY_SECTION_25 ---
+DESCRIPTION: Section 25 must not match as section 15
+COMMAND_ARGV_JSON: ["C:\\Python314\\python.exe", "protocol_guard\\phase3_min\\lint_master_map.py", "--map-path", "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpprp89rh5\\map.md", "--expected-version", "R56", "--expected-active-task", "TASK_A", "--expected-active-status", "STATUS_A", "--expected-unique-next-atomic-task", "TASK_A", "--expected-next-task", "TASK_A", "--expected-next-action", "Action A"]
+TEMP_MAP_CONTENT:
+VERSION: R56
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 十一、当前唯一下一步
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+
+## 二十五、其他内容
+
+ACTIVE_TASK_ID: TASK_A
+ACTIVE_TASK_STATUS: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK: TASK_A
+CURRENT_NEXT_TASK: TASK_A
+CURRENT_NEXT_ACTION: Action A
+EXPECTED_EXIT_CODE: 1
+ACTUAL_EXIT_CODE: 1
+RESULT: PASS
+STDOUT_BEGIN
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R56
+ACTIVE_TASK_MATCH: TASK_A
+ACTIVE_STATUS_MATCH: STATUS_A
+UNIQUE_NEXT_ATOMIC_TASK_MATCH: TASK_A
+NEXT_TASK_MATCH: TASK_A
+NEXT_ACTION_MATCH: Action A
+TOP_BLOCK_VALID: True
+SECTION_11_BLOCK_VALID: True
+SECTION_15_BLOCK_VALID: False
+OCCURRENCE_COUNTS_MATCH: True
+THREE_CURRENT_STATE_BLOCKS_MATCH: False
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: SECTION_15 (## 十五、) not found
+STDOUT_END
+STDERR_BEGIN
+STDERR_END
+
+========================================================================
+END OF MECHANICAL PROBES
+========================================================================

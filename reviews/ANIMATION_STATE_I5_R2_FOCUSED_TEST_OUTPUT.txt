@@ -1,0 +1,40 @@
+﻿PYTEST
+COMMAND: cd protocol_guard\phase3_min; python -m pytest tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py -v --tb=long 2>&1
+CWD: D:\blender-video-factory\protocol_guard\phase3_min
+
+============================= test session starts ============================= platform win32 -- Python 3.14.5, pytest-7.4.4, pluggy-1.6.0 -- C:\Python314\python.exe cachedir: .pytest_cache rootdir: D:\blender-video-factory plugins: anyio-4.13.0, cov-4.1.0 collecting ... collected 37 items  protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_exists PASSED [  2%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_allowed_counts PASSED [  5%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_reads_zero PASSED [  8%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_calls_zero PASSED [ 10%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_writes_zero PASSED [ 13%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[bound_box] PASSED [ 16%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[dimensions] PASSED [ 18%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_depsgraph_get] PASSED [ 21%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[evaluated_get] PASSED [ 24%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_get] PASSED [ 27%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_render] PASSED [ 29%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[hide_viewport] PASSED [ 32%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[location] PASSED [ 35%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[material_slots] PASSED [ 37%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_basis] PASSED [ 40%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_local] PASSED [ 43%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_parent_inverse] PASSED [ 45%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[matrix_world] PASSED [ 48%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[nla_tracks] PASSED [ 51%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_euler] PASSED [ 54%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_mode] PASSED [ 56%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[rotation_quaternion] PASSED [ 59%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[scale] PASSED [ 62%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh] PASSED [ 64%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[to_mesh_clear] PASSED [ 67%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_forbidden_injection[users_collection] PASSED [ 70%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_ops_injection PASSED [ 72%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_data_get_injection PASSED [ 75%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_bpy_data_subscript_injection PASSED [ 78%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_write_injection PASSED [ 81%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_delete_injection PASSED [ 83%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_aug_assign_injection PASSED [ 86%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_forbidden PASSED [ 89%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_helper_alias_forbidden PASSED [ 91%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_lambda_forbidden PASSED [ 94%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_uncalled_helper_skipped PASSED [ 97%] protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py::test_entry_missing_fails PASSED [100%]  ============================= 37 passed in 0.34s ==============================
+
+PYTEST_EXIT_CODE: 0
+
+============================================================
+LINT_MASTER_MAP
+LINT_MASTER_MAP_CORE_CHECK_RESULT: PASS
+LINT_MASTER_MAP_RESULT: NOT_APPLICABLE_CURRENT_IMPLEMENTATION_VISIBILITY_SPECIFIC
+LINT_MASTER_MAP_EXIT_CODE: 1
+COMMAND_ARGV_JSON_ASCII: ["C:\\Python314\\python.exe", "-X", "utf8", "protocol_guard/phase3_min/lint_master_map.py", "--map-path", "reviews/PROJECT_CODEIFICATION_MASTER_MAP.md", "--expected-version", "R54", "--expected-active-task", "ANIMATION_STATE_I5", "--expected-active-status", "AUTHORIZED_NOT_STARTED", "--expected-next-task", "ANIMATION_STATE_I5", "--expected-next-action", "\u6267\u884c Animation State I5 Scope Guard\uff1b\u4e0d\u5f97\u5f00\u59cb E \u5b8c\u6574\u56de\u5f52\u3001\u72b6\u6001\u540c\u6b65\u6216\u6b63\u5f0f\u9501\u5b9a\u3002", "--expected-visibility-status", "LOCKED"]
+COMMAND_ARGV_JSON_PARSEABLE: true
+EXPECTED_NEXT_ACTION_SHA256: e424e6fc7a01194ff5969ef820fc50e42b0a2093c067bc68eb40b641447d8899
+MASTER_MAP_NEXT_ACTION_SHA256: e424e6fc7a01194ff5969ef820fc50e42b0a2093c067bc68eb40b641447d8899
+NEXT_ACTION_SHA256_MATCH: true
+STDOUT:
+LINT_MASTER_MAP_STATUS: FAIL
+MAP_VERSION_MATCH: R54
+ACTIVE_TASK_MATCH: ANIMATION_STATE_I5
+ACTIVE_STATUS_MATCH: AUTHORIZED_NOT_STARTED
+NEXT_TASK_MATCH: ANIMATION_STATE_I5
+NEXT_ACTION_MATCH: 鎵ц Animation State I5 Scope Guard锛涗笉寰楀紑濮?E 瀹屾暣鍥炲綊銆佺姸鎬佸悓姝ユ垨姝ｅ紡閿佸畾銆?
+VISIBILITY_STATUS_MATCH: LOCKED
+MISMATCH_COUNT: 1
+MISMATCH_LINES: MISSING: Section9_visibility_progress row '^\s+visibility\s+\(([A-Za-z0-9_]+)' not found
+
+STDERR:
+<EMPTY>
+============================================================
+LINT_FOCUSED_TEST
+COMMAND: python protocol_guard/phase3_min/lint_focused_test.py --test-path protocol_guard/phase3_min/tests/test_asset_scene_preflight_animation_state_i5_scope_guard.py
+CWD: D:\blender-video-factory
+STDOUT: LINT_FOCUSED_TEST_STATUS: PASS (17 test functions, 0 violations)
+EXIT_CODE: 0
+
+============================================================
+LINT_DELIVERY_ZIP (pending — run after ZIP build)
