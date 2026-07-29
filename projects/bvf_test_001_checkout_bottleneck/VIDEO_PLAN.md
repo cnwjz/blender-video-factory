@@ -2,9 +2,11 @@
 
 ```text
 DOCUMENT_ID: CHECKOUT_BOTTLENECK_VIDEO_PLAN
-VERSION: R2
+VERSION: R3
 DATE: 2026-07-29
-STATUS: UPDATED_FOR_VIDEO_PRODUCTION_STANDARD_R3
+STATUS: PENDING_USER_APPROVAL
+ALIGNED_STANDARD: VIDEO_PRODUCTION_EXECUTION_STANDARD R4
+ALIGNED_CLAUDE_RULES: BVF_PROJECT_CLAUDE_RULES R4
 PROJECT_ROOT: D:\blender-video-factory
 PROJECT_PATH: D:\blender-video-factory\projects\bvf_test_001_checkout_bottleneck
 
@@ -12,21 +14,33 @@ VIDEO_ID: bvf_test_001_checkout_bottleneck
 VIDEO_TITLE: 一个收银窗口关闭后，队伍为什么突然变长？
 PLATFORM: 抖音
 ASPECT_RATIO: 9:16
+ENGINEERING_VALIDATION_ASPECT_RATIO: 9:16
 TARGET_RESOLUTION: 1080x1920
 TARGET_FPS: 30
 TARGET_DURATION: 约 11.5 秒 / 约 345 帧
 
-CURRENT_STAGE: P5_FORMAL_FIRST_FRAME
+CURRENT_STAGE: P4_ASSET_TEMPLATE_BASELINE
+CURRENT_PROBLEM_ID: P4_CHECKOUT_ASSET_BASELINE
+PROBLEM_IMPLEMENTATION_COUNT: 0
+PROBLEM_CORRECTION_COUNT: 0
 ACTIVE_TASK_ID: NONE
 ACTIVE_TASK_STATUS: AWAITING_USER_AUTHORIZATION
-UNIQUE_NEXT_TASK: FORMAL_FIRST_FRAME_V1
+UNIQUE_NEXT_TASK: FREEZE_AND_MEASURE_MANUAL_REFERENCE_V1
 
-LAST_TECHNICAL_GATE: ASSET_ROUTE_MINIMUM_TECHNICAL_VALIDATION_COMPLETED
-LAST_VISUAL_REVIEW: ASSET_DIAGNOSTIC_OUTPUT_NOT_ACCEPTED_AS_FORMAL_VISUAL_APPROVAL
-USER_VISUAL_APPROVAL: NOT_GRANTED_FOR_FORMAL_FIRST_FRAME
+LAST_TECHNICAL_GATE: LEGACY_MINIMUM_ASSET_VALIDATION_ONLY
+LAST_VISUAL_REVIEW: USER_CONFIRMED_CASHIER_SIZE_AND_POSITION_FOR_CALIBRATION
+USER_VISUAL_APPROVAL: MANUAL_REFERENCE_APPROVED_FOR_EXTRACTION_ONLY
+
+CURRENT_MANUAL_REFERENCE: scene\formal_first_frame_manual_layout_v1.blend
+CURRENT_MANUAL_REFERENCE_STATUS: USER_CONFIRMED_PATH_PENDING_FRESH_PROCESS_VERIFICATION
+CURRENT_APPROVED_ASSET_TEMPLATE: NONE
+CURRENT_APPROVED_WORLD_LAYOUT: NONE
+CURRENT_APPROVED_SHOT: NONE
 CURRENT_APPROVED_BLEND: NONE
 CURRENT_APPROVED_PREVIEW: NONE
+
 STOP_LOSS_TRIGGERED: FALSE
+HISTORICAL_STOP_LOSS_RECORDS: P5_FIRST_FRAME_COMPOSITION
 
 MCP_EXECUTION_STATUS: MUST_REVERIFY_WHEN_NEXT_BLENDER_TASK_STARTS
 MCP_REQUIRED_SUCCESS_SIGNAL: BLENDER_SCRIPT_SUCCESS + BVF_MCP_SMOKE_OK
@@ -37,6 +51,8 @@ FORMAL_PREVIEW_ENTRY: NOT_ASSIGNED
 FORMAL_FINAL_RENDER_ENTRY: NOT_ASSIGNED
 FORMAL_OUTPUT_VALIDATION_ENTRY: NOT_ASSIGNED
 ```
+
+`STOP_LOSS_TRIGGERED` 只表示当前 `P4_CHECKOUT_ASSET_BASELINE` 问题的状态。旧 P5 首帧构图问题已经触发止损，记录在第 9 节，不因开启新的基础问题而清零。
 
 ## 1. 视频目标
 
@@ -73,16 +89,20 @@ projects\bvf_test_001_checkout_bottleneck\design\ASSET_CAPABILITY_REQUIREMENTS.m
 4. 顾客分流：中间队伍顾客依次观察、转身并加入左右队伍。
 5. 结果展示：顾客总数不变，左右队伍比开头明显变长，中间窗口持续关闭。
 
-### 2.3 当前成片范围
+### 2.3 最终发布规格
 
 ```text
-画幅：9:16
+最终发布画幅：9:16
 目标分辨率：1080x1920
 帧率：30 FPS
 时长：约 11.5 秒
 ```
 
-当前只进入正式首帧阶段，不授权完整动画、完整预览或正式渲染。
+最终发布规格不因当前基础修正而改变。
+
+当前有效工程验证画幅与最终发布画幅相同，均为 9:16。未来可以由用户明确批准改用 16:9 制作最小端到端工程样片；在该批准真实发生并写入本计划前，16:9 只属于候选方案，不得替代当前有效的 9:16 工程验证画幅。
+
+当前只授权整理项目状态。尚未授权打开或保存 `.blend`、运行 Blender、制作动画、完整预览或正式渲染。
 
 ## 3. 当前可发布级标准
 
@@ -97,18 +117,22 @@ projects\bvf_test_001_checkout_bottleneck\design\ASSET_CAPABILITY_REQUIREMENTS.m
 7. 完整成片具备字幕、必要音效和清楚节奏。
 8. 视频干净、完整、可解码，用户愿意发布。
 
+这些发布级标准不等于当前 P4 资产模板任务的全部验收标准。当前任务只处理会阻断可靠布局和镜头生产的收银台基准问题。
+
 ## 4. 当前正式生产资产路线
 
 ### 4.1 环境与收银设备
 
 ```text
 ASSET_ROUTE: PensamientoAzul Supermarket 3D Assets
+RAW_GEOMETRY_SOURCE: cashier.fbx
 LOCAL_PACKAGE_REFERENCE: Supermercado.zip
-PRIMARY_CHECKOUT_ASSET: cashier.fbx
 SOURCE_STATUS: CONFIRMED_FOR_CURRENT_ROUTE
 LICENSE_STATUS: CONFIRMED_IN_COMPLETED_ASSET_REVIEW
-TECHNICAL_DECISION: SELECTED_FOR_FORMAL_FIRST_FRAME
-VISUAL_APPROVAL: PENDING_FORMAL_FIRST_FRAME
+TECHNICAL_CAPABILITY: CONFIRMED
+MANUAL_CALIBRATION_REFERENCE: scene\formal_first_frame_manual_layout_v1.blend
+APPROVED_TEMPLATE_STATUS: NOT_CREATED
+FORMAL_LAYOUT_ELIGIBILITY: BLOCKED_UNTIL_TEMPLATE_APPROVED
 ```
 
 已确认的技术事实：
@@ -117,13 +141,43 @@ VISUAL_APPROVAL: PENDING_FORMAL_FIRST_FRAME
 2. 收银台由 4 个独立 Mesh 组成。
 3. 传送带表面可以独立控制。
 4. 三个收银台实例可以分别控制。
-5. 资产可以进入正式首帧进行比例、构图和风格审核。
+5. 这些事实只证明原始资产具备技术能力，不证明正式世界尺寸、贴地、方向或布局已经批准。
 
-边界：
+三种来源的职责：
 
-1. 诊断阶段使用过的放大比例只用于确认结构，不是正式首帧比例。
-2. 正式比例必须根据人物、相机和画面构图重新决定。
-3. 技术可用不等于视觉路线已经获得用户批准。
+```text
+cashier.fbx
+→ 原始几何来源
+
+scene\formal_first_frame_manual_layout_v1.blend
+→ 用户确认的视觉尺寸、位置和空间关系参考
+→ 身份为 MANUAL_REFERENCE
+
+未来批准的收银台模板
+→ 通过必要机器门禁和用户视觉确认后形成
+→ 正式视频生产唯一默认收银台来源
+```
+
+用户报告人工参考场景中收银台父级 Scale 为：
+
+```text
+X = 13.154
+Y = 35.448
+Z = 18.330
+```
+
+这组数值只说明当前导入层级如何达到用户认可的可见效果，不是批准模板合同。正式基准必须记录可见几何的组合世界尺寸、最低点、方向、结构和锚点，不得把非均匀父级 Scale 直接复制成长期规则。
+
+不得继续沿用“根据人物、相机和画面构图反复重新决定正式比例”的旧假设。
+
+正确规则：
+
+```text
+先从 MANUAL_REFERENCE 提取并批准收银台世界空间基准
+→ 再派生批准模板
+→ 后续布局和相机只能使用批准尺寸
+→ 不得为了构图重新缩放收银台
+```
 
 ### 4.2 人物
 
@@ -132,8 +186,8 @@ ASSET_ROUTE: Quaternius Ultimate Animated Character Pack
 PRIMARY_CHARACTER_REFERENCE: Casual_Male.blend
 LICENSE_STATUS: CC0
 IMPORT_METHOD: BLEND_APPEND
-TECHNICAL_DECISION: SELECTED_FOR_FORMAL_FIRST_FRAME
-VISUAL_APPROVAL: PENDING_FORMAL_FIRST_FRAME
+TECHNICAL_CAPABILITY: CONFIRMED
+VISUAL_APPROVAL: PENDING_FORMAL_SCENE
 ```
 
 已确认的技术事实：
@@ -144,32 +198,31 @@ VISUAL_APPROVAL: PENDING_FORMAL_FIRST_FRAME
 4. Walk 是原地循环动作，不依靠静态姿势平移冒充行走。
 5. 世界空间位移应由人物顶层控制对象承担。
 6. `CharacterRootControl` 路线能够在不破坏骨骼动画的情况下控制人物移动。
-7. 足部高度在步态周期中真实变化，证明 Walk 动作不是固定姿势。
-8. 资产可以在 EEVEE 中正常显示并进入正式首帧。
+7. 足部高度在步态周期中真实变化。
+8. 资产可以在 EEVEE 中正常显示。
 
-边界：
-
-1. 当前只证明技术路线可行。
-2. 诊断接触表没有形成正式视觉批准。
-3. 人物与超市场景是否风格协调，必须通过正式首帧判断。
+当前 P4 问题只处理收银台基准。不得顺便修改人物资产路线、人物比例、骨骼、动作、材质或正式动画。人物尺寸和贴地只在后续布局门禁中按真实需要检查。
 
 ## 5. 当前阶段状态
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
-| P0 环境与入口确认 | RECHECK_WHEN_NEEDED | 下一次需要 Blender 时重新运行最小 MCP smoke test |
+| P0 环境与入口确认 | RECHECK_WHEN_NEEDED | 下一次授权 Blender 任务时重新运行最小 MCP smoke test |
 | P1 视频定义与剧情冻结 | COMPLETED | 核心结论和五段故事已经冻结 |
 | P2 资产能力要求冻结 | COMPLETED | 核心互动能力已经明确 |
 | P3 资产搜索、许可证与候选裁决 | COMPLETED | PensamientoAzul 与 Quaternius 路线已选定 |
-| P4 新资产孤立验证 | MINIMUM_TECHNICAL_PASS | 已证明正式首帧所需的最低技术能力；诊断图不构成视觉批准 |
-| P5 静态首帧锁定 | CURRENT_STAGE | 尚无正式首帧，下一任务直接制作首帧 V1 |
-| P6 3–5 秒核心功能样片 | NOT_STARTED | 首帧批准后再开始 |
+| P4 新资产孤立验证与固定资产库 | CURRENT_STAGE | 原始资产最低技术能力已证明；批准收银台模板尚未创建；当前先冻结并测量人工参考场景 |
+| P5A 世界布局批准 | NOT_STARTED | 等收银台批准模板和布局合同完成后开始 |
+| P5B 镜头构图批准 | NOT_STARTED | 等世界布局获得批准后开始；不得继续直接生成相机方案 |
+| P6 3–5 秒核心功能样片 | NOT_STARTED | 正式镜头批准后再开始 |
 | P7 完整动画配置冻结 | NOT_STARTED | 功能样片通过后再开始 |
-| P8 确定性构建 | NOT_ASSIGNED | 正式入口将在实际脚本存在并验证后填写 |
-| P9 项目技术门禁 | LEGACY_REFERENCE_ONLY | 旧 graybox 门禁不能直接授权当前资产路线 |
-| P10 完整低清预览 | NOT_STARTED | 完整动画和必要门禁通过后再开始 |
+| P8 确定性构建 | NOT_ASSIGNED | 正式入口将在真实脚本存在并验证后填写 |
+| P9 项目技术门禁与统一编排 | NOT_ASSIGNED_FOR_CURRENT_ROUTE | 旧 graybox 门禁不能授权当前路线；当前项目 G0/G1 尚未接入 |
+| P10 完整低清预览 | NOT_STARTED | 完整动画和必要门禁通过后开始 |
 | P11 正式渲染与输出验证 | NOT_AUTHORIZED | 当前不得启动 |
 | P12 后期包装与交付 | NOT_STARTED | 当前不得启动 |
+
+当前阶段从 P5 调整为 P4，不是推翻视频路线，而是补回此前被错误跳过的资产基准层。旧 P5 结果保留为历史证据，不作为当前继续修补的候选。
 
 ## 6. 当前已确认的技术事实
 
@@ -183,123 +236,150 @@ VISUAL_APPROVAL: PENDING_FORMAL_FIRST_FRAME
 6. Walk 可以循环播放。
 7. 人物世界位移由顶层 Root 控制，不能用固定姿势滑行代替。
 8. Blender 5.1.2 和 EEVEE 可以执行当前资产路线的最小渲染。
-9. 当前资产路线在技术上足以进入正式首帧。
-10. 当前没有任何真实结果证明正式画面已经通过视觉审核。
+9. 当前资产路线足以进入资产基准提取和批准模板派生。
+10. 当前没有批准的收银台资产模板、世界布局、镜头或正式首帧。
+11. 当前没有真实结果证明旧正式首帧已经通过视觉审核。
+12. 通用检查器存在不等于收银台已经被项目门禁配置和检查。
 
-## 7. 已完成但不作为正式视觉批准的验证
-
-资产技术验证已经完成其最低目的：
-
-1. 证明收银台结构和多实例控制可行。
-2. 证明人物原生 Append、Idle、Walk 和 Root 位移可行。
-3. 证明当前资产组合能够在 Blender 中渲染。
-
-现有诊断输出存在裁切、重叠或无法直接展示正式构图的问题，因此：
+## 7. 当前人工参考及批准边界
 
 ```text
-不得把诊断接触表写为正式首帧
-不得把技术数据写为视觉通过
-不得继续为了美化诊断接触表而推迟正式生产
+REFERENCE_PATH: scene\formal_first_frame_manual_layout_v1.blend
+IDENTITY: MANUAL_REFERENCE
+SOURCE_OF_TRUTH_FOR: 用户认可的收银台可见尺寸、贴地结果和收银台之间的位置参考
+NOT_APPROVED_AS: 资产模板、世界布局、正式镜头或正式首帧
 ```
 
-资产验证任务的自动修正额度已经用完。除非用户明确重新授权，不再启动第三轮接触表修正任务。
+用户已确认该人工场景中的收银台大小和位置在视觉上正确。因此它可以作为只读标定来源。人工场景中的人物站位、完整世界布局、相机、灯光和材质不因本次确认自动获得批准。开始模板派生前必须先完成：
 
-## 8. 用户已批准的视觉版本
+1. 文件真实存在性和身份验证。
+2. 只读打开。
+3. 组合世界包围盒尺寸提取。
+4. 世界空间最低点和地面关系提取。
+5. 对象层级、世界矩阵和实例一致性提取。
+6. 正面、顾客侧和队伍延伸方向确认。
+7. 统一诊断视图比较。
+8. 用户确认提取结果代表人工场景中的正确答案。
+
+在这些步骤完成前：
 
 ```text
-APPROVED_ASSET_STYLE_ROUTE: NOT_YET
-APPROVED_FORMAL_FIRST_FRAME: NONE
-APPROVED_CORE_FUNCTION_SAMPLE: NONE
-APPROVED_LOW_RES_PREVIEW: NONE
-APPROVED_FINAL_VIDEO: NONE
+CURRENT_APPROVED_ASSET_TEMPLATE: NONE
+CURRENT_APPROVED_WORLD_LAYOUT: NONE
+CURRENT_APPROVED_SHOT: NONE
 ```
 
-用户已同意继续使用当前技术路线进行下一步生产，但尚未批准任何正式画面。
+不得把人工参考原件直接复制到 `APPROVED`，也不得覆盖、Apply Transform、清理层级、重新导入资产或保存修改。
 
-## 9. 当前阻断问题
+## 8. 当前阻断问题
 
-### B1：没有接近成片的正式首帧
+### 当前 P4 问题的 BLOCKER
 
-当前没有一张真实画面能够证明三个窗口、三条队伍和整体空间关系清楚可读。
+#### B1：没有批准的收银台资产模板
 
-### B2：核心因果所需的空间构图尚未得到视觉证明
+当前只有原始 `cashier.fbx` 和人工参考场景。正式布局仍缺少稳定、可重复 Append 的批准模板。
 
-必须先证明开头的三个窗口和三条队伍可以在 9:16 画面中同时清楚呈现，之后才值得扩展动画。
+#### B2：人工参考场景尚未冻结并提取世界空间事实
 
-### B3：正式比例、材质和灯光尚未冻结
+当前知道用户认可画面，但没有机器可读的世界尺寸、最低点、方向、层级和实例一致性结果。
 
-诊断阶段参数不能直接作为成片参数。收银台比例、人物大小、材质表现、环境亮度和相机位置必须通过正式首帧共同确定。
+#### B3：批准基准尚未形成
 
-### B4：当前资产组合尚未获得用户视觉批准
+父级 Scale 不能代替可见几何的世界空间合同。没有批准基准时，Claude Code 仍可能在下一场景中重新猜测大小、位置和贴地。
 
-技术可行不能代替风格和发布价值判断。正式首帧是当前唯一需要解决的视觉门槛。
+### P4 完成前必须解决的阻断
 
-### P0 前置条件
+#### B4：G0 资产门禁尚未接入当前收银台模板路线
 
-下一次执行 Blender 任务时，需要重新确认当前会话的 MCP 和后台执行能力。该检查属于正式首帧任务的最小前置步骤，不单独形成新的项目阶段或报告任务。
+现有通用检查器尚未被当前项目正式配置并调用来检查收银台模板身份、世界尺寸、最低点、方向、结构和保存重开一致性。批准收银台模板前必须建立并通过 G0；G1 不属于 P4 的完成条件。
+
+### 开始 P5A 布局施工前必须准备的条件
+
+#### B5：批准布局合同、布局构建入口和 G1 配置尚未建立
+
+当前人工场景可以提供关系参考，但不能直接代替可重复构建的批准布局合同、确定性布局入口和 G1 检查配置。P5A 阶段内才生成世界布局候选、运行 G1，并由用户批准世界布局；这些结果不要求在进入 P5A 前预先完成。
+
+B4 和 B5 不阻止当前只读测量任务。B4 必须在批准收银台模板前解决；B5 必须在开始 P5A 布局施工前准备完成。
+
+## 9. 历史问题与止损记录
+
+```text
+HISTORICAL_PROBLEM_ID: P5_FIRST_FRAME_COMPOSITION
+STATUS: STOP_LOSS_TRIGGERED
+RESULT: CLOSED_PENDING_FOUNDATION_REBUILD
+IMPLEMENTATION_AND_ATTEMPTS: V1 / V2 / V3 / ALT_V1
+```
+
+历史事实：
+
+1. V1、V2、V3 和 ALT_V1 均生成过实际 PNG。
+2. 四版均未满足“三个收银窗口第一眼清楚可读、三条队伍完整、主体占比合理”的冻结标准。
+3. 旧任务连续修改相机、构图、布局或资产表现，但基础资产尺寸、贴地和布局合同没有先被冻结。
+4. 旧首帧失败不能再只归因于相机，也不能继续生成第五个相机方案。
+5. V1、V2、V3 和 ALT_V1 均不得重新激活为当前唯一任务或下一阶段输入。
+
+旧问题的止损记录永久保留。当前开启的是新的 `P4_CHECKOUT_ASSET_BASELINE`，其次数从 0 开始；这不表示旧问题被删除或重置。
 
 ## 10. 当前唯一下一任务
 
 ```text
-TASK_ID: FORMAL_FIRST_FRAME_V1
-CURRENT_STAGE: P5_FORMAL_FIRST_FRAME
-UNIQUE_MAIN_GOAL: 使用已选定的 PensamientoAzul 收银台与 Quaternius 人物，制作一张接近最终成片效果的 9:16 正式首帧，让三个收银窗口、三条队伍和整体空间关系清楚可读。
+PROBLEM_ID: P4_CHECKOUT_ASSET_BASELINE
+TASK_ID: FREEZE_AND_MEASURE_MANUAL_REFERENCE_V1
+CURRENT_STAGE: P4_ASSET_TEMPLATE_BASELINE
+INPUT_IDENTITY: MANUAL_REFERENCE
+TASK_STATUS_BEFORE_START: AWAITING_USER_AUTHORIZATION
 ```
 
-### 10.1 允许范围
+### 唯一目标
 
-1. Append 已验证的人物资产。
-2. 导入或使用已选定的收银台与必要超市场景资产。
-3. 创建三个收银窗口和三条队伍。
-4. 调整人物和设备的正式比例、位置和朝向。
-5. 设置正式首帧所需的相机、灯光、环境和材质表现。
-6. 创建或修改完成首帧所需的最小确定性脚本。
-7. 保存新的版本化 `.blend`。
-8. 渲染一张低成本审核分辨率的 9:16 正式首帧。
+只读冻结并测量用户确认的人工参考场景，为下一轮派生收银台候选模板建立可信基准。
 
-### 10.2 禁止范围
+### 允许执行
 
-1. 不创建完整动画。
-2. 不制作 3–5 秒功能样片。
-3. 不制作完整低清预览。
-4. 不进行正式全分辨率帧序列渲染。
-5. 不扩建通用质检系统。
-6. 不运行完整测试回归。
-7. 不生成 Contact Sheet。
-8. 不生成复杂 JSON、审计报告、证据包、Manifest 或 ZIP。
-9. 不自动进入 P6。
+1. 在下一次任务开始时重新确认 MCP 或后台 Blender 执行能力。
+2. 验证人工参考路径真实存在。
+3. 记录来源路径、文件大小、修改时间和一个用于识别原件的哈希值。
+4. 在全新 Blender 进程中只读打开人工参考场景。
+5. 提取收银台对象层级、对象身份和子 Mesh 结构。
+6. 提取每台收银台的组合世界包围盒尺寸。
+7. 提取世界空间最低点、地面高度和贴地差值。
+8. 提取世界矩阵、正面方向、顾客侧和队伍延伸方向。
+9. 比较三台收银台实例的可见几何尺寸和结构一致性。
+10. 记录与收银台有关的候选锚点位置，但不得自行批准锚点。
+11. 生成正面、侧面、俯视和透视等必要诊断视图。
+12. 输出最小测量结果，等待 GPT 和用户确认。
 
-### 10.3 首帧验收标准
+### 禁止执行
 
-1. 画幅为 9:16，建议审核分辨率为 540x960。
-2. 三个收银窗口全部清楚可见，并能区分左、中、右。
-3. 三条队伍全部清楚可读，不因人物严重重叠而混成一团。
-4. 中间窗口和中间队伍的位置关系清楚，为后续关闭与分流留下可见空间。
-5. 人物没有明显横躺、漂浮、穿模、异常缩放或关键性裁切。
-6. 收银台、人物和环境比例基本可信。
-7. 画面具备接近成片的材质和灯光，不是诊断图。
-8. 资产风格没有明显冲突到无法继续。
-9. 不依靠字幕解释场景结构。
-10. GPT 必须查看实际 PNG 后才能裁定是否通过。
+1. 不得保存、覆盖或修改人工参考原件。
+2. 不得 Apply Transform、整理层级、移动对象或改变 Scale。
+3. 不得重新导入 `cashier.fbx`。
+4. 不得创建候选或批准资产模板。
+5. 不得创建或修改布局合同。
+6. 不得调整人物、相机、灯光或材质。
+7. 不得制作动画、样片、完整预览或正式渲染。
+8. 不得自动进入模板派生任务。
 
-### 10.4 直接交付物
+### 预期最小产物
 
 ```text
-formal_first_frame_v1.png
-formal_first_frame_v1.blend
+一个结构化测量结果
+必要的统一诊断视图
+原件未被修改的确认
 ```
 
-支持构建的脚本和配置可以保存在项目中，但不是用户本轮必须上传审核的主要交付物。
+具体脚本名和输出路径只有在文件真实创建并验证后才写入正式入口，不在本计划中预先猜测。
 
-### 10.5 停止条件
+### 通过条件
 
-出现以下任一情况时停止并如实报告：
+1. 人工参考文件真实存在并可由全新 Blender 进程打开。
+2. 提取结果来自可见几何的世界空间状态，而不是只读取父级 Scale。
+3. 三台收银台的尺寸、最低点、方向和结构得到明确记录。
+4. 诊断视图能够让 GPT 和用户核对提取对象是否正确。
+5. 人工参考原件未被修改。
+6. 用户确认测量结果可以作为候选模板派生的基准。
 
-1. 已选资产无法在同一场景中正常加载。
-2. 人物或收银台存在无法通过当前任务范围解决的结构错误。
-3. 9:16 画面无法在不破坏核心因果的情况下容纳三个窗口和三条队伍。
-4. 完成首帧需要更换核心资产或改变已锁定故事。
-5. 一轮实现和一轮定点修正后仍无法满足首帧验收标准。
+如果第 6 项尚未发生，执行报告必须保持 `TASK_STATUS: PARTIAL`、`USER_APPROVAL: PENDING`。可以如实报告候选测量产物已生成，但不得将测量结果晋升为批准合同，也不得开始下一阶段。
 
 ## 11. 当前正式入口映射
 
@@ -311,7 +391,7 @@ FORMAL_FINAL_RENDER_ENTRY: NOT_ASSIGNED
 FORMAL_OUTPUT_VALIDATION_ENTRY: NOT_ASSIGNED
 ```
 
-正式入口只有在真实脚本存在并完成最小验证后才能填写。
+尚未进入相应阶段的入口保持 `NOT_ASSIGNED`，不阻断当前只读测量任务。入口只有在真实脚本存在并完成最小验证后才能填写。
 
 ### 旧项目参考入口
 
@@ -338,12 +418,12 @@ projects\bvf_test_001_checkout_bottleneck\build_function_sample_v1.py
 
 ### QUALITY
 
-1. Quaternius 人物与 PensamientoAzul 环境可能存在风格差异，先通过正式首帧判断。
-2. 收银台原始比例和结构可能需要视觉调整。
+1. Quaternius 人物与 PensamientoAzul 环境可能存在风格差异，后续通过正式场景判断。
+2. 设备关闭状态的最终视觉表现尚未冻结。
 3. 正式字幕、音效和节奏尚未设计。
-4. 设备关闭状态的最终视觉表现尚未冻结。
+4. 最终 9:16 可能需要拆镜头，而不是强迫全部故事进入单个首帧。
 
-这些问题除非直接导致首帧无法使用，否则不得在本轮扩展成额外任务。
+以上内容不属于当前只读测量任务，不得顺便处理。
 
 ### TECH_DEBT
 
@@ -352,36 +432,56 @@ projects\bvf_test_001_checkout_bottleneck\build_function_sample_v1.py
 3. 当前仓库没有独立命名为 `blender_output_artifact_check` 的通用输出入口。
 4. 通用质检不能判断动作自然度、完整时间轴连续性和画面审美。
 
-这些问题当前不阻止正式首帧。
+这些问题不阻止当前 P4 测量任务。只有直接阻断后续批准模板、布局或输出时才进入对应任务。
 
 ## 13. 状态更新权限
 
-1. Claude Code 可以报告真实执行事实，但不能自行写入用户视觉批准。
-2. Claude Code 的 `COMPLETED` 只表示任务要求的工作和交付已完成。
-3. GPT 必须先查看实际 PNG 或 MP4，再决定是否更新阶段和唯一下一任务。
-4. 用户负责最终审美批准、继续投入、止损和发布决定。
-5. 正式入口必须在文件真实存在并通过最小验证后才能从 `NOT_ASSIGNED` 改为具体路径。
-6. 当前首帧通过前，不得把 `CURRENT_STAGE` 改为 P6。
+1. Claude Code 只能报告真实执行事实，不能自行写入用户视觉批准。
+2. GPT 可以批准纯技术配置、脚本和机器门禁结果。
+3. 用户负责核心资产视觉比例、世界布局、镜头、样片、完整预览和成片等视觉批准。
+4. `TASK_STATUS: COMPLETED` 不等于阶段批准，也不允许候选自动晋升。
+5. GPT 必须读取原始机器结果；视觉任务必须查看实际 PNG 或 MP4 后再提出批准建议。
+6. 正式入口必须在文件真实存在并通过最小验证后才能从 `NOT_ASSIGNED` 改为具体路径。
+7. 当前收银台模板未批准前，不得把 `CURRENT_STAGE` 改为 P5A。
+8. 世界布局未批准前，不得进入 P5B 相机定稿。
+9. 当前 `P4_CHECKOUT_ASSET_BASELINE` 的修正次数必须按同一 `PROBLEM_ID` 记录，不能通过改任务名重置。
+10. 仍有修正额度不等于已经获得修正授权。
 
-## 14. R2 更新依据
+## 14. R3 更新依据与范围
 
 本次更新依据：
 
 ```text
-CLAUDE.md
-VIDEO_PRODUCTION_EXECUTION_STANDARD.md R3
-projects\bvf_test_001_checkout_bottleneck\design\SCENE_REACTION_TABLE.md
-projects\bvf_test_001_checkout_bottleneck\design\ASSET_CAPABILITY_REQUIREMENTS.md
-当前资产来源与许可证裁决
-当前资产路线的两轮技术验证结果
-GPT 对实际诊断图片和预览的视觉审核
-用户对继续当前资产路线和生产顺序的确认
+CLAUDE.md R4
+VIDEO_PRODUCTION_EXECUTION_STANDARD.md R4
+原 VIDEO_PLAN.md R2
+当前资产技术验证结果
+四版正式首帧未批准的历史事实
+用户确认的人工参考场景和收银台视觉尺寸、位置
+本轮对资产基准、布局、门禁和止损问题的讨论结论
 ```
 
-本次更新只同步当前真实状态和唯一下一任务：
+本次更新只调整项目状态和生产顺序：
 
 1. 不修改视频故事。
-2. 不修改资产文件。
-3. 不创建正式首帧。
-4. 不运行 Blender、测试、质检或渲染。
-5. 不自动开始下一阶段。
+2. 不修改最终 9:16 发布规格。
+3. 不更换现有资产路线。
+4. 不删除旧首帧失败和止损记录。
+5. 将当前阶段从 P5 纠正为 P4 资产模板基准。
+6. 登记人工参考场景，但不把它冒充批准模板。
+7. 建立新的 `P4_CHECKOUT_ASSET_BASELINE` 问题和次数记录。
+8. 把唯一下一任务改为只读冻结与测量。
+9. 禁止继续直接调相机、制作动画或自动推进。
+10. 不运行 Blender、测试、质检或渲染。
+
+## 15. R2 历史更新记录
+
+R2 曾依据当时的 R3 生产规范同步资产技术路线、旧 P5 状态和唯一下一任务。R2 保留的有效历史事实包括：
+
+1. 视频题目和核心因果已冻结。
+2. PensamientoAzul 与 Quaternius 资产路线已选择。
+3. 收银台结构、多实例控制、人物 Append、Idle、Walk 和 Root 位移技术路线已得到最低验证。
+4. V1、V2、V3 和 ALT_V1 均未获得正式首帧视觉批准。
+5. 旧 graybox 入口不能授权当前真实资产路线。
+
+R3 根据后续真实生产问题纠正了 R2 中“原始资产最低技术通过即可直接进入首帧”和“正式比例由相机与构图重新决定”的错误前提。
