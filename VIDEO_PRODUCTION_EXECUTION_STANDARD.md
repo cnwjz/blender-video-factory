@@ -7,7 +7,7 @@ DATE: 2026-07-28
 PROJECT_ROOT: D:\blender-video-factory
 DOCUMENT_ROLE: Blender 视频生产流程最高级通用规范
 APPLIES_TO: 本仓库内所有新建和继续推进的视频项目
-STATUS: DRAFT_FOR_USER_REVIEW
+STATUS: APPROVED_FOR_USE
 ```
 
 ## 一、文档目的
